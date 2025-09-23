@@ -1,6 +1,6 @@
 {{-- resources/views/layouts/navigation.blade.php --}}
 
-<nav class="bg-white shadow-sm">
+<nav class="sticky top-0 z-40 bg-white shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex items-center">
@@ -37,6 +37,8 @@
                     <a href="{{ route('bookings.index') }}" class="text-gray-700 hover:text-green-600">
                         Bookings
                     </a>
+                    <a href="{{ route('about') }}" class="text-gray-700 hover:text-green-600">About Us</a>
+                    <a href="{{ route('how-it-works') }}" class="text-gray-700 hover:text-green-600">How It Works</a>
                     
                     {{-- User Menu - Simple Version without Alpine.js --}}
                     <a href="{{ route('profile.edit') }}" class="text-gray-700 hover:text-green-600">

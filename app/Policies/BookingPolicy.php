@@ -22,7 +22,7 @@ class BookingPolicy
     public function view(User $user, Booking $booking): bool
     {
         // Can view if they're the tenant or the landlord
-        return $booking->tenant_id === $user->id || 
+        return $booking->user_id === $user->id || 
                $booking->property->user_id === $user->id;
     }
 
@@ -49,7 +49,7 @@ class BookingPolicy
     public function delete(User $user, Booking $booking): bool
     {
         // Tenant can cancel their own booking
-        return $booking->tenant_id === $user->id;
+        return $booking->user_id === $user->id;
     }
 
     /**

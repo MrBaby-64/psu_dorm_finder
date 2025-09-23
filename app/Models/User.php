@@ -19,7 +19,11 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'role',
         'phone',
+        'address',      // Add this
+        'city',         // Add this  
+        'province',     // Add this
         'is_verified',
+        'valid_id_path',
     ];
 
     protected $hidden = [
@@ -29,7 +33,6 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
         'is_verified' => 'boolean',
     ];
 
@@ -65,7 +68,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function bookings(): HasMany
     {
-        return $this->hasMany(Booking::class, 'tenant_id');
+        return $this->hasMany(Booking::class, 'user_id');
     }
 
     public function reviews(): HasMany
@@ -135,4 +138,27 @@ class User extends Authenticatable implements MustVerifyEmail
     {
     return $this->hasMany(Inquiry::class);
     }
+
+    // Add these relationships to your existing User.php file after the existing relationships
+
+public function transactions(): HasMany
+{
+    return $this->hasMany(Transaction::class);
+}
+
+public function notifications(): HasMany
+{
+    return $this->hasMany(Notification::class);
+}
+
+public function scheduledVisits(): HasMany
+{
+    return $this->hasMany(ScheduledVisit::class);
+}
+
+// Method to get unread notification count
+public function getUnreadNotificationsCountAttribute(): int
+{
+    return $this->notifications()->unread()->count();
+}
 }

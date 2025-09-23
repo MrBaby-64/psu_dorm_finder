@@ -1,140 +1,212 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - PSU Dorm Finder</title>
-    <style>
-        /* Add blur effect manually */
-        .backdrop-blur-md {
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-        body {
-            background: linear-gradient(to bottom right, #dcfce7, #dbeafe);
-            min-height: 100vh;
-        }
-    </style>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body>
+@extends('layouts.guest')
 
-    <!-- Role Selection Modal -->
-<div id="roleModal" class="fixed inset-0 flex items-center justify-center z-50 p-4">
-    <div class="absolute inset-0 bg-gradient-to-br from-green-900/30 to-blue-900/30 backdrop-blur-md"></div>
+@section('title', 'Register')
+
+@push('styles')
+<style>
+    .backdrop-blur-md {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+</style>
+@endpush
+
+@section('content')
+@php
+    // convenience: what role was previously selected (if any)
+    $oldRole = old('role');
+@endphp
+
+<div class="min-h-screen flex items-center justify-center py-12 px-4" style="background: linear-gradient(to bottom right, #dcfce7, #dbeafe);">
     
-    <!-- Much narrower modal like Dormy -->
-    <div class="relative bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl">
-        
-        <!-- Close Button -->
-        <div class="absolute -top-3 -right-3">
-            <button onclick="window.location.href='{{ route('home') }}'" 
-                    class="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:scale-110 border-2 border-gray-200 hover:border-red-400">
-                <svg class="w-6 h-6 text-gray-600 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        
-        <div class="text-center mb-6">
-            <h2 class="text-3xl font-bold text-green-600 mb-2">PSU Dorm Finder</h2>
-            <p class="text-lg text-gray-700">How can we help you today?</p>
-        </div>
+    <!-- Role Selection Modal -->
+    <div id="roleModal" class="{{ $oldRole ? 'hidden' : '' }} max-w-md w-full">
+        <div class="bg-white rounded-3xl p-8 shadow-2xl">
+            <div class="text-center mb-6">
+                <h2 class="text-3xl font-bold text-green-600 mb-2">PSU Dorm Finder</h2>
+                <p class="text-lg text-gray-700">How can we help you today?</p>
+            </div>
 
-        <!-- Stacked buttons instead of side-by-side -->
-        <div class="space-y-4">
-            <!-- Tenant Button -->
-            <button onclick="selectRole('tenant')" 
-                    class="w-full p-4 border-2 border-blue-300 bg-blue-50 rounded-xl hover:bg-blue-100 hover:shadow-lg transition-all">
-                <div class="flex items-center justify-center gap-3">
-                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <span class="text-lg font-semibold text-blue-700">I'm looking for a place to rent</span>
-                </div>
-            </button>
+            <div class="space-y-4">
+                <button type="button" onclick="console.log('Button clicked!'); selectRole('tenant');" class="w-full p-4 border-2 border-blue-300 bg-blue-50 rounded-xl hover:bg-blue-100 hover:shadow-lg transition-all">
+                    <div class="flex items-center justify-center gap-3">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <span class="text-lg font-semibold text-blue-700">I'm looking for a place to rent</span>
+                    </div>
+                </button>
 
-            <!-- Landlord Button -->
-            <button onclick="selectRole('landlord')" 
-                    class="w-full p-4 border-2 border-green-300 bg-green-50 rounded-xl hover:bg-green-100 hover:shadow-lg transition-all">
-                <div class="flex items-center justify-center gap-3">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                    </svg>
-                    <span class="text-lg font-semibold text-green-700">I want to post my rental property</span>
-                </div>
-            </button>
-        </div>
+                <button type="button" onclick="console.log('Landlord button clicked!'); selectRole('landlord');" class="w-full p-4 border-2 border-green-300 bg-green-50 rounded-xl hover:bg-green-100 hover:shadow-lg transition-all">
+                    <div class="flex items-center justify-center gap-3">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span class="text-lg font-semibold text-green-700">I want to post my rental property</span>
+                    </div>
+                </button>
+            </div>
 
-        <div class="text-center mt-6 text-sm text-gray-600">
-            Already have an account? 
-            <a href="{{ route('login') }}" class="text-green-600 hover:underline font-semibold">Login here</a>
+            <div class="text-center mt-6 text-sm text-gray-600">
+                Already have an account? 
+                <a href="{{ route('login') }}" class="text-green-600 hover:underline font-semibold">Login here</a>
+            </div>
         </div>
     </div>
-</div>
-        <div class="text-center mt-6 text-sm">
-            Already have an account? 
-            <a href="{{ route('login') }}" class="text-green-600 hover:underline font-semibold">Login here</a>
-        </div>
-    </div>
-</div>
 
     <!-- Registration Form -->
-    <div id="registrationForm" class="hidden min-h-screen flex items-center justify-center py-12 px-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-10 max-w-xl w-full">
+    <!-- show the form immediately if old role exists (so validation errors re-show the fields) -->
+    <div id="registrationForm" class="{{ $oldRole ? '' : 'hidden' }} max-w-xl w-full">
+        <div class="bg-white rounded-2xl shadow-2xl p-10">
+
+            <!-- Show validation errors -->
+            @if ($errors->any())
+                <div class="mb-6 bg-red-50 border-2 border-red-400 text-red-800 p-6 rounded-xl shadow-lg">
+                    <div class="flex items-start gap-3 mb-4">
+                        <div class="flex-shrink-0">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-red-800 mb-2">❌ Registration Failed</h3>
+                            <p class="text-sm text-red-700 mb-3">Please fix the following issues:</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        @foreach ($errors->all() as $error)
+                            <div class="flex items-start gap-2 p-3 bg-red-100 border border-red-300 rounded-lg">
+                                <span class="text-red-600 text-lg">•</span>
+                                <span class="text-sm font-medium text-red-800">{{ $error }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if ($errors->has('phone') || $errors->has('email'))
+                        <div class="mt-4 p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-5 h-5 text-yellow-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="font-semibold text-yellow-800 text-sm">💡 Helpful Tips:</h4>
+                                    <ul class="text-xs text-yellow-700 mt-1 space-y-1">
+                                        @if ($errors->has('email'))
+                                            <li>• Try a different email address (like: yourname_{{ date('Y') }}@gmail.com)</li>
+                                        @endif
+                                        @if ($errors->has('phone'))
+                                            <li>• Use a different phone number (like: 0917-XXX-XXXX)</li>
+                                        @endif
+                                        <li>• If you already have an account, <a href="{{ route('login') }}" class="underline font-semibold">click here to login instead</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             <h2 class="text-3xl font-bold mb-8 text-center text-green-600">Create Your Account</h2>
             
-            <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data" onsubmit="return validateForm()">
                 @csrf
-                <input type="hidden" id="roleInput" name="role">
+                <input type="hidden" id="roleInput" name="role" value="{{ $oldRole }}">
 
                 <div class="space-y-5">
                     <div>
                         <label class="block font-semibold mb-2">Full Name *</label>
-                        <input type="text" name="name" value="{{ old('name') }}" required
-                               class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
+                        <input type="text" name="name" value="{{ old('name') }}" required class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
                         @error('name')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
                     </div>
 
                     <div>
                         <label class="block font-semibold mb-2">Email *</label>
                         <input type="email" name="email" value="{{ old('email') }}" required
-                               class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
-                        @error('email')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
+                               class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none @error('email') border-red-500 bg-red-50 @enderror">
+                        @error('email')
+                            <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                                </div>
+                            </div>
+                        @enderror
                     </div>
 
                     <div>
-                        <label class="block font-semibold mb-2">Phone</label>
-                        <input type="tel" name="phone" value="{{ old('phone') }}"
-                               class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
+                        <label class="block font-semibold mb-2">Phone *</label>
+                        <input type="tel" name="phone" value="{{ old('phone') }}" required
+                               class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none @error('phone') border-red-500 bg-red-50 @enderror"
+                               placeholder="e.g., 09123456789">
+                        <p class="text-xs text-gray-600 mt-1">Enter a unique phone number (format: 09XXXXXXXXX)</p>
+                        @error('phone')
+                            <div class="mt-2 p-3 bg-red-100 border-2 border-red-400 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-red-700 text-sm font-bold">{{ $message }}</span>
+                                </div>
+                                <div class="mt-2 text-xs text-yellow-700 bg-yellow-50 border border-yellow-300 rounded p-2">
+                                    💡 <strong>Tip:</strong> Try a different number like: 0917{{ rand(1000000, 9999999) }}
+                                </div>
+                            </div>
+                        @enderror
                     </div>
 
-                    <!-- Valid ID (landlords only) -->
-                    <div id="validIdSection" class="hidden">
-                        <label class="block font-semibold mb-2">Valid ID *</label>
-                        <div class="border-2 border-dashed rounded-xl p-6 text-center hover:border-green-500 transition-colors">
-                            <input type="file" name="valid_id" accept="image/*,.pdf" class="hidden" id="idUpload" onchange="displayFileName(this)">
-                            <label for="idUpload" class="cursor-pointer">
-                                <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                </svg>
-                                <span id="fileName" class="text-green-600 font-semibold">Click to upload ID</span>
-                                <p class="text-xs text-gray-500 mt-2">Government-issued ID required</p>
-                            </label>
+                    <!-- Tenant fields (ALWAYS VISIBLE - controlled by JavaScript) -->
+                    <div id="addressSection" style="display: none;">
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-sm text-blue-800">
+                            📍 <strong>Help us show you nearby properties!</strong><br>
+                            Please provide your current address so we can show relevant dormitories in your area.
+                            <br><strong class="text-red-600">⚠️ Both address and city are required for tenant accounts.</strong>
                         </div>
+                        <div>
+                            <label class="block font-semibold mb-2">Current Address *</label>
+                            <textarea name="address" class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none" rows="2">{{ old('address') }}</textarea>
+                            @error('address')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="block font-semibold mb-2">City *</label>
+                                <select name="city" class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none" required>
+                                    <option value="">Select your city *</option>
+                                    <option value="Bacolor" {{ old('city')=='Bacolor' ? 'selected' : '' }}>Bacolor</option>
+                                    <option value="San Fernando" {{ old('city')=='San Fernando' ? 'selected' : '' }}>San Fernando</option>
+                                    <option value="Angeles City" {{ old('city')=='Angeles City' ? 'selected' : '' }}>Angeles City</option>
+                                    <option value="Mabalacat" {{ old('city')=='Mabalacat' ? 'selected' : '' }}>Mabalacat</option>
+                                    <option value="Other" {{ old('city')=='Other' ? 'selected' : '' }}>Other</option>
+                                </select>
+                                @error('city')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
+                            </div>
+                            
+                            <div>
+                                <label class="block font-semibold mb-2">Province</label>
+                                <input type="text" name="province" value="{{ old('province', 'Pampanga') }}" readonly class="w-full px-4 py-3 border-2 rounded-xl bg-gray-100 text-gray-600">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Landlord fields (ALWAYS HIDDEN - controlled by JavaScript) -->
+                    <div id="validIdSection" style="display: none;">
+                        <label class="block font-semibold mb-2">Valid ID (Optional)</label>
+                        <input type="file" name="valid_id" accept="image/*,.pdf" class="w-full border-2 rounded-xl p-3">
+                        <p class="text-sm text-gray-600 mt-1">You can upload your valid ID later for verification</p>
+                        @error('valid_id')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
                     </div>
 
                     <div>
                         <label class="block font-semibold mb-2">Password *</label>
-                        <input type="password" name="password" required
-                               class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
+                        <input type="password" name="password" required class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
                         @error('password')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
                     </div>
 
                     <div>
                         <label class="block font-semibold mb-2">Confirm Password *</label>
-                        <input type="password" name="password_confirmation" required
-                               class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
+                        <input type="password" name="password_confirmation" required class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
                     </div>
                 </div>
 
@@ -149,29 +221,168 @@
             </form>
         </div>
     </div>
+</div>
+@endsection
 
-    <script>
-        function selectRole(role) {
-            document.getElementById('roleModal').classList.add('hidden');
-            document.getElementById('registrationForm').classList.remove('hidden');
-            document.getElementById('roleInput').value = role;
-            
-            if (role === 'landlord') {
-                document.getElementById('validIdSection').classList.remove('hidden');
+@push('scripts')
+<script>
+    function selectRole(role) {
+        console.log('=== selectRole function called with role:', role, '===');
+
+        try {
+            // hide role modal and show registration form
+            const roleModal = document.getElementById('roleModal');
+            const registrationForm = document.getElementById('registrationForm');
+
+            console.log('Role modal found:', !!roleModal);
+            console.log('Registration form found:', !!registrationForm);
+
+            if (roleModal && registrationForm) {
+                roleModal.classList.add('hidden');
+                registrationForm.classList.remove('hidden');
+                console.log('✅ Forms toggled successfully');
+            }
+
+            // set hidden input value
+            const roleInput = document.getElementById('roleInput');
+            if (roleInput) {
+                roleInput.value = role;
+                console.log('✅ Role input set to:', roleInput.value);
+            }
+
+            // Wait a moment for DOM to be ready, then show/hide sections
+            setTimeout(function() {
+                console.log('=== Applying role-specific visibility ===');
+
+                const addressSection = document.getElementById('addressSection');
+                const validIdSection = document.getElementById('validIdSection');
+
+                console.log('Address section element:', addressSection);
+                console.log('Valid ID section element:', validIdSection);
+
+                if (role === 'tenant') {
+                    console.log('Processing TENANT role...');
+
+                    if (addressSection) {
+                        // Force multiple ways to show the element
+                        addressSection.style.display = 'block';
+                        addressSection.style.visibility = 'visible';
+                        addressSection.classList.remove('hidden');
+                        addressSection.classList.remove('d-none');
+
+                        console.log('✅ Address section SHOWN for tenant');
+                        console.log('Address section styles:', addressSection.style.cssText);
+
+                        // Make fields required
+                        const addressInput = addressSection.querySelector('[name="address"]');
+                        const cityInput = addressSection.querySelector('[name="city"]');
+
+                        if (addressInput) {
+                            addressInput.required = true;
+                            console.log('✅ Address input made required');
+                        }
+                        if (cityInput) {
+                            cityInput.required = true;
+                            console.log('✅ City input made required');
+                        }
+                    } else {
+                        console.error('❌ Address section NOT FOUND!');
+                    }
+
+                    if (validIdSection) {
+                        validIdSection.style.display = 'none';
+                        console.log('✅ Valid ID section hidden');
+                    }
+
+                } else if (role === 'landlord') {
+                    console.log('Processing LANDLORD role...');
+
+                    if (addressSection) {
+                        addressSection.style.display = 'none';
+                        console.log('✅ Address section hidden');
+                    }
+
+                    if (validIdSection) {
+                        validIdSection.style.display = 'block';
+                        validIdSection.style.visibility = 'visible';
+                        validIdSection.classList.remove('hidden');
+                        console.log('✅ Valid ID section shown for landlord');
+                    }
+                }
+
+                console.log('=== Role processing complete ===');
+            }, 50); // Small delay to ensure DOM is ready
+
+        } catch (error) {
+            console.error('❌ Error in selectRole function:', error);
+        }
+    }
+
+    function goBack() {
+        document.getElementById('roleModal').classList.remove('hidden');
+        document.getElementById('registrationForm').classList.add('hidden');
+        // reset hidden role
+        document.getElementById('roleInput').value = '';
+    }
+
+    // Form validation before submission
+    function validateForm() {
+        const role = document.getElementById('roleInput').value;
+        console.log('Form validation - Role:', role); // Debug log
+
+        if (role === 'tenant') {
+            const address = document.querySelector('[name="address"]').value.trim();
+            const city = document.querySelector('[name="city"]').value;
+            console.log('Tenant validation - Address:', address, 'City:', city); // Debug log
+
+            if (!address) {
+                alert('Please provide your current address.');
+                document.querySelector('[name="address"]').focus();
+                return false;
+            }
+
+            if (!city) {
+                alert('Please select your city from the dropdown.');
+                document.querySelector('[name="city"]').focus();
+                return false;
             }
         }
 
-        function goBack() {
-            document.getElementById('roleModal').classList.remove('hidden');
-            document.getElementById('registrationForm').classList.add('hidden');
+        console.log('Form validation passed, submitting...'); // Debug log
+        return true; // Allow form submission
+    }
+
+    // Initialize the form when page loads
+    window.addEventListener('DOMContentLoaded', function() {
+        console.log('=== Page loaded - Initializing registration form ===');
+
+        // Check if elements exist
+        const roleModal = document.getElementById('roleModal');
+        const registrationForm = document.getElementById('registrationForm');
+        const roleInput = document.getElementById('roleInput');
+        const addressSection = document.getElementById('addressSection');
+        const validIdSection = document.getElementById('validIdSection');
+
+        console.log('Elements found:');
+        console.log('- Role modal:', !!roleModal);
+        console.log('- Registration form:', !!registrationForm);
+        console.log('- Role input:', !!roleInput);
+        console.log('- Address section:', !!addressSection);
+        console.log('- Valid ID section:', !!validIdSection);
+
+        const role = roleInput ? roleInput.value : '';
+        console.log('Existing role value:', role);
+
+        if (role) {
+            console.log('Found existing role, calling selectRole...');
+            selectRole(role);
+        } else {
+            console.log('No existing role, showing role selection modal');
+            if (roleModal) roleModal.classList.remove('hidden');
+            if (registrationForm) registrationForm.classList.add('hidden');
         }
 
-        function displayFileName(input) {
-            if (input.files[0]) {
-                document.getElementById('fileName').textContent = '✓ ' + input.files[0].name;
-            }
-        }
-    </script>
-
-</body>
-</html>
+        console.log('=== Initialization complete ===');
+    });
+</script>
+@endpush

@@ -38,6 +38,6 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.dashboard', compact('stats', 'recentProperties', 'recentUsers'));
+        return view('admin.dashboard.index', compact('stats', 'recentProperties', 'recentUsers'));
     }
 }

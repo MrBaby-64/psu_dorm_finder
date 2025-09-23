@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 use App\Models\Message;
 use App\Models\Property;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
 {
@@ -31,21 +33,51 @@ class MessageController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'property_id' => 'required|exists:properties,id',
             'body' => 'required|string|max:1000',
         ]);
 
-        $property = Property::findOrFail($request->property_id);
+        $property = Property::findOrFail($validated['property_id']);
 
-        $message = Message::create([
+        Log::info('Message creation attempt', [
             'sender_id' => auth()->id(),
-            'receiver_id' => $property->user_id, // landlord
+            'receiver_id' => $property->user_id,
             'property_id' => $property->id,
-            'body' => $request->body,
+            'validated_keys' => array_keys($validated)
         ]);
 
-        return redirect()->back()->with('success', 'Message sent successfully!');
+        try {
+            $message = DB::transaction(function () use ($validated, $property) {
+                return Message::create([
+                    'sender_id' => auth()->id(),
+                    'receiver_id' => $property->user_id, // landlord
+                    'property_id' => $property->id,
+                    'body' => $validated['body'],
+                ]);
+            });
+
+            Log::info('Message created successfully', [
+                'message_id' => $message->id,
+                'sender_id' => auth()->id(),
+                'receiver_id' => $property->user_id,
+                'property_id' => $property->id
+            ]);
+
+            return redirect()->back()->with('success', 'Message sent successfully!');
+
+        } catch (\Exception $e) {
+            Log::error('Message creation failed', [
+                'sender_id' => auth()->id(),
+                'receiver_id' => $property->user_id,
+                'property_id' => $property->id,
+                'error' => $e->getMessage(),
+                'first_error' => $e->getMessage(),
+                'validated_keys' => array_keys($validated)
+            ]);
+
+            return back()->withInput()->withErrors(['general' => 'Failed to send message. Please try again.']);
+        }
     }
 
     public function markAsRead(Message $message)

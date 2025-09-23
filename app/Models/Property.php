@@ -34,7 +34,13 @@ class Property extends Model
         'is_featured',
         'display_priority',
         'rating_avg',
-        'rating_count'
+        'rating_count',
+        'visit_schedule_enabled',
+        'visit_days',
+        'visit_time_start',
+        'visit_time_end',
+        'visit_duration',
+        'visit_instructions'
     ];
 
     protected $casts = [
@@ -44,6 +50,8 @@ class Property extends Model
         'rating_avg' => 'decimal:2',
         'is_verified' => 'boolean',
         'is_featured' => 'boolean',
+        'visit_schedule_enabled' => 'boolean',
+        'visit_days' => 'array'
     ];
 
     // Auto-generate slug when title changes
@@ -77,6 +85,30 @@ class Property extends Model
 
         return $slug;
     }
+
+// Add these relationships to your existing Property.php file
+
+public function transactions(): HasMany
+{
+    return $this->hasMany(Transaction::class);
+}
+
+public function scheduledVisits(): HasMany
+{
+    return $this->hasMany(ScheduledVisit::class);
+}
+
+// Method to check if visit scheduling is enabled
+public function isVisitSchedulingEnabled(): bool
+{
+    return $this->visit_schedule_enabled ?? false;
+}
+
+// Method to get pending visits count
+public function getPendingVisitsCountAttribute(): int
+{
+    return $this->scheduledVisits()->pending()->count();
+}
 
     // Relationships
     public function landlord(): BelongsTo

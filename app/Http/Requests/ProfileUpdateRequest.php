@@ -15,7 +15,7 @@ class ProfileUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -26,5 +26,14 @@ class ProfileUpdateRequest extends FormRequest
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
         ];
+
+        // Add address validation for tenants
+        if ($this->user()->role === 'tenant') {
+            $rules['address'] = ['nullable', 'string', 'max:500'];
+            $rules['city'] = ['nullable', 'string', 'max:100'];
+            $rules['province'] = ['nullable', 'string', 'max:100'];
+        }
+
+        return $rules;
     }
 }

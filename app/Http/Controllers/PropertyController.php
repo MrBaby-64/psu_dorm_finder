@@ -229,4 +229,68 @@ class PropertyController extends Controller
             'campuses' => $this->campusService->getCampusOptions()
         ]);
     }
+
+    // Add these methods to your existing PropertyController.php
+
+public function searchSuggestions(Request $request)
+{
+    $query = $request->get('q');
+    
+    if (strlen($query) < 2) {
+        return response()->json([]);
+    }
+
+    $suggestions = Property::approved()
+        ->select('title', 'slug', 'city', 'price')
+        ->where(function($q) use ($query) {
+            $q->where('title', 'LIKE', "%{$query}%")
+              ->orWhere('location_text', 'LIKE', "%{$query}%")
+              ->orWhere('city', 'LIKE', "%{$query}%");
+        })
+        ->limit(5)
+        ->get()
+        ->map(function($property) {
+            return [
+                'title' => $property->title,
+                'location' => $property->city,
+                'price' => '₱' . number_format($property->price),
+                'url' => route('properties.show', $property->slug)
+            ];
+        });
+
+    return response()->json($suggestions);
+}
+
+public function checkAvailability(Request $request, Property $property)
+{
+    $request->validate([
+        'check_in' => 'required|date|after:today',
+        'check_out' => 'nullable|date|after:check_in',
+        'room_id' => 'nullable|exists:rooms,id'
+    ]);
+
+    $available = true;
+    $message = 'Property is available for your selected dates.';
+
+    // Check specific room availability if room_id is provided
+    if ($request->room_id) {
+        $room = $property->rooms()->find($request->room_id);
+        if (!$room || $room->status !== 'available') {
+            $available = false;
+            $message = 'Selected room is not available.';
+        }
+    } else {
+        // Check if any room is available
+        $availableRooms = $property->rooms()->where('status', 'available')->count();
+        if ($availableRooms === 0) {
+            $available = false;
+            $message = 'No rooms are currently available.';
+        }
+    }
+
+    return response()->json([
+        'available' => $available,
+        'message' => $message
+    ]);
+    }
 }

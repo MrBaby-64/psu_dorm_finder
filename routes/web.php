@@ -7,7 +7,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\InquiryController;  // ADDED THIS - This was missing!
+use App\Http\Controllers\InquiryController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,7 +18,9 @@ use Illuminate\Support\Facades\Route;
 
 // Home
 Route::get('/', [PropertyController::class, 'home'])->name('home');
-
+// Add these lines after the home route
+Route::get('/about', [App\Http\Controllers\PageController::class, 'about'])->name('about');
+Route::get('/how-it-works', [App\Http\Controllers\PageController::class, 'howItWorks'])->name('how-it-works');
 // Browse properties
 Route::get('/rentals/browse', [PropertyController::class, 'browse'])->name('properties.browse');
 
@@ -37,6 +39,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Account routes - moved to tenant routes section below
+
 /*
 |--------------------------------------------------------------------------
 | Authenticated User Routes
@@ -50,7 +54,7 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
-    // Inquiries - MOVED HERE from bottom and cleaned up
+    // Inquiries
     Route::post('/inquiries', [InquiryController::class, 'store'])->name('inquiries.store');
 
     // Messages
@@ -71,11 +75,52 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])->name('reviews.destroy');
 
     // Favorites
-    Route::get('/favorites', [FavoriteController::class, 'index'])->name('favorites.index');
-    Route::post('/favorites', [FavoriteController::class, 'store'])->name('favorites.store');
-    Route::delete('/favorites/{property}', [FavoriteController::class, 'destroy'])->name('favorites.destroy');
+    Route::get('/favorites', [App\Http\Controllers\FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('/favorites', [App\Http\Controllers\FavoriteController::class, 'store'])->name('favorites.store');
+    Route::delete('/favorites/{property}', [App\Http\Controllers\FavoriteController::class, 'destroy'])->name('favorites.destroy');
+    Route::post('/favorites/toggle', [App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::post('/favorites/check', [App\Http\Controllers\FavoriteController::class, 'check'])->name('favorites.check');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Tenant Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth'])->prefix('tenant')->name('tenant.')->group(function () {
+    // Account and dashboard
+    Route::get('/account', [App\Http\Controllers\TenantController::class, 'account'])->name('account');
+    
+    // Transactions
+    Route::get('/transactions', [App\Http\Controllers\TenantController::class, 'transactions'])->name('transactions');
+    
+    // Favorites - already exists, just add the route name if missing
+    
+    // Notifications
+    Route::get('/notifications', [App\Http\Controllers\TenantController::class, 'notifications'])->name('notifications');
+    Route::post('/notifications/mark-all-read', [App\Http\Controllers\TenantController::class, 'notifications'])->name('notifications.mark-all-read');
+    Route::post('/notifications/{notification}/read', [App\Http\Controllers\TenantController::class, 'markNotificationRead'])->name('notifications.read');
+    
+    // Scheduled Visits
+    Route::get('/scheduled-visits', [App\Http\Controllers\TenantController::class, 'scheduledVisits'])->name('scheduled-visits');
+    Route::post('/scheduled-visits', [App\Http\Controllers\ScheduledVisitController::class, 'store'])->name('scheduled-visits.store');
+    Route::put('/scheduled-visits/{visit}/cancel', [App\Http\Controllers\TenantController::class, 'cancelVisit'])->name('scheduled-visits.cancel');
+    Route::put('/scheduled-visits/{visit}', [App\Http\Controllers\ScheduledVisitController::class, 'update'])->name('scheduled-visits.update');
+Route::delete('/scheduled-visits/{visit}', [App\Http\Controllers\ScheduledVisitController::class, 'destroy'])->name('scheduled-visits.destroy');
+    
+    // Reviews
+    Route::get('/reviews', [App\Http\Controllers\TenantController::class, 'reviews'])->name('reviews');
+    Route::post('/reviews', [App\Http\Controllers\TenantController::class, 'storeReview'])->name('reviews.store');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Enhanced Landlord Routes
+|--------------------------------------------------------------------------
+*/
+
+// Removed duplicate landlord routes - these are defined below
 /*
 |--------------------------------------------------------------------------
 | Landlord Routes
@@ -83,10 +128,14 @@ Route::middleware(['auth'])->group(function () {
 */
 
 Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(function () {
+    Route::get('/account', [\App\Http\Controllers\Landlord\AccountController::class, 'index'])->name('account');
+    
     // Property management
     Route::get('/properties', [\App\Http\Controllers\Landlord\PropertyController::class, 'index'])->name('properties.index');
     Route::get('/properties/create', [\App\Http\Controllers\Landlord\PropertyController::class, 'create'])->name('properties.create');
     Route::post('/properties', [\App\Http\Controllers\Landlord\PropertyController::class, 'store'])->name('properties.store');
+    Route::post('/properties/remove-temp-image', [\App\Http\Controllers\Landlord\PropertyController::class, 'removeTempImage'])->name('properties.remove-temp-image');
+    Route::post('/properties/store-map-position', [\App\Http\Controllers\Landlord\PropertyController::class, 'storeMapPosition'])->name('properties.store-map-position');
     Route::get('/properties/{property}/edit', [\App\Http\Controllers\Landlord\PropertyController::class, 'edit'])->name('properties.edit');
     Route::put('/properties/{property}', [\App\Http\Controllers\Landlord\PropertyController::class, 'update'])->name('properties.update');
     Route::delete('/properties/{property}', [\App\Http\Controllers\Landlord\PropertyController::class, 'destroy'])->name('properties.destroy');
@@ -100,7 +149,11 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
     Route::get('/inquiries', [\App\Http\Controllers\Landlord\InquiryController::class, 'index'])->name('inquiries.index');
     
     // Bookings management
-    Route::get('/bookings', [\App\Http\Controllers\Landlord\BookingController::class, 'index'])->name('bookings.index');
+    Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+
+    Route::post('/scheduled-visits/{visit}/confirm', [App\Http\Controllers\ScheduledVisitController::class, 'confirm'])->name('scheduled-visits.confirm');
+    Route::post('/scheduled-visits/{visit}/complete', [App\Http\Controllers\ScheduledVisitController::class, 'markCompleted'])->name('scheduled-visits.complete');
+    Route::post('/scheduled-visits/{visit}/cancel-by-landlord', [App\Http\Controllers\ScheduledVisitController::class, 'cancelByLandlord'])->name('scheduled-visits.cancel-by-landlord');
 });
 
 /*
@@ -110,6 +163,9 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
 */
 
 Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+    // ADMIN ACCOUNT ROUTE - MUST BE INSIDE THE GROUP
+    Route::get('/account', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('account');
+    
     // Dashboard
     Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
     

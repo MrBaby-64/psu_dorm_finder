@@ -1,5 +1,4 @@
 <?php
-// database/migrations/xxxx_xx_xx_create_bookings_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,20 +10,44 @@ return new class extends Migration
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade'); // tenant
             $table->foreignId('property_id')->constrained()->onDelete('cascade');
-            $table->foreignId('tenant_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('room_id')->nullable()->constrained()->onDelete('set null');
-            $table->date('check_in');
-            $table->date('check_out');
-            $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled'])->default('pending');
-            $table->text('notes')->nullable(); // Booking notes
-            $table->decimal('total_amount', 10, 2)->nullable(); // Calculated total
+            
+            // Dates
+            $table->date('check_in_date');
+            $table->date('check_out_date')->nullable();
+            
+            // Pricing
+            $table->decimal('total_amount', 10, 2);
+            $table->decimal('deposit_amount', 10, 2)->default(0);
+            $table->decimal('monthly_rent', 10, 2);
+            
+            // Status
+            $table->string('status')->default('pending'); // pending, approved, rejected, cancelled, active, completed
+            $table->string('payment_status')->default('pending'); // pending, partial, paid, overdue, refunded
+            
+            // Notes
+            $table->text('notes')->nullable(); // Tenant notes/requests
+            $table->text('landlord_notes')->nullable(); // Landlord notes/response
+            
+            // Approval tracking
+            $table->timestamp('approved_at')->nullable();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->onDelete('set null');
+            
+            // Cancellation tracking
+            $table->timestamp('cancelled_at')->nullable();
+            $table->foreignId('cancelled_by')->nullable()->constrained('users')->onDelete('set null');
+            $table->text('cancellation_reason')->nullable();
+            
             $table->timestamps();
 
-            $table->index(['property_id']);
-            $table->index(['tenant_id']);
-            $table->index(['status']);
-            $table->index(['check_in', 'check_out']);
+            // Indexes for performance
+            $table->index(['user_id', 'status']);
+            $table->index(['property_id', 'status']);
+            $table->index(['status', 'created_at']);
+            $table->index(['payment_status', 'created_at']);
+            $table->index('check_in_date');
         });
     }
 

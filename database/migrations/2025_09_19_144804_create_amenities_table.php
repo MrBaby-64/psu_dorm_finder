@@ -1,5 +1,4 @@
 <?php
-// database/migrations/xxxx_xx_xx_create_amenities_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,9 +10,18 @@ return new class extends Migration
     {
         Schema::create('amenities', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique(); // e.g., "Wi-Fi", "Laundry"
-            $table->string('icon')->nullable(); // Icon class or path
+            $table->string('name'); // WiFi, Pool, Gym, etc.
+            $table->string('icon')->nullable(); // Font Awesome icon class
+            $table->string('category')->default('basic'); // basic, comfort, entertainment, security, facilities
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
+
+            // Indexes for performance
+            $table->index(['category', 'is_active']);
+            $table->index('is_active');
+            
+            // Ensure unique amenity names
+            $table->unique('name');
         });
     }
 
