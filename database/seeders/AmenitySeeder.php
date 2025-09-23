@@ -1,5 +1,4 @@
 <?php
-// database/seeders/AmenitySeeder.php
 
 namespace Database\Seeders;
 
@@ -12,30 +11,37 @@ class AmenitySeeder extends Seeder
     public function run(): void
     {
         $amenities = [
-            ['name' => 'Wi-Fi', 'icon' => 'wifi'],
-            ['name' => 'Laundry', 'icon' => 'washing-machine'],
-            ['name' => 'Air Conditioning', 'icon' => 'air-vent'],
-            ['name' => 'Study Area', 'icon' => 'book-open'],
-            ['name' => 'Near Jeepney Route', 'icon' => 'bus'],
-            ['name' => '24/7 Security', 'icon' => 'shield-check'],
-            ['name' => 'Water Included', 'icon' => 'droplets'],
-            ['name' => 'Kitchen Access', 'icon' => 'chef-hat'],
-            ['name' => 'Parking Space', 'icon' => 'car'],
-            ['name' => 'CCTV Surveillance', 'icon' => 'video'],
-            ['name' => 'Common Room', 'icon' => 'users'],
-            ['name' => 'Balcony/Terrace', 'icon' => 'building'],
-            ['name' => 'Near Convenience Store', 'icon' => 'shopping-bag'],
-            ['name' => 'Electric Included', 'icon' => 'zap'],
-            ['name' => 'Hot Shower', 'icon' => 'shower-head'],
-            ['name' => 'Refrigerator', 'icon' => 'refrigerator'],
-            ['name' => 'Near Eatery/Carinderia', 'icon' => 'utensils'],
-            ['name' => 'Furnished', 'icon' => 'sofa'],
-            ['name' => 'Cable TV', 'icon' => 'tv'],
-            ['name' => 'Generator Backup', 'icon' => 'battery']
+            ['name' => 'Wi-Fi', 'icon' => 'wifi', 'category' => 'basic'],
+            ['name' => 'Laundry', 'icon' => 'washing-machine', 'category' => 'facilities'],
+            ['name' => 'Air Conditioning', 'icon' => 'air-vent', 'category' => 'comfort'],
+            ['name' => 'Study Area', 'icon' => 'book-open', 'category' => 'facilities'],
+            ['name' => 'Near Jeepney Route', 'icon' => 'bus', 'category' => 'basic'],
+            ['name' => '24/7 Security', 'icon' => 'shield-check', 'category' => 'security'],
+            ['name' => 'Water Included', 'icon' => 'droplets', 'category' => 'basic'],
+            ['name' => 'Kitchen Access', 'icon' => 'chef-hat', 'category' => 'facilities'],
+            ['name' => 'Parking Space', 'icon' => 'car', 'category' => 'facilities'],
+            ['name' => 'CCTV Surveillance', 'icon' => 'video', 'category' => 'security'],
+            ['name' => 'Common Room', 'icon' => 'users', 'category' => 'facilities'],
+            ['name' => 'Balcony/Terrace', 'icon' => 'building', 'category' => 'comfort'],
+            ['name' => 'Near Convenience Store', 'icon' => 'shopping-bag', 'category' => 'basic'],
+            ['name' => 'Electric Included', 'icon' => 'zap', 'category' => 'basic'],
+            ['name' => 'Hot Shower', 'icon' => 'shower-head', 'category' => 'comfort'],
+            ['name' => 'Refrigerator', 'icon' => 'refrigerator', 'category' => 'comfort'],
+            ['name' => 'Near Eatery/Carinderia', 'icon' => 'utensils', 'category' => 'basic'],
+            ['name' => 'Furnished', 'icon' => 'sofa', 'category' => 'comfort'],
+            ['name' => 'Cable TV', 'icon' => 'tv', 'category' => 'entertainment'],
+            ['name' => 'Generator Backup', 'icon' => 'battery', 'category' => 'basic']
         ];
 
         foreach ($amenities as $amenity) {
-            Amenity::create($amenity);
+            Amenity::firstOrCreate(
+                ['name' => $amenity['name']],
+                [
+                    'icon' => $amenity['icon'],
+                    'category' => $amenity['category'],
+                    'is_active' => true
+                ]
+            );
         }
     }
 }

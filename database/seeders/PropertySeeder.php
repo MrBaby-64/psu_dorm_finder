@@ -167,10 +167,11 @@ class PropertySeeder extends Seeder
             for ($i = 1; $i <= $property->room_count; $i++) {
                 Room::create([
                     'property_id' => $property->id,
-                    'name' => $property->room_count == 1 ? 'Main Room' : "Room {$i}",
+                    'room_number' => $property->room_count == 1 ? 'Main Room' : "Room {$i}",
+                    'room_type' => ['single', 'shared', 'studio'][rand(0, 2)],
                     'capacity' => rand(1, 2),
                     'price' => $property->price,
-                    'is_available' => rand(0, 1) ? true : false,
+                    'status' => ['available', 'occupied'][rand(0, 1)],
                 ]);
             }
 
@@ -206,14 +207,17 @@ class PropertySeeder extends Seeder
         
         foreach ($properties->take(5) as $property) {
             // Sample booking
-            Booking::create([
-                'property_id' => $property->id,
-                'tenant_id' => $tenants->random()->id,
-                'room_id' => $property->rooms->random()->id,
-                'check_in' => now()->addDays(rand(1, 30)),
-                'check_out' => now()->addDays(rand(31, 365)),
-                'status' => ['pending', 'approved', 'rejected'][rand(0, 2)],
-            ]);
+            // FIXED CODE (correct column names):
+Booking::create([
+    'property_id' => $property->id,
+    'user_id' => $tenants->random()->id,                    // Fixed: user_id
+    'room_id' => $property->rooms->random()->id,
+    'check_in_date' => now()->addDays(rand(1, 30)),        // Fixed: check_in_date
+    'check_out_date' => now()->addDays(rand(31, 365)),     // Fixed: check_out_date
+    'total_amount' => $property->price,                     // Added required field
+    'monthly_rent' => $property->price,                     // Added required field
+    'status' => ['pending', 'approved', 'rejected'][rand(0, 2)],
+]);
 
             // Sample message
             Message::create([

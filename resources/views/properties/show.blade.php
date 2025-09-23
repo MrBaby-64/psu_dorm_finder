@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.guest')
 
 @section('title', $property->title)
 
@@ -9,6 +9,7 @@
         height: 400px;
         width: 100%;
         border-radius: 10px;
+        z-index: 10;
     }
     .property-image-gallery {
         display: grid;
@@ -29,41 +30,99 @@
         border-radius: 10px;
         margin-bottom: 10px;
     }
+    nav {
+        position: fixed !important;
+        width: 100%;
+        z-index: 40;
+    }
 </style>
 @endpush
 
 @section('content')
-<div class="py-12">
+<div class="sticky top-16 z-30 bg-white border-b px-4 py-2">
+    <button onclick="window.history.back()" class="flex items-center text-gray-600 hover:text-green-600">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back
+    </button>
+</div>
+<div class="pt-32 pb-12">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
                 
                 <!-- Property Images -->
                 <div class="mb-6">
-                    @php
-                        $mainImage = $property->images->where('is_cover', true)->first();
-                        if (!$mainImage) {
-                            $mainImage = $property->images->first();
-                        }
-                    @endphp
-                    
-                    <img 
-                        src="{{ $mainImage ? asset('storage/' . $mainImage->image_path) : 'https://via.placeholder.com/800x400?text=No+Image' }}" 
-                        alt="{{ $property->title }}" 
-                        class="main-image" 
-                        id="mainImage"
-                    >
-                    
-                    @if($property->images->count() > 1)
-                    <div class="property-image-gallery">
-                        @foreach($property->images->take(4) as $image)
-                        <img 
-                            src="{{ asset('storage/' . $image->image_path) }}" 
-                            alt="Property image" 
-                            onclick="changeMainImage('{{ asset('storage/' . $image->image_path) }}')"
-                        >
-                        @endforeach
-                    </div>
+                    @if($property->images->count() > 0)
+                        @php
+                            $coverImage = $property->images->where('is_cover', true)->first() ?? $property->images->first();
+                            $galleryImages = $property->images;
+                        @endphp
+                        
+                        <!-- Main Image -->
+                        <div class="relative mb-4">
+                            <img 
+                                src="{{ asset('storage/' . $coverImage->image_path) }}" 
+                                alt="{{ $property->title }}" 
+                                class="main-image w-full h-96 object-cover rounded-lg" 
+                                id="mainImage"
+                            >
+                            
+                            <!-- Image Counter -->
+                            @if($property->images->count() > 1)
+                                <div class="absolute top-4 right-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded-full text-sm">
+                                    <span id="currentImageIndex">1</span> / {{ $property->images->count() }}
+                                </div>
+                            @endif
+                            
+                            <!-- Navigation Arrows -->
+                            @if($property->images->count() > 1)
+                                <button onclick="previousImage()" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                </button>
+                                <button onclick="nextImage()" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            @endif
+                        </div>
+                        
+                        <!-- Image Gallery Thumbnails -->
+                        @if($property->images->count() > 1)
+                            <div class="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                                @foreach($galleryImages as $index => $image)
+                                    <button 
+                                        onclick="changeMainImage('{{ asset('storage/' . $image->image_path) }}', {{ $index }})" 
+                                        class="relative group">
+                                        <img 
+                                            src="{{ asset('storage/' . $image->image_path) }}" 
+                                            alt="Property image {{ $index + 1 }}" 
+                                            class="w-full h-16 object-cover rounded border-2 hover:border-green-500 transition {{ $loop->first ? 'border-green-500' : 'border-gray-200' }}"
+                                            data-index="{{ $index }}"
+                                        >
+                                        @if($image->is_cover)
+                                            <div class="absolute -top-1 -left-1 bg-green-500 text-white text-xs px-1 rounded">
+                                                Main
+                                            </div>
+                                        @endif
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endif
+                    @else
+                        <!-- No Images Available -->
+                        <div class="bg-gray-100 rounded-lg h-96 flex items-center justify-center">
+                            <div class="text-center">
+                                <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <p class="text-gray-500">No images available for this property</p>
+                            </div>
+                        </div>
                     @endif
                 </div>
 
@@ -147,10 +206,10 @@
                                 <p class="text-sm text-gray-600" id="walkingTime">--</p>
                             </div>
                             
-                            <!-- Live Tracking -->
+                            <!-- Directions -->
                             <div class="mt-4">
-                                <button onclick="startTracking()" id="trackBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 mr-2">
-                                    📍 Get Directions from My Location
+                                <button onclick="openDirectionsModal()" id="directionsBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 mr-2">
+                                    📍 Get Directions
                                 </button>
                                 <button onclick="centerOnProperty()" class="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700">
                                     🎯 Center on Property
@@ -237,9 +296,9 @@
                                 @else
                                     <div class="text-center py-4">
                                         <p class="text-gray-600 mb-4">Please login to send an inquiry</p>
-                                        <a href="{{ route('login') }}" class="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold">
+                                        <button onclick="openAuthModal('login')" class="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold">
                                             Login to Send Message
-                                        </a>
+                                        </button>
                                     </div>
                                 @endauth
                             </div>
@@ -290,16 +349,16 @@
                     </svg>
                 </button>
             </div>
-            
+
             <form onsubmit="scheduleVisit(event)" class="space-y-4">
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">Preferred Date</label>
-                    <input type="date" 
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-                           min="{{ date('Y-m-d') }}" 
+                    <input type="date"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                           min="{{ date('Y-m-d') }}"
                            required>
                 </div>
-                
+
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">Preferred Time</label>
                     <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
@@ -312,22 +371,22 @@
                         <option value="16:00">4:00 PM</option>
                     </select>
                 </div>
-                
+
                 <div>
                     <label class="block text-gray-700 font-semibold mb-2">Additional Notes</label>
-                    <textarea 
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" 
-                        rows="3" 
+                    <textarea
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        rows="3"
                         placeholder="Any specific requests..."></textarea>
                 </div>
-                
+
                 <div class="flex gap-3 pt-2">
-                    <button type="button" 
-                            onclick="closeScheduleModal()" 
+                    <button type="button"
+                            onclick="closeScheduleModal()"
                             class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold">
                         Cancel
                     </button>
-                    <button type="submit" 
+                    <button type="submit"
                             class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold">
                         Schedule Visit
                     </button>
@@ -337,42 +396,135 @@
     </div>
 </div>
 
-@endsection
+<!-- Directions Modal -->
+<div id="directionsModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4 overflow-hidden">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Get Directions</h3>
+                <button onclick="closeDirectionsModal()" class="text-gray-400 hover:text-gray-600 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <!-- My Location -->
+                <button onclick="getDirectionsGPS()" class="w-full p-4 border-2 border-blue-300 bg-blue-50 rounded-xl hover:bg-blue-100 hover:shadow-lg transition-all text-left">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <div>
+                            <div class="font-semibold text-blue-700">My Location</div>
+                            <div class="text-sm text-blue-600">Use device GPS</div>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- My Address -->
+                @auth
+                    @if(auth()->user()->role === 'tenant' && auth()->user()->address)
+                        <button onclick="getDirectionsAddress()" class="w-full p-4 border-2 border-green-300 bg-green-50 rounded-xl hover:bg-green-100 hover:shadow-lg transition-all text-left">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                </svg>
+                                <div>
+                                    <div class="font-semibold text-green-700">My Address</div>
+                                    <div class="text-sm text-green-600">{{ auth()->user()->address }}, {{ auth()->user()->city }}</div>
+                                </div>
+                            </div>
+                        </button>
+                    @endif
+                @endauth
+
+                <!-- Search Address -->
+                <div class="border-2 border-orange-300 bg-orange-50 rounded-xl p-4">
+                    <div class="flex items-center gap-3 mb-3">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <div>
+                            <div class="font-semibold text-orange-700">Search Address</div>
+                            <div class="text-sm text-orange-600">Type to find location</div>
+                        </div>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="e.g., SM City Pampanga, Bacolor Town Hall"
+                           class="w-full px-3 py-2 border border-orange-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-sm">
+                    <button onclick="searchAddress()" class="mt-2 w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 text-sm font-semibold">
+                        Search & Get Directions
+                    </button>
+                </div>
+
+                <!-- Click on Map -->
+                <button onclick="enableMapClick()" class="w-full p-4 border-2 border-purple-300 bg-purple-50 rounded-xl hover:bg-purple-100 hover:shadow-lg transition-all text-left">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        <div>
+                            <div class="font-semibold text-purple-700">Click on Map</div>
+                            <div class="text-sm text-purple-600">Drop a pin to set location</div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div class="mt-6 text-center">
+                <button onclick="closeDirectionsModal()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @push('scripts')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
 <script>
-    const propertyLocation = [{{ $property->latitude ?? '14.6705' }}, {{ $property->longitude ?? '120.6298' }}];
-    const psuLocation = [15.8714, 120.2869];
+    const propertyLocation = [{{ $property->latitude ?? '14.997480043450848' }}, {{ $property->longitude ?? '120.65323030030329' }}];
+    const psuLocation = [14.997480043450848, 120.65323030030329];
     
-    let map, propertyMarker, userMarker, routeLayer;
+    let map, propertyMarker, userMarker, psuMarker, routeLayer;
     
     function initMap() {
-        map = L.map('propertyMap').setView(propertyLocation, 15);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-        
-        propertyMarker = L.marker(propertyLocation, {
-            icon: L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41]
-            })
-        }).addTo(map).bindPopup('<b>{{ $property->title }}</b>').openPopup();
-        
-        L.marker(psuLocation, {
-            icon: L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41]
-            })
-        }).addTo(map).bindPopup('<b>PSU Main Campus</b>');
-        
-        const distance = calculateDistance(psuLocation, propertyLocation);
-        document.getElementById('distanceText').textContent = distance.toFixed(2) + ' km';
-        document.getElementById('walkingTime').textContent = `Approximately ${Math.round(distance * 15)} minutes walk`;
+        try {
+            map = L.map('propertyMap').setView(propertyLocation, 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Property marker (GREEN)
+            propertyMarker = L.marker(propertyLocation, {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                })
+            }).addTo(map).bindPopup('<b>{{ $property->title }}</b>').openPopup();
+            
+            // PSU marker (BLUE)
+            psuMarker = L.marker(psuLocation, {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                })
+            }).addTo(map).bindPopup('<b>PSU Main Campus</b>');
+            
+            const distance = calculateDistance(psuLocation, propertyLocation);
+            document.getElementById('distanceText').textContent = distance.toFixed(2) + ' km';
+            document.getElementById('walkingTime').textContent = `Approximately ${Math.round(distance * 15)} minutes walk`;
+            
+        } catch (error) {
+            console.error('Map initialization error:', error);
+            document.getElementById('propertyMap').innerHTML = '<div class="p-4 text-center text-red-600">Map failed to load. Please refresh the page.</div>';
+        }
     }
     
     function calculateDistance(point1, point2) {
@@ -386,38 +538,112 @@
         return R * c;
     }
     
+    // Use stored tenant address instead of GPS/IP detection
     function startTracking() {
-        if (!navigator.geolocation) {
-            alert('Geolocation not supported');
-            return;
-        }
+        @auth
+            @if(auth()->user()->role === 'tenant')
+                @if(auth()->user()->address)
+                    // Use stored tenant address
+                    const userAddress = "{{ auth()->user()->address }}, {{ auth()->user()->city }}, {{ auth()->user()->province }}";
+                    searchLocationByAddress(userAddress);
+                @else
+                    alert('Please update your address in your profile to use this feature.\n\nGo to Account > Profile to add your address.');
+                    window.open('{{ route("profile.edit") }}', '_blank');
+                @endif
+            @else
+                searchManualLocation();
+            @endif
+        @else
+            alert('Please login to use location features.');
+            window.location.href = "{{ route('login') }}";
+        @endauth
+    }
+    
+    function searchLocationByAddress(address) {
+        document.getElementById('trackBtn').textContent = 'Finding your location...';
+        document.getElementById('trackBtn').disabled = true;
         
-        navigator.geolocation.getCurrentPosition(
-            position => {
-                const userLocation = [position.coords.latitude, position.coords.longitude];
-                
-                if (userMarker) map.removeLayer(userMarker);
-                if (routeLayer) map.removeLayer(routeLayer);
-                
-                userMarker = L.marker(userLocation, {
-                    icon: L.icon({
-                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                        iconSize: [25, 41],
-                        iconAnchor: [12, 41]
-                    })
-                }).addTo(map).bindPopup('Your Location').openPopup();
-                
-                routeLayer = L.polyline([userLocation, propertyLocation], {
-                    color: '#4CAF50',
-                    weight: 4
-                }).addTo(map);
-                
-                map.fitBounds(routeLayer.getBounds());
-                
-                const distance = calculateDistance(userLocation, propertyLocation);
-                alert(`You are ${distance.toFixed(2)} km away (${Math.round(distance * 15)} min walk)`);
-            }
-        );
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    showUserLocationAndRoute([lat, lng], `Your Address: {{ auth()->user()->address ?? 'Your Location' }}`);
+                } else {
+                    alert('Could not find your address on the map. Please update it in your profile.');
+                    document.getElementById('trackBtn').textContent = 'Get Directions from My Location';
+                    document.getElementById('trackBtn').disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                alert('Failed to find your location. Please try again.');
+                document.getElementById('trackBtn').textContent = 'Get Directions from My Location';
+                document.getElementById('trackBtn').disabled = false;
+            });
+    }
+    
+    function searchManualLocation() {
+        const address = prompt('Enter your location:\n\nExamples:\n• SM City Pampanga\n• Bacolor Town Hall\n• Angeles City\n• Your street, barangay, city');
+        
+        if (!address) return;
+        
+        document.getElementById('trackBtn').textContent = 'Searching location...';
+        document.getElementById('trackBtn').disabled = true;
+        
+        const searchQuery = address.includes('Pampanga') ? address : `${address}, Pampanga, Philippines`;
+        
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    showUserLocationAndRoute([lat, lng], `Your Location: ${address}`);
+                } else {
+                    alert('Location not found. Try: SM City Pampanga, Angeles City, or Bacolor Town Hall');
+                    document.getElementById('trackBtn').textContent = 'Get Directions from My Location';
+                    document.getElementById('trackBtn').disabled = false;
+                }
+            })
+            .catch(error => {
+                alert('Search failed. Please try again.');
+                document.getElementById('trackBtn').textContent = 'Get Directions from My Location';
+                document.getElementById('trackBtn').disabled = false;
+            });
+    }
+
+    function setManualLocation() {
+        searchManualLocation();
+    }
+
+    function showUserLocationAndRoute(userLocation, locationLabel) {
+        if (userMarker) map.removeLayer(userMarker);
+        if (routeLayer) map.removeLayer(routeLayer);
+        
+        // User marker (RED)
+        userMarker = L.marker(userLocation, {
+            icon: L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            })
+        }).addTo(map).bindPopup(`<b>${locationLabel}</b>`).openPopup();
+        
+        // Route line
+        routeLayer = L.polyline([userLocation, propertyLocation], {
+            color: '#4CAF50',
+            weight: 4
+        }).addTo(map);
+        
+        map.fitBounds(routeLayer.getBounds());
+        
+        const distance = calculateDistance(userLocation, propertyLocation);
+        alert(`Distance: ${distance.toFixed(2)} km (${Math.round(distance * 15)} min walk)\nFrom: ${locationLabel}`);
+        
+        document.getElementById('trackBtn').textContent = 'Get Directions from My Location';
+        document.getElementById('trackBtn').disabled = false;
     }
     
     function centerOnProperty() {
@@ -446,7 +672,246 @@
         alert('Visit request sent! The property owner will confirm your appointment.');
         closeScheduleModal();
     }
-    
-    document.addEventListener('DOMContentLoaded', initMap);
+
+    // Directions Modal Functions
+    function openDirectionsModal() {
+        @guest
+            alert('Please login to use location features.');
+            window.location.href = "{{ route('login') }}";
+            return;
+        @endguest
+        document.getElementById('directionsModal').classList.remove('hidden');
+        // Disable map interactions while modal is open
+        map.dragging.disable();
+        map.getContainer().style.pointerEvents = 'none';
+        map.keyboard.disable();
+        map.scrollWheelZoom.disable();
+    }
+
+    function closeDirectionsModal() {
+        document.getElementById('directionsModal').classList.add('hidden');
+        // Re-enable map interactions
+        map.dragging.enable();
+        map.getContainer().style.pointerEvents = 'auto';
+        map.keyboard.enable();
+        map.scrollWheelZoom.enable();
+        // Reset any map click listeners
+        map.off('click');
+    }
+
+    // GPS Location
+    function getDirectionsGPS() {
+        console.log('Attempting to get GPS location');
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by this browser.');
+            console.error('Geolocation not supported');
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                console.log('GPS location obtained:', lat, lng);
+                showUserLocationAndRoute([lat, lng], 'Your Current Location (GPS)');
+                closeDirectionsModal();
+            },
+            function(error) {
+                console.error('GPS error:', error);
+                let message = 'Unable to get your location.';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        message = 'Location access denied. Please enable location permissions.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message = 'Location information is unavailable.';
+                        break;
+                    case error.TIMEOUT:
+                        message = 'Location request timed out.';
+                        break;
+                }
+                alert(message);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+        );
+    }
+
+    // Saved Address
+    function getDirectionsAddress() {
+        @auth
+            @if(auth()->user()->role === 'tenant' && auth()->user()->address)
+                // Fetch latest persisted values from user model (same source as profile page)
+                const address = "{{ auth()->user()->address }}".trim();
+                const city = "{{ auth()->user()->city }}".trim();
+                const province = "{{ auth()->user()->province }}".trim();
+
+                // Build clean full address string with proper ordering and country suffix
+                let fullAddress = '';
+                if (address) fullAddress += address;
+                if (city) fullAddress += (fullAddress ? ', ' : '') + city;
+                if (province) fullAddress += (fullAddress ? ', ' : '') + province;
+                fullAddress += ', Philippines'; // Add country suffix for better match rates
+
+                console.log('Request payload: address=' + address + ', city=' + city + ', province=' + province);
+                console.log('Geocoding query:', fullAddress);
+
+                // Do not use cached state, always geocode fresh
+                fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fullAddress)}&limit=1`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Geocoding response:', data);
+                        if (data && data.length > 0) {
+                            const lat = parseFloat(data[0].lat);
+                            const lng = parseFloat(data[0].lon);
+                            console.log('Final latitude:', lat, 'longitude:', lng);
+                            showUserLocationAndRoute([lat, lng], 'Your Saved Address');
+                            closeDirectionsModal();
+                        } else {
+                            console.error('Address geocoding failed: no results');
+                            alert('Could not find your saved address on the map. Please update it in your profile.');
+                            window.open('{{ route("profile.edit") }}', '_blank');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Geocoding error:', error);
+                        alert('Failed to find your address. Please try again.');
+                    });
+            @else
+                alert('Please update your address in your profile.');
+                window.open('{{ route("profile.edit") }}', '_blank');
+            @endif
+        @endauth
+    }
+
+    // Search Address
+    function searchAddress() {
+        const query = document.getElementById('searchInput').value.trim();
+        if (!query) {
+            alert('Please enter an address to search.');
+            return;
+        }
+
+        console.log('Searching address:', query);
+        const searchQuery = query.includes('Pampanga') ? query : `${query}, Pampanga, Philippines`;
+
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    console.log('Address found:', lat, lng);
+                    showUserLocationAndRoute([lat, lng], `Searched Location: ${query}`);
+                    closeDirectionsModal();
+                } else {
+                    console.error('Address not found');
+                    alert('Address not found. Try a different search term.');
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                alert('Search failed. Please try again.');
+            });
+    }
+
+    // Click on Map
+    let clickMarker = null;
+    function enableMapClick() {
+        console.log('Enabling map click for location selection');
+        alert('Click on the map to set your location.');
+        closeDirectionsModal();
+
+        map.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+
+            // Remove previous click marker
+            if (clickMarker) {
+                map.removeLayer(clickMarker);
+            }
+
+            // Add new marker
+            clickMarker = L.marker([lat, lng], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41]
+                })
+            }).addTo(map).bindPopup('Selected Location').openPopup();
+
+            console.log('Map location selected:', lat, lng);
+            showUserLocationAndRoute([lat, lng], 'Selected Location on Map');
+
+            // Disable further clicks
+            map.off('click');
+        });
+    }
+
+    // Updated searchLocationByAddress to accept custom label
+    function searchLocationByAddress(address, customLabel = null) {
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lng = parseFloat(data[0].lon);
+                    const label = customLabel || `Address: ${address}`;
+                    console.log('Address geocoded:', lat, lng);
+                    showUserLocationAndRoute([lat, lng], label);
+                } else {
+                    console.error('Address geocoding failed');
+                    alert('Could not find the specified address.');
+                }
+            })
+            .catch(error => {
+                console.error('Geocoding error:', error);
+                alert('Failed to find location. Please try again.');
+            });
+    }
+
+    // Updated showUserLocationAndRoute with logging
+    function showUserLocationAndRoute(userLocation, locationLabel) {
+        if (userMarker) map.removeLayer(userMarker);
+        if (routeLayer) map.removeLayer(routeLayer);
+
+        // User marker (RED)
+        userMarker = L.marker(userLocation, {
+            icon: L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            })
+        }).addTo(map).bindPopup(`<b>${locationLabel}</b>`).openPopup();
+
+        // Route line
+        routeLayer = L.polyline([userLocation, propertyLocation], {
+            color: '#4CAF50',
+            weight: 4
+        }).addTo(map);
+
+        map.fitBounds(routeLayer.getBounds());
+
+        const distance = calculateDistance(userLocation, propertyLocation);
+        console.log('Route calculated:', { distance: distance.toFixed(2), from: locationLabel });
+
+        // Update distance display
+        document.getElementById('distanceText').textContent = distance.toFixed(2) + ' km from ' + locationLabel;
+        document.getElementById('walkingTime').textContent = `Approximately ${Math.round(distance * 15)} minutes walk`;
+
+        alert(`Distance: ${distance.toFixed(2)} km (${Math.round(distance * 15)} min walk)\nFrom: ${locationLabel}`);
+    }
+
+    window.addEventListener('scroll', function() {
+        const nav = document.querySelector('nav');
+        if (window.scrollY > 0) {
+            nav.classList.add('shadow-lg');
+        } else {
+            nav.classList.remove('shadow-lg');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(initMap, 100);
+    });
 </script>
 @endpush

@@ -1,5 +1,4 @@
 <?php
-// database/migrations/xxxx_xx_xx_create_amenity_property_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -11,11 +10,16 @@ return new class extends Migration
     {
         Schema::create('amenity_property', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('amenity_id')->constrained()->onDelete('cascade');
             $table->foreignId('property_id')->constrained()->onDelete('cascade');
+            $table->foreignId('amenity_id')->constrained()->onDelete('cascade');
             $table->timestamps();
 
-            $table->unique(['amenity_id', 'property_id']);
+            // Prevent duplicate entries
+            $table->unique(['property_id', 'amenity_id']);
+            
+            // Indexes for performance
+            $table->index('property_id');
+            $table->index('amenity_id');
         });
     }
 
