@@ -7,6 +7,8 @@ use App\Models\Property;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ScheduledVisitController extends Controller
 {
@@ -17,17 +19,55 @@ class ScheduledVisitController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'property_id' => 'required|exists:properties,id',
-            'preferred_date' => 'required|date|after:today',
-            'preferred_time' => 'required|string',
-            'notes' => 'nullable|string|max:1000'
-        ]);
+        try {
+            $request->validate([
+                'property_id' => 'required|exists:properties,id',
+                'preferred_date' => 'required|date|after:today|before:' . now()->addMonths(3)->format('Y-m-d'),
+                'preferred_time' => 'required|date_format:H:i',
+                'notes' => 'nullable|string|max:1000'
+            ], [
+                'preferred_date.after' => 'Preferred date must be in the future.',
+                'preferred_date.before' => 'Preferred date cannot be more than 3 months from now.',
+                'preferred_time.date_format' => 'Preferred time must be in HH:MM format.',
+                'notes.max' => 'Notes cannot exceed 1000 characters.'
+            ]);
+
+            // Additional validation for business hours
+            $preferredTime = strtotime($request->preferred_time);
+            $businessStart = strtotime('08:00');
+            $businessEnd = strtotime('20:00');
+
+            if ($preferredTime < $businessStart || $preferredTime > $businessEnd) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Preferred time must be between 8:00 AM and 8:00 PM.',
+                        'errors' => ['preferred_time' => ['Preferred time must be between 8:00 AM and 8:00 PM.']]
+                    ], 422);
+                }
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['preferred_time' => 'Preferred time must be between 8:00 AM and 8:00 PM.']);
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed.',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        }
 
         $property = Property::findOrFail($request->property_id);
 
         // Check if visit scheduling is enabled for this property
         if (!$property->isVisitSchedulingEnabled()) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Visit scheduling is not available for this property.'], 400);
+            }
             return redirect()->back()
                 ->with('error', 'Visit scheduling is not available for this property.');
         }
@@ -39,23 +79,55 @@ class ScheduledVisitController extends Controller
             ->first();
 
         if ($existingVisit) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'You already have a scheduled visit for this property.'], 400);
+            }
             return redirect()->back()
                 ->with('error', 'You already have a scheduled visit for this property.');
         }
 
-        // Create the visit
-        $visit = ScheduledVisit::create([
-            'user_id' => Auth::id(),
-            'property_id' => $property->id,
-            'preferred_date' => $request->preferred_date,
-            'preferred_time' => $request->preferred_time,
-            'notes' => $request->notes,
-            'status' => 'pending'
-        ]);
+        // Create the visit with transaction for data consistency
+        try {
+            DB::transaction(function () use ($property, $request, &$visit) {
+                $visit = ScheduledVisit::create([
+                    'user_id' => Auth::id(),
+                    'property_id' => $property->id,
+                    'preferred_date' => $request->preferred_date,
+                    'preferred_time' => $request->preferred_time,
+                    'notes' => trim($request->notes),
+                    'status' => ScheduledVisit::STATUS_PENDING
+                ]);
+
+                // Log the visit creation for audit purposes
+                Log::info('Visit scheduled', [
+                    'visit_id' => $visit->id,
+                    'tenant_id' => Auth::id(),
+                    'property_id' => $property->id,
+                    'preferred_date' => $request->preferred_date,
+                    'preferred_time' => $request->preferred_time
+                ]);
+            });
+        } catch (\Exception $e) {
+            Log::error('Failed to create scheduled visit', [
+                'user_id' => Auth::id(),
+                'property_id' => $property->id,
+                'error' => $e->getMessage()
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to schedule visit. Please try again.'
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->with('error', 'Failed to schedule visit. Please try again.');
+        }
 
         // Create notification for landlord
         Notification::create([
-            'user_id' => $property->landlord->id,
+            'user_id' => $property->user_id, // Property owner
             'type' => Notification::TYPE_VISIT_SCHEDULED,
             'title' => 'New Visit Request',
             'message' => Auth::user()->name . ' has requested to visit your property: ' . $property->title,
@@ -68,6 +140,30 @@ class ScheduledVisitController extends Controller
             ],
             'action_url' => route('landlord.scheduled-visits', ['visit_id' => $visit->id])
         ]);
+
+        // Create notification for tenant (confirmation)
+        Notification::create([
+            'user_id' => Auth::id(), // Tenant
+            'type' => Notification::TYPE_VISIT_SCHEDULED,
+            'title' => 'Visit Request Sent',
+            'message' => 'Your visit request for "' . $property->title . '" has been sent to the landlord. You will be notified when they confirm.',
+            'data' => [
+                'visit_id' => $visit->id,
+                'property_id' => $property->id,
+                'landlord_name' => $property->user->name,
+                'preferred_date' => $request->preferred_date,
+                'preferred_time' => $request->preferred_time
+            ],
+            'action_url' => route('tenant.scheduled-visits')
+        ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Visit request sent successfully! The landlord will confirm your appointment.',
+                'visit_id' => $visit->id
+            ]);
+        }
 
         return redirect()->back()
             ->with('success', 'Visit request sent successfully! The landlord will confirm your appointment.');
@@ -163,16 +259,52 @@ class ScheduledVisitController extends Controller
         }
 
         $request->validate([
-            'confirmed_date' => 'required|date|after_or_equal:today',
-            'confirmed_time' => 'required|string',
+            'confirmed_date' => 'required|date|after_or_equal:today|before:' . now()->addMonths(2)->format('Y-m-d'),
+            'confirmed_time' => 'required|date_format:H:i',
             'landlord_response' => 'nullable|string|max:500'
+        ], [
+            'confirmed_date.after_or_equal' => 'Confirmed date cannot be in the past.',
+            'confirmed_date.before' => 'Confirmed date cannot be more than 2 months from now.',
+            'confirmed_time.date_format' => 'Confirmed time must be in HH:MM format.',
+            'landlord_response.max' => 'Response message cannot exceed 500 characters.'
         ]);
 
-        $visit->confirm(
-            $request->confirmed_date,
-            $request->confirmed_time,
-            $request->landlord_response
-        );
+        // Additional validation for business hours
+        $confirmedTime = strtotime($request->confirmed_time);
+        $businessStart = strtotime('08:00');
+        $businessEnd = strtotime('20:00');
+
+        if ($confirmedTime < $businessStart || $confirmedTime > $businessEnd) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['confirmed_time' => 'Confirmed time must be between 8:00 AM and 8:00 PM.']);
+        }
+
+        try {
+            DB::transaction(function () use ($visit, $request) {
+                $visit->confirm(
+                    $request->confirmed_date,
+                    $request->confirmed_time,
+                    trim($request->landlord_response)
+                );
+
+                Log::info('Visit confirmed by landlord', [
+                    'visit_id' => $visit->id,
+                    'landlord_id' => Auth::id(),
+                    'confirmed_date' => $request->confirmed_date,
+                    'confirmed_time' => $request->confirmed_time
+                ]);
+            });
+        } catch (\Exception $e) {
+            Log::error('Failed to confirm visit', [
+                'visit_id' => $visit->id,
+                'landlord_id' => Auth::id(),
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Failed to confirm visit. Please try again.');
+        }
 
         // Notify tenant of confirmation
         Notification::create([

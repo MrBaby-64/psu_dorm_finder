@@ -14,6 +14,7 @@ class Message extends Model
         'sender_id',
         'receiver_id',
         'property_id',
+        'inquiry_id',
         'body',
         'read_at'
     ];
@@ -35,5 +36,10 @@ class Message extends Model
     public function property()
     {
         return $this->belongsTo(Property::class);
+    }
+
+    public function inquiry()
+    {
+        return $this->belongsTo(Inquiry::class);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
 use App\Models\Favorite;
 use App\Models\Notification;
 use App\Models\ScheduledVisit;
@@ -31,18 +30,10 @@ class TenantController extends Controller
         // Get summary statistics
         $stats = [
             'favorites_count' => $user->favorites()->count(),
-            'transactions_count' => $user->transactions()->count(),
             'scheduled_visits_count' => $user->scheduledVisits()->count(),
             'reviews_count' => $user->reviews()->count(),
             'unread_notifications' => $user->unread_notifications_count
         ];
-
-        // Get recent activities
-        $recentTransactions = $user->transactions()
-            ->with('property')
-            ->latest()
-            ->limit(5)
-            ->get();
 
         $upcomingVisits = $user->scheduledVisits()
             ->with('property')
@@ -57,66 +48,13 @@ class TenantController extends Controller
             ->get();
 
         return view('tenant.account', compact(
-            'user', 
-            'stats', 
-            'recentTransactions', 
+            'user',
+            'stats',
             'upcomingVisits',
             'recentNotifications'
         ));
     }
 
-    // Transactions
-    public function transactions(Request $request)
-    {
-        $user = Auth::user();
-        
-        $query = $user->transactions()->with('property');
-
-        // Filter by status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Filter by type
-        if ($request->filled('type')) {
-            $query->where('type', $request->type);
-        }
-
-        // Search by property name or reference number
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('reference_number', 'LIKE', "%{$search}%")
-                  ->orWhere('description', 'LIKE', "%{$search}%")
-                  ->orWhereHas('property', function($pq) use ($search) {
-                      $pq->where('title', 'LIKE', "%{$search}%");
-                  });
-            });
-        }
-
-        $transactions = $query->orderBy('created_at', 'desc')->paginate(15);
-
-        // Get filter options
-        $statuses = Transaction::getStatuses();
-        $types = Transaction::getTypes();
-
-        // Get summary data
-        $totalSpent = $user->transactions()
-            ->where('status', 'completed')
-            ->sum('amount');
-
-        $pendingAmount = $user->transactions()
-            ->where('status', 'pending')
-            ->sum('amount');
-
-        return view('tenant.transactions', compact(
-            'transactions', 
-            'statuses', 
-            'types', 
-            'totalSpent',
-            'pendingAmount'
-        ));
-    }
 
     // Favorites
     public function favorites(Request $request)

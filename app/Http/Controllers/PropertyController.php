@@ -45,6 +45,22 @@ class PropertyController extends Controller
             $query->where('city', $request->city);
         }
 
+        // Handle price range filtering
+        if ($request->filled('price_range')) {
+            $priceRange = $request->price_range;
+
+            if ($priceRange === '0-5000') {
+                $query->where('price', '<=', 5000);
+            } elseif ($priceRange === '5000-10000') {
+                $query->whereBetween('price', [5000, 10000]);
+            } elseif ($priceRange === '10000-15000') {
+                $query->whereBetween('price', [10000, 15000]);
+            } elseif ($priceRange === '15000+') {
+                $query->where('price', '>=', 15000);
+            }
+        }
+
+        // Handle individual price min/max (for custom filters)
         if ($request->filled('price_min')) {
             $query->where('price', '>=', $request->price_min);
         }
@@ -54,7 +70,10 @@ class PropertyController extends Controller
         }
 
         if ($request->filled('room_count')) {
-            $query->where('room_count', '>=', $request->room_count);
+            $roomCount = (int) $request->room_count;
+            $query->where('room_count', '>=', $roomCount)
+                  ->whereNotNull('room_count')
+                  ->where('room_count', '>', 0);
         }
 
         if ($request->boolean('is_verified')) {
@@ -63,7 +82,9 @@ class PropertyController extends Controller
 
         // Handle sorting
         $sort = $request->get('sort', 'newest');
-        $originCampus = $request->get('origin_campus', 'bacolor');
+        $originCampus = 'bacolor'; // Always use PSU Main Campus for distance calculations
+
+        // No auto-sorting needed since filters are removed
 
         if ($sort === 'nearest') {
             // Get all matching properties first
@@ -115,6 +136,12 @@ class PropertyController extends Controller
                 case 'price_desc':
                     $query->orderBy('price', 'desc');
                     break;
+                case 'room_asc':
+                    $query->orderBy('room_count', 'asc')->orderBy('price', 'asc');
+                    break;
+                case 'room_desc':
+                    $query->orderBy('room_count', 'desc')->orderBy('price', 'asc');
+                    break;
                 default:
                     $query->orderBy('created_at', 'desc');
             }
@@ -131,7 +158,9 @@ class PropertyController extends Controller
             'filters' => $request->all(),
             'campuses' => $this->campusService->getCampusOptions(),
             'sort' => $sort,
-            'originCampus' => $originCampus
+            'originCampus' => $originCampus,
+            'autoSorted' => false,
+            'autoSortType' => null
         ]);
     }
 
@@ -144,7 +173,7 @@ class PropertyController extends Controller
         $property->load([
             'images',
             'amenities',
-            'rooms',
+            'rooms.images',
             'landlord',
             'reviews.user'
         ]);

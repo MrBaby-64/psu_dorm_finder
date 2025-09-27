@@ -70,4 +70,54 @@ class UserController extends Controller
 
         return redirect()->back()->with('success', 'User verification updated!');
     }
+
+    public function show(User $user)
+    {
+        $this->checkAdmin();
+
+        try {
+            // Load user with related data for comprehensive view
+            $user->load(['properties', 'bookings', 'reviews']);
+
+            // Get user statistics safely with null checks
+            $stats = [
+                'total_properties' => $user->properties ? $user->properties->count() : 0,
+                'active_properties' => $user->properties ? $user->properties->where('status', 'approved')->count() : 0,
+                'total_bookings' => $user->bookings ? $user->bookings->count() : 0,
+                'total_reviews' => $user->reviews ? $user->reviews->count() : 0,
+                'unread_notifications' => 0, // Simplified for now
+                'account_age_days' => $user->created_at ? $user->created_at->diffInDays(now()) : 0,
+            ];
+
+            // Log the view action
+            AuditLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'view_user_details',
+                'subject_type' => 'App\Models\User',
+                'subject_id' => $user->id,
+                'meta_json' => json_encode(['viewed_user_email' => $user->email])
+            ]);
+
+            // Render the view
+            $html = view('admin.users.show', compact('user', 'stats'))->render();
+
+            return response()->json([
+                'success' => true,
+                'user' => $user,
+                'stats' => $stats,
+                'html' => $html
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error loading user details: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'error' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to load user details: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

@@ -14,6 +14,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Set default timezone for the application
+        date_default_timezone_set('Asia/Manila');
+
         if (app()->environment('production')) {
             // Make all generated URLs use https
             URL::forceScheme('https');

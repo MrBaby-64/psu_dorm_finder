@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 class Inquiry extends Model
 {
@@ -30,13 +31,17 @@ class Inquiry extends Model
 
     // Inquiry statuses
     const STATUS_PENDING = 'pending';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
     const STATUS_REPLIED = 'replied';
     const STATUS_CLOSED = 'closed';
 
     public static function getStatuses(): array
     {
         return [
-            self::STATUS_PENDING => 'Pending',
+            self::STATUS_PENDING => 'Pending Approval',
+            self::STATUS_APPROVED => 'Approved',
+            self::STATUS_REJECTED => 'Rejected',
             self::STATUS_REPLIED => 'Replied',
             self::STATUS_CLOSED => 'Closed'
         ];
@@ -63,6 +68,11 @@ class Inquiry extends Model
         return $this->belongsTo(Room::class);
     }
 
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
+
     // Accessors
     public function getStatusNameAttribute(): string
     {
@@ -73,6 +83,8 @@ class Inquiry extends Model
     {
         $colors = [
             self::STATUS_PENDING => 'text-yellow-600 bg-yellow-100',
+            self::STATUS_APPROVED => 'text-green-600 bg-green-100',
+            self::STATUS_REJECTED => 'text-red-600 bg-red-100',
             self::STATUS_REPLIED => 'text-blue-600 bg-blue-100',
             self::STATUS_CLOSED => 'text-gray-600 bg-gray-100'
         ];
@@ -87,10 +99,54 @@ class Inquiry extends Model
 
     public function canBeReplied(): bool
     {
-        return $this->status !== self::STATUS_CLOSED;
+        return in_array($this->status, [self::STATUS_APPROVED, self::STATUS_REPLIED]);
+    }
+
+    public function canBeApproved(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === self::STATUS_APPROVED;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
     }
 
     // Methods
+    public function approve(): void
+    {
+        DB::transaction(function () {
+            $this->update(['status' => self::STATUS_APPROVED]);
+
+            // If inquiry has a room selection, increase the occupied count
+            if ($this->room_id) {
+                $room = $this->room;
+                if ($room) {
+                    $room->increment('occupied_count');
+
+                    // If room is now at capacity, mark it as occupied
+                    if ($room->occupied_count >= $room->capacity) {
+                        $room->update(['status' => 'occupied']);
+                    }
+                }
+            }
+        });
+    }
+
+    public function reject(string $reason = null): void
+    {
+        $this->update([
+            'status' => self::STATUS_REJECTED,
+            'landlord_reply' => $reason,
+            'replied_at' => now()
+        ]);
+    }
+
     public function reply(string $reply): void
     {
         $this->update([
@@ -103,6 +159,26 @@ class Inquiry extends Model
     public function close(): void
     {
         $this->update(['status' => self::STATUS_CLOSED]);
+    }
+
+    public function releaseRoom(): void
+    {
+        DB::transaction(function () {
+            // If inquiry was approved and has room, decrease occupied count
+            if ($this->room_id && $this->status === self::STATUS_APPROVED) {
+                $room = $this->room;
+                if ($room && $room->occupied_count > 0) {
+                    $room->decrement('occupied_count');
+
+                    // If room has available space again, mark it as available
+                    if ($room->occupied_count < $room->capacity) {
+                        $room->update(['status' => 'available']);
+                    }
+                }
+            }
+
+            $this->update(['status' => self::STATUS_CLOSED]);
+        });
     }
 
     // Scopes
@@ -136,5 +212,28 @@ class Inquiry extends Model
     public function scopeReplied($query)
     {
         return $query->where('status', self::STATUS_REPLIED);
+    }
+
+    // Static method to check if tenant has pending inquiries
+    public static function tenantHasPendingInquiry($tenantId): bool
+    {
+        return self::where('user_id', $tenantId)
+                   ->where('status', self::STATUS_PENDING)
+                   ->exists();
+    }
+
+    // Static method to get tenant's pending inquiry
+    public static function getTenantPendingInquiry($tenantId)
+    {
+        return self::where('user_id', $tenantId)
+                   ->where('status', self::STATUS_PENDING)
+                   ->with(['property', 'room'])
+                   ->first();
+    }
+
+    // Check if this inquiry prevents new inquiries
+    public function preventsNewInquiries(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
     }
 }

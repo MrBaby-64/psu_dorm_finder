@@ -41,6 +41,18 @@ class Booking extends Model
         'cancelled_at' => 'datetime'
     ];
 
+    // Alternative accessor for check_in compatibility
+    public function getCheckInAttribute()
+    {
+        return $this->check_in_date;
+    }
+
+    // Alternative accessor for check_out compatibility
+    public function getCheckOutAttribute()
+    {
+        return $this->check_out_date;
+    }
+
     // Booking statuses
     const STATUS_PENDING = 'pending';
     const STATUS_APPROVED = 'approved';

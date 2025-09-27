@@ -52,23 +52,33 @@
                     <svg class="w-5 h-5 text-red-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <h3 class="text-red-800 font-semibold">Please complete the following required fields:</h3>
+                    <h3 class="text-red-800 font-semibold">Please fix the following issues:</h3>
                 </div>
                 <ul class="list-disc list-inside text-red-700 space-y-1">
-                    @error('title')<li>Property Title is required</li>@enderror
-                    @error('description')<li>Property Description is required</li>@enderror
-                    @error('address_line')<li>Street Address is required</li>@enderror
-                    @error('barangay')<li>Barangay is required</li>@enderror
-                    @error('city')<li>City is required</li>@enderror
-                    @error('location_text')<li>Location Description is required</li>@enderror
-                    @error('latitude')<li>Map coordinates (latitude) are required</li>@enderror
-                    @error('longitude')<li>Map coordinates (longitude) are required</li>@enderror
-                    @error('price')<li>Monthly Rate is required</li>@enderror
-                    @error('room_count')<li>Number of Rooms is required</li>@enderror
-                    @error('amenities')<li>At least one amenity must be selected</li>@enderror
-                    @error('images')<li>At least one property image is required</li>@enderror
-                    @error('images.*')<li>Images must be JPEG, JPG, PNG, or WEBP format and under 5MB</li>@enderror
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
                 </ul>
+
+                @if($errors->has('rooms') || $errors->has('rooms.*'))
+                    <div class="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p class="text-yellow-800 text-sm">
+                            <strong>💡 Tip:</strong> If you don't want to set up individual room details, you can click the
+                            <strong>"Use Default Room Settings"</strong> button below the room section to skip this step.
+                        </p>
+                    </div>
+                @endif
+
+                @if($errors->has('general'))
+                    <div class="mt-3 p-4 bg-red-100 border border-red-300 rounded-lg">
+                        <p class="text-red-800 text-sm flex items-start">
+                            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <strong>System Error:</strong> {{ $errors->first('general') }}
+                        </p>
+                    </div>
+                @endif
             </div>
         @endif
 
@@ -93,12 +103,17 @@
                            required
                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
                     <p class="text-sm text-gray-500 mt-1">Select 1-10 images (JPEG, JPG, PNG, WEBP, max 5MB each)</p>
-                    @error('images')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                    @error('images.*')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
+                    @if($errors->has('images') || $errors->has('images.*'))
+                        <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <p class="text-red-600 text-sm flex items-center">
+                                <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                @error('images'){{ $message }}@enderror
+                                @error('images.*'){{ $message }}@enderror
+                            </p>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Image Previews -->
@@ -115,13 +130,19 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Property Title <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" 
-                               name="title" 
+                        <input type="text"
+                               name="title"
                                value="{{ old('title') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('title') border-red-300 @enderror"
-                               placeholder="e.g., Cozy Student Dormitory near PSU">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('title') border-red-300 bg-red-50 @enderror"
+                               placeholder="e.g., Cozy Student Dormitory near PSU"
+                               required>
                         @error('title')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="mt-1 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ $message }}
+                            </p>
                         @enderror
                     </div>
 
@@ -130,12 +151,18 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Description <span class="text-red-500">*</span>
                         </label>
-                        <textarea name="description" 
-                                  rows="4" 
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('description') border-red-300 @enderror"
-                                  placeholder="Describe your property, its features, and what makes it special...">{{ old('description') }}</textarea>
+                        <textarea name="description"
+                                  rows="4"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('description') border-red-300 bg-red-50 @enderror"
+                                  placeholder="Describe your property, its features, and what makes it special... (minimum 50 characters)"
+                                  required>{{ old('description') }}</textarea>
                         @error('description')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="mt-1 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ $message }}
+                            </p>
                         @enderror
                     </div>
 
@@ -144,15 +171,22 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Monthly Rate (₱) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" 
-                               name="price" 
+                        <input type="number"
+                               name="price"
                                value="{{ old('price') }}"
-                               min="0" 
+                               min="500"
+                               max="50000"
                                step="0.01"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('price') border-red-300 @enderror"
-                               placeholder="e.g., 5000">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('price') border-red-300 bg-red-50 @enderror"
+                               placeholder="e.g., 5000 (minimum ₱500)"
+                               required>
                         @error('price')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="mt-1 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ $message }}
+                            </p>
                         @enderror
                     </div>
 
@@ -161,16 +195,45 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Number of Rooms <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" 
-                               name="room_count" 
+                        <input type="number"
+                               name="room_count"
+                               id="room_count"
                                value="{{ old('room_count') }}"
                                min="1"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('room_count') border-red-300 @enderror"
-                               placeholder="e.g., 10">
+                               max="100"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('room_count') border-red-300 bg-red-50 @enderror"
+                               placeholder="e.g., 10 (1-100 rooms)"
+                               onchange="generateRoomInputs()"
+                               required>
                         @error('room_count')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="mt-1 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ $message }}
+                            </p>
                         @enderror
                     </div>
+                </div>
+            </div>
+
+            <!-- Room Details Section -->
+            <div id="roomDetailsSection" class="bg-white rounded-lg shadow-sm p-6 mb-6" style="display: none;">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Room Details & Capacity <span class="text-sm text-gray-500 font-normal">(Optional)</span></h2>
+                <p class="text-sm text-gray-600 mb-4">
+                    Specify details for each room if you want custom room names and capacity.
+                    <br><strong>Note:</strong> If you leave this section empty, we'll automatically create rooms with default settings (Room 1, Room 2, etc. with 2-person capacity each).
+                </p>
+
+                <div id="roomInputsContainer" class="space-y-4">
+                    <!-- Dynamic room inputs will be generated here -->
+                </div>
+
+                <div class="mt-4 flex gap-3">
+                    <button type="button" onclick="clearRoomDetails()" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition text-sm">
+                        Use Default Room Settings
+                    </button>
+                    <p class="text-xs text-gray-500 self-center">Click this to skip room details and use default settings</p>
                 </div>
             </div>
 
@@ -184,13 +247,19 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Street Address <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" 
-                               name="address_line" 
+                        <input type="text"
+                               name="address_line"
                                value="{{ old('address_line') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('address_line') border-red-300 @enderror"
-                               placeholder="e.g., 123 Main Street">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('address_line') border-red-300 bg-red-50 @enderror"
+                               placeholder="e.g., 123 Main Street"
+                               required>
                         @error('address_line')
-                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            <p class="mt-1 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ $message }}
+                            </p>
                         @enderror
                     </div>
 
@@ -340,7 +409,14 @@
                 @endif
                 
                 @error('amenities')
-                    <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                    <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-red-600 text-sm flex items-center">
+                            <svg class="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            {{ $message }} Please select at least one amenity above.
+                        </p>
+                    </div>
                 @enderror
             </div>
 
@@ -562,6 +638,12 @@
             return false;
         }
 
+        // Skip room validation entirely - let server handle it
+        // Room details are now optional and server will create defaults if not provided
+
+        // Skip visit scheduling validation - let server handle it
+        // Server will provide better error messages for visit scheduling
+
         return true;
     }
     let map, propertyMarker;
@@ -621,18 +703,62 @@
 
     setTimeout(tryInitMap, 100);
 
-    // Focus on first error field
+    // Focus on first error field with enhanced UX
     @if($errors->any())
         setTimeout(() => {
             const firstErrorField = document.querySelector('.border-red-300');
             if (firstErrorField) {
+                // Scroll to the error field
                 firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                firstErrorField.focus();
+
+                // Add a pulse animation to draw attention
+                firstErrorField.classList.add('animate-pulse');
+                setTimeout(() => {
+                    firstErrorField.classList.remove('animate-pulse');
+                }, 2000);
+
+                // Focus the field after scroll completes
+                setTimeout(() => {
+                    firstErrorField.focus();
+                }, 500);
             }
+
+            // Show a helpful toast message
+            showErrorToast();
+
             // Re-initialize map after error focus
             setTimeout(tryInitMap, 300);
         }, 100);
     @endif
+
+    // Show error toast notification
+    function showErrorToast() {
+        const toast = document.createElement('div');
+        toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                Please fix the highlighted fields above
+            </div>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Show the toast
+        setTimeout(() => {
+            toast.classList.remove('translate-x-full');
+        }, 100);
+
+        // Hide the toast after 4 seconds
+        setTimeout(() => {
+            toast.classList.add('translate-x-full');
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 300);
+        }, 4000);
+    }
 
     // Disable submit button during form submission
     const form = document.getElementById('propertyForm');
@@ -700,10 +826,10 @@
             }).addTo(map);
             console.log('Tile layer added');
 
-            // PSU marker
+            // PSU marker (RED)
             L.marker(psuLocation, {
                 icon: L.icon({
-                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
                     iconSize: [25, 41],
                     iconAnchor: [12, 41]
                 })
@@ -749,7 +875,7 @@
         propertyMarker = L.marker([lat, lng], {
             draggable: true,
             icon: L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
                 iconSize: [25, 41],
                 iconAnchor: [12, 41]
             })
@@ -923,6 +1049,174 @@
         } else {
             settings.style.display = 'none';
         }
+    }
+
+    // Room Details Generation Function
+    function generateRoomInputs() {
+        const roomCount = parseInt(document.getElementById('room_count').value) || 0;
+        const roomDetailsSection = document.getElementById('roomDetailsSection');
+        const roomInputsContainer = document.getElementById('roomInputsContainer');
+
+        if (roomCount <= 0) {
+            roomDetailsSection.style.display = 'none';
+            roomInputsContainer.innerHTML = '';
+            return;
+        }
+
+        roomDetailsSection.style.display = 'block';
+        roomInputsContainer.innerHTML = '';
+
+        for (let i = 1; i <= roomCount; i++) {
+            const roomDiv = document.createElement('div');
+            roomDiv.className = 'grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border border-gray-200 rounded-lg';
+
+            // Get old values from PHP (if available)
+            const oldRoomData = @json(old('rooms', []));
+            const oldName = oldRoomData[i-1] ? oldRoomData[i-1].name || '' : '';
+            const oldCapacity = oldRoomData[i-1] ? oldRoomData[i-1].capacity || '' : '';
+            const oldDescription = oldRoomData[i-1] ? oldRoomData[i-1].description || '' : '';
+
+            roomDiv.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Room ${i} Name <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text"
+                               name="rooms[${i-1}][name]"
+                               value="${oldName}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                               placeholder="e.g., Room ${i}A, Deluxe Room ${i}"
+                               required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Capacity (Tenants) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number"
+                               name="rooms[${i-1}][capacity]"
+                               value="${oldCapacity}"
+                               min="1"
+                               max="10"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                               placeholder="e.g., 2"
+                               required>
+                        <p class="text-xs text-gray-500 mt-1">How many tenants can stay in this room?</p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Room Description
+                    </label>
+                    <input type="text"
+                           name="rooms[${i-1}][description]"
+                           value="${oldDescription}"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                           placeholder="e.g., With aircon, shared bathroom">
+                </div>
+
+                <!-- Room Images Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Room ${i} Images <span class="text-gray-500 text-xs">(Optional)</span>
+                    </label>
+                    <input type="file"
+                           name="room_images[${i-1}][]"
+                           id="roomImageInput_${i-1}"
+                           multiple
+                           accept="image/jpeg,image/jpg,image/png,image/webp"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                           onchange="previewRoomImages(${i-1})">
+                    <p class="text-sm text-gray-500 mt-1">Select 1-5 images of this room (JPEG, JPG, PNG, WEBP, max 5MB each)</p>
+                    <div id="roomImagePreviews_${i-1}" class="mt-2 flex flex-wrap gap-2"></div>
+                </div>
+            `;
+
+            roomInputsContainer.appendChild(roomDiv);
+        }
+    }
+
+    // Generate room inputs on page load if room_count has a value
+    document.addEventListener('DOMContentLoaded', function() {
+        const roomCountInput = document.getElementById('room_count');
+        if (roomCountInput && roomCountInput.value) {
+            generateRoomInputs();
+        }
+
+        // Also trigger when user changes room count
+        if (roomCountInput) {
+            roomCountInput.addEventListener('input', generateRoomInputs);
+            roomCountInput.addEventListener('change', generateRoomInputs);
+        }
+    });
+
+    // Clear room details function
+    function clearRoomDetails() {
+        const roomDetailsSection = document.getElementById('roomDetailsSection');
+        const roomInputsContainer = document.getElementById('roomInputsContainer');
+
+        if (roomInputsContainer) {
+            // Remove all room input elements completely
+            roomInputsContainer.innerHTML = '';
+        }
+
+        if (roomDetailsSection) {
+            roomDetailsSection.style.display = 'none';
+        }
+
+        // Also remove any existing room inputs from the DOM to prevent submission of empty fields
+        const existingRoomInputs = document.querySelectorAll('input[name^="rooms"]');
+        existingRoomInputs.forEach(input => {
+            if (input.closest('#roomInputsContainer')) {
+                input.remove();
+            }
+        });
+
+        alert('Room details cleared! Default room settings will be used when you create the property.');
+    }
+
+    // Room Images Preview Function
+    function previewRoomImages(roomIndex) {
+        const input = document.getElementById(`roomImageInput_${roomIndex}`);
+        const previewContainer = document.getElementById(`roomImagePreviews_${roomIndex}`);
+
+        // Clear previous previews
+        previewContainer.innerHTML = '';
+
+        if (input.files) {
+            Array.from(input.files).forEach((file, index) => {
+                if (index >= 5) return; // Limit to 5 images per room
+
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const imagePreview = document.createElement('div');
+                        imagePreview.className = 'image-preview relative';
+                        imagePreview.innerHTML = `
+                            <img src="${e.target.result}"
+                                 alt="Room ${roomIndex + 1} Preview ${index + 1}"
+                                 class="w-20 h-20 object-cover rounded-lg border border-gray-300">
+                            <button type="button"
+                                    class="remove-image absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                    onclick="removeRoomImage(this, ${roomIndex}, ${index})"
+                                    title="Remove image">
+                                ×
+                            </button>
+                        `;
+                        previewContainer.appendChild(imagePreview);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    }
+
+    // Remove Room Image Preview
+    function removeRoomImage(button, roomIndex, imageIndex) {
+        button.parentElement.remove();
+        // Note: This only removes the preview, actual file handling would need more complex logic
     }
 </script>
 @endpush

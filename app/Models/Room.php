@@ -18,15 +18,33 @@ class Room extends Model
         'price',
         'size_sqm',
         'capacity',
+        'occupied_count',
         'status',
         'description',
         'amenities'
     ];
 
+    // Validation rules for room creation
+    public static function getValidationRules(): array
+    {
+        return [
+            'property_id' => 'required|exists:properties,id',
+            'room_number' => 'required|string|max:50',
+            'room_type' => 'required|string|in:single,shared,studio,one_bedroom,bedspace',
+            'price' => 'required|numeric|min:0|max:100000',
+            'size_sqm' => 'nullable|numeric|min:1|max:500',
+            'capacity' => 'required|integer|min:1|max:10',
+            'status' => 'required|string|in:available,occupied,maintenance,reserved',
+            'description' => 'nullable|string|max:1000',
+            'amenities' => 'nullable|array'
+        ];
+    }
+
     protected $casts = [
         'price' => 'decimal:2',
         'size_sqm' => 'decimal:1',
         'capacity' => 'integer',
+        'occupied_count' => 'integer',
         'amenities' => 'array'
     ];
 
@@ -80,6 +98,11 @@ class Room extends Model
         return $this->hasMany(Inquiry::class);
     }
 
+    public function images(): HasMany
+    {
+        return $this->hasMany(RoomImage::class)->orderBy('sort_order');
+    }
+
     // Accessors
     public function getFormattedPriceAttribute(): string
     {
@@ -111,6 +134,22 @@ class Room extends Model
     public function getFullNameAttribute(): string
     {
         return $this->room_number . ' (' . $this->type_name . ')';
+    }
+
+    public function getCoverImageAttribute(): ?RoomImage
+    {
+        return $this->images()->where('is_cover', true)->first();
+    }
+
+    public function getCoverImageUrlAttribute(): string
+    {
+        $cover = $this->cover_image;
+        return $cover ? asset('storage/' . $cover->image_path) : asset('images/placeholder-room.jpg');
+    }
+
+    public function getImageCountAttribute(): int
+    {
+        return $this->images()->count();
     }
 
     // Methods
@@ -169,5 +208,28 @@ class Room extends Model
             $query->where('price', '<=', $max);
         }
         return $query;
+    }
+
+    // Boot method for model events
+    protected static function booted()
+    {
+        // Ensure data integrity before saving
+        static::saving(function ($room) {
+            // Ensure capacity is within valid range
+            if ($room->capacity < 1) {
+                $room->capacity = 1;
+            } elseif ($room->capacity > 10) {
+                $room->capacity = 10;
+            }
+
+            // Ensure price is not negative
+            if ($room->price < 0) {
+                $room->price = 0;
+            }
+
+            // Trim whitespace from string fields
+            $room->room_number = trim($room->room_number);
+            $room->description = $room->description ? trim($room->description) : null;
+        });
     }
 }
