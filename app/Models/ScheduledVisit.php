@@ -109,6 +109,21 @@ class ScheduledVisit extends Model
         return $this->preferred_date->format('M j, Y') . ' at ' . $this->formatted_preferred_time;
     }
 
+    // Compatibility accessors for the history view
+    public function getVisitDateAttribute()
+    {
+        return $this->status === self::STATUS_CONFIRMED && $this->confirmed_date
+            ? $this->confirmed_date
+            : $this->preferred_date;
+    }
+
+    public function getVisitTimeAttribute()
+    {
+        return $this->status === self::STATUS_CONFIRMED && $this->confirmed_time
+            ? $this->formatted_confirmed_time
+            : $this->formatted_preferred_time;
+    }
+
     public function canBeCancelled(): bool
     {
         return in_array($this->status, [self::STATUS_PENDING, self::STATUS_CONFIRMED]);
@@ -122,6 +137,48 @@ class ScheduledVisit extends Model
     public function canBeCompleted(): bool
     {
         return $this->status === self::STATUS_CONFIRMED;
+    }
+
+    public function isUrgent(): bool
+    {
+        if ($this->status !== self::STATUS_CONFIRMED || !$this->confirmed_date) {
+            return false;
+        }
+
+        $visitDate = $this->confirmed_date->toDateString();
+        $today = now()->toDateString();
+        $tomorrow = now()->addDay()->toDateString();
+
+        return $visitDate === $today || $visitDate === $tomorrow;
+    }
+
+    public function isToday(): bool
+    {
+        if ($this->status !== self::STATUS_CONFIRMED || !$this->confirmed_date) {
+            return false;
+        }
+
+        return $this->confirmed_date->toDateString() === now()->toDateString();
+    }
+
+    public function getUrgencyLevelAttribute(): string
+    {
+        if (!$this->confirmed_date || $this->status !== self::STATUS_CONFIRMED) {
+            return 'normal';
+        }
+
+        $visitDate = $this->confirmed_date;
+        $today = now()->startOfDay();
+
+        if ($visitDate->isSameDay($today)) {
+            return 'today';
+        } elseif ($visitDate->isSameDay($today->addDay())) {
+            return 'tomorrow';
+        } elseif ($visitDate->between($today->addDay(), $today->addDays(2))) {
+            return 'next_3_days';
+        }
+
+        return 'normal';
     }
 
     // Methods
@@ -184,5 +241,31 @@ class ScheduledVisit extends Model
     {
         return $query->whereIn('status', [self::STATUS_CONFIRMED])
                     ->where('confirmed_date', '>=', now()->toDateString());
+    }
+
+    public function scopeToday($query)
+    {
+        return $query->whereIn('status', [self::STATUS_CONFIRMED])
+                    ->where('confirmed_date', now()->toDateString());
+    }
+
+    public function scopeNext3Days($query)
+    {
+        return $query->whereIn('status', [self::STATUS_CONFIRMED])
+                    ->whereBetween('confirmed_date', [
+                        now()->addDay()->toDateString(),
+                        now()->addDays(3)->toDateString()
+                    ]);
+    }
+
+    public function scopeImminentVisits($query)
+    {
+        return $query->whereIn('status', [self::STATUS_CONFIRMED])
+                    ->whereBetween('confirmed_date', [
+                        now()->toDateString(),
+                        now()->addDays(3)->toDateString()
+                    ])
+                    ->orderBy('confirmed_date', 'asc')
+                    ->orderBy('confirmed_time', 'asc');
     }
 }

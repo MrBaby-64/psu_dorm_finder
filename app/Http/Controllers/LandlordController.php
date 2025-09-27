@@ -42,7 +42,9 @@ class LandlordController extends Controller
             'scheduled_visits' => $this->getPendingVisitsCount(),
             'total_earnings' => $this->getTotalEarnings(),
             'unread_notifications' => $user->unread_notifications_count,
-            'new_reviews' => $this->getNewReviewsCount()
+            'new_reviews' => $this->getNewReviewsCount(),
+            'admin_messages' => $this->getAdminMessagesCount(),
+            'admin_responses' => $this->getAdminResponsesCount()
         ];
 
         // Get recent activities
@@ -381,7 +383,7 @@ class LandlordController extends Controller
     public function notifications(Request $request)
     {
         $user = Auth::user();
-        
+
         $query = $user->notifications();
 
         // Filter by read/unread
@@ -400,10 +402,133 @@ class LandlordController extends Controller
 
         $notifications = $query->orderBy('created_at', 'desc')->paginate(20);
 
+        // Mark all as read if requested
+        if ($request->has('mark_all_read')) {
+            $user->notifications()->unread()->update([
+                'is_read' => true,
+                'read_at' => now()
+            ]);
+
+            return redirect()->route('landlord.notifications')
+                ->with('success', 'All notifications marked as read.');
+        }
+
         // Get notification types for filter
         $notificationTypes = Notification::getTypes();
 
         return view('landlord.notifications', compact('notifications', 'notificationTypes'));
+    }
+
+    // Mark all notifications as read
+    public function markAllNotificationsRead()
+    {
+        $user = Auth::user();
+
+        $user->notifications()->unread()->update([
+            'is_read' => true,
+            'read_at' => now()
+        ]);
+
+        return redirect()->route('landlord.notifications')
+            ->with('success', 'All notifications marked as read.');
+    }
+
+    // Mark single notification as read
+    public function markNotificationRead(Notification $notification)
+    {
+        if ($notification->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $notification->markAsRead();
+
+        if ($notification->action_url) {
+            return redirect($notification->action_url);
+        }
+
+        return redirect()->back()->with('success', 'Notification marked as read.');
+    }
+
+    public function adminMessages(Request $request)
+    {
+        $user = Auth::user();
+
+        $query = \App\Models\AdminMessage::where('sender_id', $user->id)
+            ->with(['property', 'responder'])
+            ->latest();
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $status = $request->status;
+            if (in_array($status, ['unread', 'read', 'resolved'])) {
+                $query->where('status', $status);
+            }
+        }
+
+        $messages = $query->paginate(15)->withQueryString();
+
+        $statuses = [
+            'unread' => 'Unread',
+            'read' => 'Read',
+            'resolved' => 'Resolved',
+        ];
+
+        return view('landlord.admin-messages', compact('messages', 'statuses'));
+    }
+
+    public function viewAdminMessage(\App\Models\AdminMessage $message)
+    {
+        $user = Auth::user();
+
+        // Verify this message belongs to this landlord
+        if ($message->sender_id !== $user->id) {
+            abort(403, 'You do not have permission to view this message.');
+        }
+
+        $message->load(['property', 'responder']);
+
+        return view('landlord.admin-message-detail', compact('message'));
+    }
+
+    public function viewAdminResponse(Request $request)
+    {
+        $user = Auth::user();
+        $notificationId = $request->query('notification');
+        $adminMessageId = $request->query('message');
+
+        if (!$notificationId || !$adminMessageId) {
+            return redirect()->route('landlord.notifications.index')
+                ->with('error', 'Invalid notification or message ID.');
+        }
+
+        // Get the notification and verify it belongs to this user
+        $notification = Notification::where('id', $notificationId)
+            ->where('user_id', $user->id)
+            ->where('type', Notification::TYPE_ADMIN_RESPONSE)
+            ->first();
+
+        if (!$notification) {
+            return redirect()->route('landlord.notifications.index')
+                ->with('error', 'Notification not found or you do not have permission to view it.');
+        }
+
+        // Get the admin message
+        $adminMessage = \App\Models\AdminMessage::where('id', $adminMessageId)
+            ->where('sender_id', $user->id)
+            ->with(['property', 'responder'])
+            ->first();
+
+        if (!$adminMessage) {
+            return redirect()->route('landlord.notifications.index')
+                ->with('error', 'Message not found or you do not have permission to view it.');
+        }
+
+        // Mark notification as read if it's unread
+        if (!$notification->is_read) {
+            $notification->markAsRead();
+        }
+
+        return view('landlord.admin-response', compact('notification', 'adminMessage'));
     }
 
     // Helper methods
@@ -440,6 +565,18 @@ class LandlordController extends Controller
                 $q->where('user_id', Auth::id());
             })
             ->whereNull('landlord_reply')
+            ->count();
+    }
+
+    private function getAdminMessagesCount(): int
+    {
+        return \App\Models\AdminMessage::where('sender_id', Auth::id())->count();
+    }
+
+    private function getAdminResponsesCount(): int
+    {
+        return \App\Models\AdminMessage::where('sender_id', Auth::id())
+            ->whereNotNull('admin_response')
             ->count();
     }
 }

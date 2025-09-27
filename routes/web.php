@@ -18,11 +18,15 @@ use Illuminate\Support\Facades\Route;
 
 // Home
 Route::get('/', [PropertyController::class, 'home'])->name('home');
+
 // Add these lines after the home route
 Route::get('/about', [App\Http\Controllers\PageController::class, 'about'])->name('about');
 Route::get('/how-it-works', [App\Http\Controllers\PageController::class, 'howItWorks'])->name('how-it-works');
 // Browse properties
 Route::get('/rentals/browse', [PropertyController::class, 'browse'])->name('properties.browse');
+
+// Search suggestions API
+Route::get('/api/properties/search-suggestions', [PropertyController::class, 'searchSuggestions'])->name('properties.search-suggestions');
 
 // Property details
 Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
@@ -59,7 +63,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Messages
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/conversation/{userId}/{propertyId}', [MessageController::class, 'conversation'])->name('messages.conversation');
     Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::post('/messages/direct', [MessageController::class, 'sendDirectMessage'])->name('messages.direct');
     Route::patch('/messages/{message}/read', [MessageController::class, 'markAsRead'])->name('messages.read');
 
     // Bookings
@@ -92,8 +98,6 @@ Route::middleware(['auth'])->prefix('tenant')->name('tenant.')->group(function (
     // Account and dashboard
     Route::get('/account', [App\Http\Controllers\TenantController::class, 'account'])->name('account');
     
-    // Transactions
-    Route::get('/transactions', [App\Http\Controllers\TenantController::class, 'transactions'])->name('transactions');
     
     // Favorites - already exists, just add the route name if missing
     
@@ -109,9 +113,8 @@ Route::middleware(['auth'])->prefix('tenant')->name('tenant.')->group(function (
     Route::put('/scheduled-visits/{visit}', [App\Http\Controllers\ScheduledVisitController::class, 'update'])->name('scheduled-visits.update');
 Route::delete('/scheduled-visits/{visit}', [App\Http\Controllers\ScheduledVisitController::class, 'destroy'])->name('scheduled-visits.destroy');
     
-    // Reviews
+    // Reviews (view only - creation handled by standalone ReviewController)
     Route::get('/reviews', [App\Http\Controllers\TenantController::class, 'reviews'])->name('reviews');
-    Route::post('/reviews', [App\Http\Controllers\TenantController::class, 'storeReview'])->name('reviews.store');
 });
 
 /*
@@ -139,21 +142,46 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
     Route::get('/properties/{property}/edit', [\App\Http\Controllers\Landlord\PropertyController::class, 'edit'])->name('properties.edit');
     Route::put('/properties/{property}', [\App\Http\Controllers\Landlord\PropertyController::class, 'update'])->name('properties.update');
     Route::delete('/properties/{property}', [\App\Http\Controllers\Landlord\PropertyController::class, 'destroy'])->name('properties.destroy');
+    Route::post('/properties/request-deletion', [\App\Http\Controllers\Landlord\PropertyController::class, 'requestDeletion'])->name('properties.request-deletion');
+    Route::post('/contact-admin', [\App\Http\Controllers\Landlord\PropertyController::class, 'contactAdmin'])->name('contact-admin');
     
     // Image management
+    Route::get('/properties/{property}/images/upload', function($property) {
+        return redirect()->route('landlord.properties.edit', $property);
+    });
     Route::post('/properties/{property}/images/upload', [\App\Http\Controllers\Landlord\PropertyImageController::class, 'upload'])->name('properties.images.upload');
     Route::post('/properties/{property}/images/{image}/set-cover', [\App\Http\Controllers\Landlord\PropertyImageController::class, 'setCover'])->name('properties.images.set-cover');
     Route::delete('/properties/{property}/images/{image}', [\App\Http\Controllers\Landlord\PropertyImageController::class, 'delete'])->name('properties.images.delete');
     
     // Inquiries/Messages
     Route::get('/inquiries', [\App\Http\Controllers\Landlord\InquiryController::class, 'index'])->name('inquiries.index');
+    Route::post('/inquiries/{inquiry}/approve', [\App\Http\Controllers\Landlord\InquiryController::class, 'approve'])->name('inquiries.approve');
+    Route::post('/inquiries/{inquiry}/reject', [\App\Http\Controllers\Landlord\InquiryController::class, 'reject'])->name('inquiries.reject');
+    Route::post('/inquiries/{inquiry}/reply', [\App\Http\Controllers\Landlord\InquiryController::class, 'reply'])->name('inquiries.reply');
     
     // Bookings management
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
 
+    // Scheduled visits management for landlords
+    Route::get('/scheduled-visits', [App\Http\Controllers\LandlordController::class, 'scheduledVisits'])->name('scheduled-visits');
     Route::post('/scheduled-visits/{visit}/confirm', [App\Http\Controllers\ScheduledVisitController::class, 'confirm'])->name('scheduled-visits.confirm');
     Route::post('/scheduled-visits/{visit}/complete', [App\Http\Controllers\ScheduledVisitController::class, 'markCompleted'])->name('scheduled-visits.complete');
     Route::post('/scheduled-visits/{visit}/cancel-by-landlord', [App\Http\Controllers\ScheduledVisitController::class, 'cancelByLandlord'])->name('scheduled-visits.cancel-by-landlord');
+
+    // Admin Messages
+    Route::get('/admin-messages', [App\Http\Controllers\LandlordController::class, 'adminMessages'])->name('admin-messages');
+    Route::get('/admin-messages/{message}', [App\Http\Controllers\LandlordController::class, 'viewAdminMessage'])->name('admin-messages.show');
+
+    // Notifications
+    Route::get('/notifications', [App\Http\Controllers\LandlordController::class, 'notifications'])->name('notifications');
+    Route::get('/admin-response', [App\Http\Controllers\LandlordController::class, 'viewAdminResponse'])->name('admin-response');
+    Route::post('/notifications/mark-all-read', [App\Http\Controllers\LandlordController::class, 'markAllNotificationsRead'])->name('notifications.mark-all-read');
+    Route::post('/notifications/{notification}/read', [App\Http\Controllers\LandlordController::class, 'markNotificationRead'])->name('notifications.read');
+    // Temporary GET fallback for cached requests - redirects to POST form
+    Route::get('/notifications/{notification}/read', function(\App\Models\Notification $notification) {
+        // Return a simple form that auto-submits via POST
+        return view('landlord.notification-redirect', compact('notification'));
+    })->name('notifications.read.fallback');
 });
 
 /*
@@ -175,9 +203,23 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('/properties/{property}/reject', [\App\Http\Controllers\Admin\PropertyController::class, 'reject'])->name('properties.reject');
     Route::post('/properties/{property}/verify', [\App\Http\Controllers\Admin\PropertyController::class, 'verify'])->name('properties.verify');
     Route::post('/properties/{property}/feature', [\App\Http\Controllers\Admin\PropertyController::class, 'feature'])->name('properties.feature');
+
+    // Property deletion requests management
+    Route::get('/properties/deletion-requests', [\App\Http\Controllers\Admin\PropertyController::class, 'deletionRequests'])->name('properties.deletion-requests');
+    Route::get('/properties/deletion-requests/{deletionRequest}', [\App\Http\Controllers\Admin\PropertyController::class, 'viewDeletionRequest'])->name('properties.deletion-requests.view');
+    Route::post('/properties/deletion-requests/{deletionRequest}/approve', [\App\Http\Controllers\Admin\PropertyController::class, 'approveDeletion'])->name('properties.deletion-requests.approve');
+    Route::post('/properties/deletion-requests/{deletionRequest}/reject', [\App\Http\Controllers\Admin\PropertyController::class, 'rejectDeletion'])->name('properties.deletion-requests.reject');
+
+    // Admin messages management
+    Route::get('/messages', [\App\Http\Controllers\Admin\MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{message}', [\App\Http\Controllers\Admin\MessageController::class, 'show'])->name('messages.show');
+    Route::post('/messages/{message}/respond', [\App\Http\Controllers\Admin\MessageController::class, 'respond'])->name('messages.respond');
+    Route::post('/messages/{message}/read', [\App\Http\Controllers\Admin\MessageController::class, 'markAsRead'])->name('messages.read');
+    Route::post('/messages/{message}/resolve', [\App\Http\Controllers\Admin\MessageController::class, 'markAsResolved'])->name('messages.resolve');
     
     // User management
     Route::get('/users', [\App\Http\Controllers\Admin\UserController::class, 'index'])->name('users.index');
+    Route::get('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'show'])->name('users.show');
     Route::post('/users/{user}/role', [\App\Http\Controllers\Admin\UserController::class, 'updateRole'])->name('users.role');
     Route::post('/users/{user}/verify', [\App\Http\Controllers\Admin\UserController::class, 'verify'])->name('users.verify');
     

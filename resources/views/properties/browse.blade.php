@@ -23,61 +23,142 @@
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-800">Browse Dormitories</h1>
         <p class="text-gray-600 mt-2">Find your perfect student accommodation near PSU</p>
+
+        @auth
+            @if(auth()->user()->role === 'landlord')
+                <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="text-blue-800">
+                            <strong>Browsing as Landlord</strong>
+                            <p class="text-sm mt-1">You're currently browsing properties as a landlord. To send inquiries or book rooms, please sign in with a tenant account.</p>
+                            <div class="mt-2">
+                                <a href="{{ route('landlord.properties.index') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">Manage Your Properties →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endauth
     </div>
 
     <!-- Search and Filters Section -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-        <form action="{{ route('properties.browse') }}" method="GET">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <form action="{{ route('properties.browse') }}" method="GET" id="searchForm">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <!-- Search Input -->
                 <div>
-                    <input 
-                        type="text" 
-                        name="q" 
-                        placeholder="Search properties..." 
+                    <input
+                        type="text"
+                        name="q"
+                        placeholder="Search properties..."
                         value="{{ request('q') }}"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
                 </div>
 
-                <!-- Price Filter -->
+                <!-- Sort By -->
                 <div>
-                    <select 
-                        name="price_range" 
+                    <select
+                        name="sort"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        onchange="this.form.submit()"
                     >
-                        <option value="">All Prices</option>
-                        <option value="0-5000" {{ request('price_range') == '0-5000' ? 'selected' : '' }}>Below ₱5,000</option>
-                        <option value="5000-10000" {{ request('price_range') == '5000-10000' ? 'selected' : '' }}>₱5,000 - ₱10,000</option>
-                        <option value="10000-15000" {{ request('price_range') == '10000-15000' ? 'selected' : '' }}>₱10,000 - ₱15,000</option>
-                        <option value="15000+" {{ request('price_range') == '15000+' ? 'selected' : '' }}>Above ₱15,000</option>
+                        <option value="newest" {{ request('sort', 'newest') == 'newest' ? 'selected' : '' }}>Newest First</option>
+                        <option value="price_asc" {{ request('sort') == 'price_asc' ? 'selected' : '' }}>Price: Low to High</option>
+                        <option value="price_desc" {{ request('sort') == 'price_desc' ? 'selected' : '' }}>Price: High to Low</option>
+                        <option value="room_asc" {{ request('sort') == 'room_asc' ? 'selected' : '' }}>Rooms: Low to High</option>
+                        <option value="room_desc" {{ request('sort') == 'room_desc' ? 'selected' : '' }}>Rooms: High to Low</option>
+                        <option value="nearest" {{ request('sort') == 'nearest' ? 'selected' : '' }}>Nearest to Campus</option>
                     </select>
                 </div>
 
-                <!-- Location Filter -->
-                <div>
-                    <select 
-                        name="city" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    >
-                        <option value="">All Locations</option>
-                        <option value="Bacolor" {{ request('city') == 'Bacolor' ? 'selected' : '' }}>Bacolor</option>
-                        <option value="San Fernando" {{ request('city') == 'San Fernando' ? 'selected' : '' }}>San Fernando</option>
-                    </select>
-                </div>
-
-                <!-- Search Button -->
-                <div>
-                    <button 
-                        type="submit" 
-                        class="w-full bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-200"
+                <!-- Action Buttons -->
+                <div class="flex space-x-2">
+                    <button
+                        type="submit"
+                        class="flex-1 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition duration-200"
                     >
                         🔍 Search
                     </button>
+                    @if(request()->hasAny(['q', 'sort']) && (request('q') || request('sort') != 'newest'))
+                    <a
+                        href="{{ route('properties.browse') }}"
+                        class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200 text-center"
+                        title="Clear all filters"
+                    >
+                        ✕
+                    </a>
+                    @endif
                 </div>
             </div>
+
+            <!-- Active Filters Display -->
+            @if(request()->hasAny(['q', 'sort']) && (request('q') || request('sort') != 'newest'))
+            <div class="flex flex-wrap gap-2 mb-4">
+                <span class="text-sm text-gray-600 mr-2">Active filters:</span>
+
+                @if(request('q'))
+                <span class="inline-flex items-center bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                    Search: "{{ request('q') }}"
+                    <a href="{{ request()->url() }}?{{ http_build_query(request()->except('q')) }}" class="ml-2 text-green-600 hover:text-green-800">×</a>
+                </span>
+                @endif
+
+                @if(request('sort') && request('sort') != 'newest')
+                <span class="inline-flex items-center bg-orange-100 text-orange-800 text-sm px-3 py-1 rounded-full">
+                    Sort:
+                    @switch(request('sort'))
+                        @case('price_asc') Price: Low to High @break
+                        @case('price_desc') Price: High to Low @break
+                        @case('room_asc') Rooms: Low to High @break
+                        @case('room_desc') Rooms: High to Low @break
+                        @case('nearest') Nearest to Campus @break
+                        @default {{ request('sort') }} @break
+                    @endswitch
+                    <a href="{{ request()->url() }}?{{ http_build_query(request()->except('sort')) }}" class="ml-2 text-orange-600 hover:text-orange-800">×</a>
+                </span>
+                @endif
+
+                @if(request()->hasAny(['q', 'sort']))
+                <a href="{{ request()->url() }}" class="text-red-600 hover:text-red-800 text-sm ml-2">Clear all filters</a>
+                @endif
+            </div>
+            @endif
         </form>
     </div>
+
+    <!-- Results Summary -->
+    @if(isset($properties))
+        <div class="mb-6">
+            <div class="flex justify-between items-center">
+                <div class="text-sm text-gray-600">
+                    @if($properties->count() > 0)
+                        Showing {{ $properties->count() }} of {{ $properties->total() }} properties
+                        @if(request('q'))
+                            matching your search criteria
+                        @endif
+                    @else
+                        No properties found
+                        @if(request('q'))
+                            matching your search criteria
+                        @endif
+                    @endif
+                </div>
+
+                @if($properties->count() > 0 && request('q'))
+                <div class="text-sm">
+                    <a href="{{ route('properties.browse') }}" class="text-green-600 hover:text-green-800">
+                        View all properties
+                    </a>
+                </div>
+                @endif
+            </div>
+
+        </div>
+    @endif
 
     <!-- SPLIT LAYOUT: Properties + Map -->
     @if(isset($properties) && $properties->count() > 0)
@@ -155,12 +236,36 @@
                             </h3>
 
                             <!-- Location -->
-                            <div class="flex items-center text-gray-600 text-sm mb-3">
+                            <div class="flex items-center text-gray-600 text-sm mb-2">
                                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                                 </svg>
                                 <span>{{ $property->address_line }}, {{ $property->city }}</span>
                             </div>
+
+                            <!-- Property Details -->
+                            @if($property->room_count || $property->bathroom_count)
+                            <div class="flex items-center text-gray-600 text-sm mb-3 space-x-4">
+                                @if($property->room_count)
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21l0-12"></path>
+                                    </svg>
+                                    <span>{{ $property->room_count }} {{ $property->room_count == 1 ? 'Room' : 'Rooms' }}</span>
+                                </div>
+                                @endif
+
+                                @if($property->bathroom_count)
+                                <div class="flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10v11M20 10v11"></path>
+                                    </svg>
+                                    <span>{{ $property->bathroom_count }} {{ $property->bathroom_count == 1 ? 'Bath' : 'Baths' }}</span>
+                                </div>
+                                @endif
+                            </div>
+                            @endif
 
                             <!-- Price -->
                             <div class="mb-3">
@@ -228,14 +333,102 @@
             </div>
         </div>
     @else
-        <!-- No Properties -->
-        <div class="text-center py-12 bg-white rounded-lg shadow">
-            <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <h3 class="text-xl font-semibold text-gray-600 mb-2">No properties found</h3>
-            <p class="text-gray-500">Try adjusting your search filters</p>
+        <!-- No Properties Found -->
+        <div class="text-center py-16 bg-white rounded-lg shadow-md">
+            <div class="max-w-md mx-auto">
+                <svg class="w-20 h-20 text-gray-400 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16zM9 10h6M9 14h6"></path>
+                </svg>
+
+                <h3 class="text-2xl font-bold text-gray-700 mb-4">
+                    @if(request('q'))
+                        No properties match your search criteria
+                    @else
+                        No properties available
+                    @endif
+                </h3>
+
+                <div class="text-gray-600 mb-8 space-y-2">
+                    @if(request('q'))
+                        <p>We couldn't find any properties matching your filters:</p>
+                        <div class="bg-gray-50 rounded-lg p-4 mt-4 text-left">
+                            @if(request('q'))
+                                <div class="mb-2"><strong>Search:</strong> "{{ request('q') }}"</div>
+                            @endif
+                            @if(request('price_range'))
+                                <div class="mb-2"><strong>Price Range:</strong>
+                                    @switch(request('price_range'))
+                                        @case('0-5000') Below ₱5,000 @break
+                                        @case('5000-10000') ₱5,000 - ₱10,000 @break
+                                        @case('10000-15000') ₱10,000 - ₱15,000 @break
+                                        @case('15000+') Above ₱15,000 @break
+                                    @endswitch
+                                </div>
+                            @endif
+                            @if(request('city'))
+                                <div class="mb-2"><strong>Location:</strong> {{ request('city') }}</div>
+                            @endif
+                            @if(request('room_count'))
+                                <div class="mb-2"><strong>Minimum Rooms:</strong> {{ request('room_count') }}+</div>
+                            @endif
+                        </div>
+                        <p class="mt-4">Try adjusting your search criteria or browse all available properties.</p>
+                    @else
+                        <p>There are currently no properties available in our system.</p>
+                        <p>Please check back later or contact us for more information.</p>
+                    @endif
+                </div>
+
+                <div class="space-y-4">
+                    @if(request('q'))
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                            <a href="{{ route('properties.browse') }}"
+                               class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-200">
+                                View All Properties
+                            </a>
+                            <button onclick="clearSearchFilters()"
+                                    class="inline-block bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition duration-200">
+                                Adjust Search Filters
+                            </button>
+                        </div>
+                    @else
+                        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                            <a href="{{ route('home') }}"
+                               class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition duration-200">
+                                Back to Home
+                            </a>
+                            <a href="#"
+                               class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200">
+                                Contact Us
+                            </a>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Search Suggestions -->
+                @if(request()->hasAny(['q', 'price_range', 'city']))
+                <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-semibold text-blue-900 mb-3">Search suggestions:</h4>
+                    <div class="text-blue-800 text-sm space-y-1">
+                        <div>• Try a broader price range</div>
+                        <div>• Check both Bacolor and San Fernando locations</div>
+                        <div>• Search for specific amenities or features</div>
+                        <div>• Remove some filters to see more results</div>
+                    </div>
+                </div>
+                @endif
+            </div>
         </div>
+
+        <script>
+        function clearSearchFilters() {
+            document.querySelector('input[name="q"]').value = '';
+            document.querySelector('select[name="sort"]').value = 'newest';
+
+            // Submit the form to clear filters
+            document.getElementById('searchForm').submit();
+        }
+        </script>
     @endif
 </div>
 @endsection
@@ -246,31 +439,37 @@
     let map, markers = {};
     
     function initMap() {
-        // Initialize map centered on PSU area
-        map = L.map('browseMap').setView([15.1388, 120.5897], 13);
-        
+        // Initialize map centered on PSU Main Campus
+        map = L.map('browseMap').setView([14.997609479592196, 120.65313160859495], 13);
+
         // Add tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
-        
-        // Add PSU Campus marker
-        L.marker([15.1388, 120.5897], {
+
+        // Add PSU Main Campus marker (RED to distinguish from properties)
+        L.marker([14.997609479592196, 120.65313160859495], {
             icon: L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
                 iconSize: [25, 41],
-                iconAnchor: [12, 41]
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
             })
-        }).addTo(map).bindPopup('<b>PSU Campus</b>');
+        }).addTo(map).bindPopup('<strong style="color: #dc2626;">🏫 PSU Main Campus</strong><br><small style="color: #6b7280;">Universidad Pangasinan State</small>');
         
-        // Add property markers
+        // Add property markers (BLUE to distinguish from PSU Campus)
         @foreach($properties as $property)
             @if($property->latitude && $property->longitude)
                 markers[{{ $property->id }}] = L.marker([{{ $property->latitude }}, {{ $property->longitude }}], {
                     icon: L.icon({
-                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                        iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
                         iconSize: [25, 41],
-                        iconAnchor: [12, 41]
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
                     })
                 }).addTo(map)
                 .bindPopup(`

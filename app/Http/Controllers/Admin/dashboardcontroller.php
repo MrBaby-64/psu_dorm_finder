@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Property;
+use App\Models\PropertyDeletionRequest;
 use App\Models\User;
 use App\Models\Booking;
 use App\Models\Message;
@@ -22,6 +23,8 @@ class DashboardController extends Controller
             'pending_properties' => Property::where('approval_status', 'pending')->count(),
             'approved_properties' => Property::where('approval_status', 'approved')->count(),
             'rejected_properties' => Property::where('approval_status', 'rejected')->count(),
+            'pending_deletion_requests' => PropertyDeletionRequest::where('status', 'pending')->count(),
+            'total_deletion_requests' => PropertyDeletionRequest::count(),
             'total_users' => User::count(),
             'landlords' => User::where('role', 'landlord')->count(),
             'tenants' => User::where('role', 'tenant')->count(),
@@ -38,6 +41,11 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('admin.dashboard.index', compact('stats', 'recentProperties', 'recentUsers'));
+        $recentDeletionRequests = PropertyDeletionRequest::with(['property', 'landlord'])
+            ->latest()
+            ->take(5)
+            ->get();
+
+        return view('admin.dashboard.index', compact('stats', 'recentProperties', 'recentUsers', 'recentDeletionRequests'));
     }
 }

@@ -15,6 +15,12 @@ class FavoriteController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            if (auth()->user()->role !== 'tenant') {
+                abort(403, 'Only tenants can manage favorites.');
+            }
+            return $next($request);
+        });
     }
 
     public function index(Request $request)
@@ -184,54 +190,73 @@ class FavoriteController extends Controller
 
     public function toggle(Request $request)
     {
-        $request->validate([
-            'property_id' => 'required|exists:properties,id'
-        ]);
-
-        $property = Property::findOrFail($request->property_id);
-
-        $favorite = Favorite::where('user_id', Auth::id())
-            ->where('property_id', $property->id)
-            ->first();
-
-        if ($favorite) {
-            // Remove from favorites
-            $favorite->delete();
-            $favorited = false;
-            $message = 'Property removed from favorites!';
-        } else {
-            // Add to favorites
-            Favorite::create([
-                'user_id' => Auth::id(),
-                'property_id' => $property->id
+        try {
+            $request->validate([
+                'property_id' => 'required|exists:properties,id'
             ]);
 
-            // Create notification for landlord
-            Notification::create([
-                'user_id' => $property->user_id,
-                'type' => Notification::TYPE_FAVORITE_ADDED,
-                'title' => 'Property Favorited',
-                'message' => Auth::user()->name . ' has added your property "' . $property->title . '" to their favorites.',
-                'data' => [
-                    'property_id' => $property->id,
-                    'tenant_name' => Auth::user()->name
-                ],
-                'action_url' => route('properties.show', $property->slug)
-            ]);
+            $property = Property::findOrFail($request->property_id);
 
-            $favorited = true;
-            $message = 'Property added to favorites!';
+            $favorite = Favorite::where('user_id', Auth::id())
+                ->where('property_id', $property->id)
+                ->first();
+
+            if ($favorite) {
+                // Remove from favorites
+                $favorite->delete();
+                $favorited = false;
+                $message = 'Property removed from favorites!';
+            } else {
+                // Add to favorites
+                Favorite::create([
+                    'user_id' => Auth::id(),
+                    'property_id' => $property->id
+                ]);
+
+                // Create notification for landlord (wrap in try-catch to prevent failure)
+                try {
+                    Notification::create([
+                        'user_id' => $property->user_id,
+                        'type' => Notification::TYPE_FAVORITE_ADDED,
+                        'title' => 'Property Favorited',
+                        'message' => Auth::user()->name . ' has added your property "' . $property->title . '" to their favorites.',
+                        'data' => [
+                            'property_id' => $property->id,
+                            'tenant_name' => Auth::user()->name
+                        ],
+                        'action_url' => route('properties.show', $property->slug)
+                    ]);
+                } catch (\Exception $e) {
+                    // Log notification error but don't fail the favorite action
+                    \Log::warning('Failed to create favorite notification: ' . $e->getMessage());
+                }
+
+                $favorited = true;
+                $message = 'Property added to favorites!';
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'favorited' => $favorited
+                ]);
+            }
+
+            return redirect()->back()->with('success', $message);
+
+        } catch (\Exception $e) {
+            \Log::error('Favorite toggle error: ' . $e->getMessage());
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Failed to update favorites. Please try again.'
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Failed to update favorites. Please try again.');
         }
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'favorited' => $favorited
-            ]);
-        }
-
-        return redirect()->back()->with('success', $message);
     }
 
     public function check(Request $request)

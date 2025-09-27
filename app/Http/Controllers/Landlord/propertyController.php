@@ -5,23 +5,53 @@ namespace App\Http\Controllers\Landlord;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\Amenity;
+use App\Models\Room;
+use App\Models\RoomImage;
 use Illuminate\Http\Request;
 use App\Models\PropertyImage;
+use App\Models\PropertyDeletionRequest;
+use App\Models\AdminMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PropertyController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         if (auth()->user()->role !== 'landlord') {
             abort(403, 'Only landlords can access this area');
         }
 
-        $properties = Property::where('user_id', auth()->id())
-            ->with('images')
-            ->latest()
-            ->paginate(10);
+        $query = Property::where('user_id', auth()->id())
+            ->with(['images', 'deletionRequest' => function($q) {
+                $q->where('status', 'pending');
+            }]);
+
+        // Apply search filter
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('title', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%")
+                  ->orWhere('location_text', 'like', "%{$searchTerm}%")
+                  ->orWhere('address_line', 'like', "%{$searchTerm}%")
+                  ->orWhere('city', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        // Apply status filter
+        if ($request->filled('status')) {
+            $status = $request->status;
+            if (in_array($status, ['approved', 'pending', 'rejected'])) {
+                $query->where('approval_status', $status);
+            }
+        }
+
+        // Apply sorting (most recent first by default)
+        $query->latest();
+
+        // Paginate results
+        $properties = $query->paginate(10)->withQueryString();
 
         $statuses = [
             'approved' => 'Approved',
@@ -124,15 +154,22 @@ class PropertyController extends Controller
                 'longitude' => 'required|numeric|between:-180,180',
                 'price' => 'required|numeric|min:500|max:50000',
                 'room_count' => 'required|integer|min:1|max:100',
+                'rooms' => 'nullable|array',
+                'rooms.*.name' => 'nullable|string|max:255',
+                'rooms.*.capacity' => 'nullable|integer|min:1|max:10',
+                'rooms.*.description' => 'nullable|string|max:500',
+                'room_images' => 'nullable|array',
+                'room_images.*' => 'nullable|array|max:5',
+                'room_images.*.*' => 'image|mimes:jpeg,jpg,png,webp|max:5120',
                 'amenities' => 'required|array|min:1',
                 'amenities.*' => 'exists:amenities,id',
-                'visit_schedule_enabled' => 'nullable|boolean',
+                'visit_schedule_enabled' => 'nullable',
                 'images' => 'required|array|min:1|max:10',
                 'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:5120',
             ];
 
             // Add conditional validation for visit scheduling
-            if ($request->has('visit_schedule_enabled') && $request->visit_schedule_enabled) {
+            if ($request->boolean('visit_schedule_enabled')) {
                 $rules['visit_days'] = 'required|array|min:1';
                 $rules['visit_days.*'] = 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday';
                 $rules['visit_time_start'] = 'required|date_format:H:i';
@@ -167,6 +204,11 @@ class PropertyController extends Controller
                 'room_count.required' => 'Number of rooms is required.',
                 'room_count.min' => 'Must have at least 1 room.',
                 'room_count.max' => 'Cannot exceed 100 rooms.',
+                'rooms.required' => 'Room details are required.',
+                'rooms.*.name.required' => 'Room name is required.',
+                'rooms.*.capacity.required' => 'Room capacity is required.',
+                'rooms.*.capacity.min' => 'Room capacity must be at least 1.',
+                'rooms.*.capacity.max' => 'Room capacity cannot exceed 10.',
                 'amenities.required' => 'At least one amenity must be selected.',
                 'amenities.min' => 'Please select at least one amenity.',
                 'images.required' => 'At least one property image is required.',
@@ -176,13 +218,45 @@ class PropertyController extends Controller
                 'images.*.mimes' => 'Images must be JPEG, JPG, PNG, or WEBP format.',
                 'images.*.max' => 'Each image must be under 5MB.',
                 // Visit scheduling error messages
-                'visit_days.required' => 'Please select at least one available day for visits.',
-                'visit_days.min' => 'Please select at least one available day for visits.',
+                'visit_days.required' => 'Please select at least one available day for visits when scheduling is enabled.',
+                'visit_days.min' => 'Please select at least one available day for visits when scheduling is enabled.',
                 'visit_time_start.required' => 'Start time is required when visit scheduling is enabled.',
                 'visit_time_end.required' => 'End time is required when visit scheduling is enabled.',
                 'visit_time_end.after' => 'End time must be after start time.',
                 'visit_duration.required' => 'Visit duration is required when visit scheduling is enabled.',
+                'visit_duration.in' => 'Visit duration must be 30, 45, 60, 90, or 120 minutes.',
             ]);
+
+            // Custom validation for room details if provided
+            if (!empty($validated['rooms'])) {
+                foreach ($validated['rooms'] as $index => $room) {
+                    if (empty($room['name']) || empty($room['capacity'])) {
+                        return redirect()->back()
+                            ->withInput()
+                            ->withErrors([
+                                'rooms' => 'If you provide room details, all room names and capacities are required. Otherwise, use the "Use Default Room Settings" button to skip room details.'
+                            ]);
+                    }
+
+                    // Validate capacity is a positive integer
+                    if (!is_numeric($room['capacity']) || $room['capacity'] < 1 || $room['capacity'] > 10) {
+                        return redirect()->back()
+                            ->withInput()
+                            ->withErrors([
+                                'rooms' => "Room capacity must be between 1 and 10 people for room '{$room['name']}'."
+                            ]);
+                    }
+                }
+
+                // Validate room count matches provided rooms
+                if (count($validated['rooms']) > $validated['room_count']) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors([
+                            'rooms' => 'Number of room details provided exceeds the total room count specified.'
+                        ]);
+                }
+            }
 
             // Wrap all operations in transaction
             DB::transaction(function () use ($validated, $uploadedFiles, $request) {
@@ -225,6 +299,68 @@ class PropertyController extends Controller
                     ]);
                 }
 
+                // Create rooms for the property
+                if (!empty($validated['rooms'])) {
+                    // Create rooms from user input
+                    foreach ($validated['rooms'] as $index => $roomData) {
+                        $room = Room::create([
+                            'property_id' => $property->id,
+                            'room_number' => trim($roomData['name']),
+                            'room_type' => 'shared', // Default room type
+                            'price' => $validated['price'], // Use property price as room price
+                            'description' => !empty($roomData['description']) ? trim($roomData['description']) : null,
+                            'capacity' => (int) $roomData['capacity'], // Ensure integer conversion
+                            'status' => 'available',
+                        ]);
+
+                        // Handle room images if provided
+                        if ($request->hasFile("room_images.{$index}")) {
+                            $roomImages = $request->file("room_images.{$index}");
+                            foreach ($roomImages as $imageIndex => $roomImage) {
+                                $filename = 'room_' . $room->id . '_' . time() . '_' . $imageIndex . '.' . $roomImage->getClientOriginalExtension();
+                                $imagePath = $roomImage->storeAs('properties/' . $property->id . '/rooms', $filename, 'public');
+
+                                RoomImage::create([
+                                    'room_id' => $room->id,
+                                    'image_path' => $imagePath,
+                                    'alt_text' => trim($roomData['name']) . ' - Image ' . ($imageIndex + 1),
+                                    'is_cover' => $imageIndex === 0, // First image is cover
+                                    'sort_order' => $imageIndex,
+                                ]);
+                            }
+                        }
+                    }
+
+                    // Create additional default rooms if user provided fewer rooms than room_count
+                    $providedRoomsCount = count($validated['rooms']);
+                    if ($providedRoomsCount < $validated['room_count']) {
+                        for ($i = $providedRoomsCount + 1; $i <= $validated['room_count']; $i++) {
+                            Room::create([
+                                'property_id' => $property->id,
+                                'room_number' => 'Room ' . $i,
+                                'room_type' => 'shared',
+                                'price' => $validated['price'],
+                                'description' => null,
+                                'capacity' => 2, // Default capacity for additional rooms
+                                'status' => 'available',
+                            ]);
+                        }
+                    }
+                } else {
+                    // Create default rooms based on room_count (simple mode)
+                    for ($i = 1; $i <= $validated['room_count']; $i++) {
+                        Room::create([
+                            'property_id' => $property->id,
+                            'room_number' => 'Room ' . $i,
+                            'room_type' => 'shared', // Default room type
+                            'price' => $validated['price'], // Use property price as room price
+                            'description' => null,
+                            'capacity' => 2, // Default capacity
+                            'status' => 'available',
+                        ]);
+                    }
+                }
+
                 // Attach selected amenities
                 if (!empty($validated['amenities'])) {
                     $property->amenities()->attach($validated['amenities']);
@@ -247,9 +383,29 @@ class PropertyController extends Controller
                 }
             }
 
+            // Log the actual error for debugging
+            Log::error('Property creation failed', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Provide more specific error messages based on the error type
+            $errorMessage = 'Failed to create property. ';
+
+            if (str_contains($e->getMessage(), 'SQLSTATE')) {
+                $errorMessage .= 'Database error occurred. Please check your input and try again.';
+            } elseif (str_contains($e->getMessage(), 'Storage')) {
+                $errorMessage .= 'Image upload failed. Please check your images and try again.';
+            } elseif (str_contains($e->getMessage(), 'rooms')) {
+                $errorMessage .= 'Room data processing failed. Please check room details or use default settings.';
+            } else {
+                $errorMessage .= 'Please check all fields and try again. If the problem persists, contact support.';
+            }
+
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['general' => 'Failed to create property. Please try again.']);
+                ->withErrors(['general' => $errorMessage]);
         }
     }
 
@@ -357,6 +513,126 @@ class PropertyController extends Controller
             ]);
 
             return back()->withInput()->withErrors(['general' => 'Property update failed. Please try again.']);
+        }
+    }
+
+    /**
+     * Request property deletion with admin approval
+     */
+    public function requestDeletion(Request $request)
+    {
+        if (auth()->user()->role !== 'landlord') {
+            abort(403, 'Only landlords can access this feature');
+        }
+
+        $validated = $request->validate([
+            'property_id' => 'required|exists:properties,id',
+            'reason' => 'required|string|max:1000'
+        ]);
+
+        // Verify landlord owns this property
+        $property = Property::findOrFail($validated['property_id']);
+        if ($property->user_id !== auth()->id()) {
+            abort(403, 'You can only request deletion of your own properties');
+        }
+
+        try {
+            // Check if there's already a pending deletion request for this property
+            $existingRequest = PropertyDeletionRequest::where('property_id', $property->id)
+                ->where('status', 'pending')
+                ->first();
+
+            if ($existingRequest) {
+                return back()->withErrors(['general' => 'There is already a pending deletion request for this property. Please wait for admin review.']);
+            }
+
+            // Create the deletion request
+            $deletionRequest = PropertyDeletionRequest::create([
+                'property_id' => $property->id,
+                'landlord_id' => auth()->id(),
+                'reason' => $validated['reason'],
+                'status' => 'pending'
+            ]);
+
+            // Log for audit trail
+            Log::info('Property deletion request created', [
+                'deletion_request_id' => $deletionRequest->id,
+                'property_id' => $property->id,
+                'property_title' => $property->title,
+                'landlord_id' => auth()->id(),
+                'landlord_name' => auth()->user()->name,
+                'reason' => $validated['reason'],
+                'requested_at' => now()
+            ]);
+
+            return redirect()->route('landlord.properties.index')
+                ->with('success', '🗑️ Deletion Request Submitted Successfully! Your request to delete "' . $property->title . '" has been sent to the admin team. They will review your request within 24-48 hours and you\'ll be notified of their decision. You can check the status by looking at your property listing - it will show "Deletion Pending" while under review.');
+
+        } catch (\Exception $e) {
+            Log::error('Property deletion request failed', [
+                'property_id' => $property->id,
+                'landlord_id' => auth()->id(),
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->withErrors(['general' => 'Failed to submit deletion request. Please try again.']);
+        }
+    }
+
+    /**
+     * Contact admin regarding property issues
+     */
+    public function contactAdmin(Request $request)
+    {
+        if (auth()->user()->role !== 'landlord') {
+            abort(403, 'Only landlords can access this feature');
+        }
+
+        $validated = $request->validate([
+            'message' => 'required|string|max:2000',
+            'subject' => 'nullable|string|max:200',
+            'regarding_property_id' => 'nullable|exists:properties,id'
+        ]);
+
+        // If property ID provided, verify ownership
+        if ($validated['regarding_property_id']) {
+            $property = Property::findOrFail($validated['regarding_property_id']);
+            if ($property->user_id !== auth()->id()) {
+                abort(403, 'You can only contact admin about your own properties');
+            }
+        }
+
+        try {
+            // Create admin message record
+            $adminMessage = AdminMessage::create([
+                'sender_id' => auth()->id(),
+                'subject' => $validated['subject'] ?? 'Property Deletion Inquiry',
+                'message' => $validated['message'],
+                'property_id' => $validated['regarding_property_id'],
+                'status' => 'unread'
+            ]);
+
+            // Log for audit trail
+            Log::info('Admin message created from landlord', [
+                'message_id' => $adminMessage->id,
+                'landlord_id' => auth()->id(),
+                'landlord_name' => auth()->user()->name,
+                'subject' => $adminMessage->subject,
+                'property_id' => $validated['regarding_property_id'],
+                'property_title' => $validated['regarding_property_id'] ? Property::find($validated['regarding_property_id'])->title : null,
+                'submitted_at' => now()
+            ]);
+
+            return redirect()->route('landlord.properties.index')
+                ->with('success', '📧 Message Sent Successfully! Your message has been delivered to the admin team. They typically respond within 24-48 hours during business days. You can expect to receive their reply via email or through your account notifications. Thank you for reaching out!');
+
+        } catch (\Exception $e) {
+            Log::error('Admin contact request failed', [
+                'landlord_id' => auth()->id(),
+                'error' => $e->getMessage()
+            ]);
+
+            return back()->withErrors(['general' => 'Failed to send message to admin. Please try again.']);
         }
     }
 }

@@ -11,15 +11,15 @@ class CampusOriginService
      */
     private const CAMPUS_COORDINATES = [
         'bacolor' => [
-            'lat' => 14.6692,
-            'lng' => 120.6306,
-            'name' => 'PSU Bacolor Campus',
+            'lat' => 14.997609479592196,
+            'lng' => 120.65313160859495,
+            'name' => 'PSU Main Campus',
             'address' => 'Bacolor, Pampanga'
         ],
         'san_fernando' => [
             'lat' => 15.0394,
             'lng' => 120.6887,
-            'name' => 'PSU San Fernando Campus', 
+            'name' => 'PSU San Fernando Campus',
             'address' => 'San Fernando, Pampanga'
         ]
     ];

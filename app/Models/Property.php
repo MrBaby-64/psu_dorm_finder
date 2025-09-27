@@ -116,6 +116,11 @@ public function getPendingVisitsCountAttribute(): int
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function rooms(): HasMany
     {
         return $this->hasMany(Room::class);
@@ -154,6 +159,16 @@ public function getPendingVisitsCountAttribute(): int
     public function favorites(): HasMany
     {
         return $this->hasMany(Favorite::class);
+    }
+
+    public function deletionRequest(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(PropertyDeletionRequest::class);
+    }
+
+    public function deletionRequests(): HasMany
+    {
+        return $this->hasMany(PropertyDeletionRequest::class);
     }
 
     // Scopes
