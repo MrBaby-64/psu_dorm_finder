@@ -176,7 +176,7 @@
 
             <h2 class="text-3xl font-bold mb-8 text-center text-green-600">Create Your Account</h2>
             
-            <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data" onsubmit="return handleFormSubmit(event)">
+            <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data" id="registrationFormElement">
                 @csrf
                 <input type="hidden" id="roleInput" name="role" value="{{ $oldRole }}">
                 <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" value="">
@@ -369,11 +369,25 @@
     // Test form submission handler immediately
     document.addEventListener('DOMContentLoaded', function() {
         console.log('🔧 DEBUG: DOM loaded, checking form...');
-        const form = document.querySelector('form[action*="register"]');
+        const form = document.getElementById('registrationFormElement');
         console.log('🔧 DEBUG: Form found:', !!form);
         if (form) {
-            console.log('🔧 DEBUG: Form onsubmit:', form.onsubmit);
             console.log('🔧 DEBUG: Form action:', form.action);
+
+            // Add event listener to prevent form submission
+            form.addEventListener('submit', function(event) {
+                console.log('🔧 DEBUG: Form submit event triggered!');
+                event.preventDefault(); // ALWAYS prevent submission
+
+                // Call our handler
+                handleFormSubmit(event);
+
+                return false;
+            });
+
+            console.log('🔧 DEBUG: Event listener attached successfully');
+        } else {
+            console.error('🔧 DEBUG: Registration form not found!');
         }
     });
 </script>
