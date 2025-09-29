@@ -264,28 +264,16 @@
                         <input type="password" name="password_confirmation" required class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
                     </div>
 
-                    <!-- reCAPTCHA -->
+                    <!-- Security verification notice -->
                     <div class="flex justify-center">
-                        <div id="recaptcha-container" class="flex flex-col items-center">
-                            <div id="manual-recaptcha" class="mb-2"></div>
-                            <div id="recaptcha-error" class="hidden mt-2 p-2 bg-red-100 border border-red-300 rounded-lg w-full">
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    <span class="text-red-700 text-sm font-medium">Please complete the reCAPTCHA verification.</span>
-                                </div>
+                        <div class="w-full p-4 bg-blue-50 border border-blue-200 rounded-xl text-center">
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="text-lg font-semibold text-blue-800">Security Verification</span>
                             </div>
-                            @error('g-recaptcha-response')
-                                <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded-lg w-full">
-                                    <div class="flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
-                                    </div>
-                                </div>
-                            @enderror
+                            <p class="text-sm text-blue-700">A security check will be required before completing registration</p>
                         </div>
                     </div>
                 </div>
@@ -302,52 +290,188 @@
         </div>
     </div>
 </div>
+
+{{-- reCAPTCHA Verification Modal --}}
+<div id="mainRecaptchaModal" class="fixed inset-0 z-50 hidden">
+    <div class="modal-backdrop absolute inset-0" onclick="closeMainRecaptchaModal()"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+        <div class="modal-slide-up bg-white rounded-2xl shadow-2xl w-full relative" style="max-width: 450px;">
+            <button onclick="closeMainRecaptchaModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+
+            <div class="text-center pt-8 pb-6">
+                <div class="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.4 5.4L16 20l-4-4m-4 4a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-900">Security Verification</h2>
+                <p class="text-sm text-gray-600 mt-2">Please complete the security check to create your account</p>
+            </div>
+
+            <div id="mainRecaptchaModalForm" class="px-8 pb-8">
+                <div id="mainRecaptchaModalStatus" class="mb-4 hidden"></div>
+
+                <div class="flex justify-center mb-6">
+                    <div id="main-popup-recaptcha" class="inline-block"></div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeMainRecaptchaModal()" class="flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition-colors font-semibold">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="completeMainRecaptchaVerification()" id="mainRecaptchaSubmitBtn" class="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                        Verify & Continue
+                    </button>
+                </div>
+
+                <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-green-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h3 class="text-sm font-medium text-green-800">🛡️ Security Notice</h3>
+                            <p class="text-sm text-green-700 mt-1">
+                                This verification helps us prevent spam and ensure account security. Complete the reCAPTCHA to proceed with registration.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
-<script src="https://www.google.com/recaptcha/api.js?onload=initRecaptcha&render=explicit" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=initMainRecaptcha&render=explicit" async defer></script>
 <script>
-    let recaptchaWidgetId = null;
+    let mainRecaptchaWidgetId = null;
+    let mainPendingFormData = null;
+    let mainPendingFormElement = null;
 
     // Initialize reCAPTCHA when Google API loads
-    function initRecaptcha() {
-        console.log('Initializing reCAPTCHA...');
+    function initMainRecaptcha() {
+        console.log('Initializing main page reCAPTCHA...');
         try {
-            const container = document.getElementById('manual-recaptcha');
+            const container = document.getElementById('main-popup-recaptcha');
             if (container && window.grecaptcha) {
-                recaptchaWidgetId = grecaptcha.render('manual-recaptcha', {
+                mainRecaptchaWidgetId = grecaptcha.render('main-popup-recaptcha', {
                     'sitekey': '{{ config('captcha.sitekey') }}',
                     'callback': function(response) {
-                        console.log('reCAPTCHA completed:', response);
-                        // Hide error message if showing
-                        document.getElementById('recaptcha-error').classList.add('hidden');
+                        console.log('Main reCAPTCHA completed:', response);
+                        document.getElementById('mainRecaptchaModalStatus').classList.add('hidden');
+                        document.getElementById('mainRecaptchaSubmitBtn').disabled = false;
                     },
                     'expired-callback': function() {
-                        console.log('reCAPTCHA expired');
-                        document.getElementById('recaptcha-error').classList.remove('hidden');
+                        console.log('Main reCAPTCHA expired');
+                        showMainRecaptchaError('reCAPTCHA expired. Please verify again.');
+                        document.getElementById('mainRecaptchaSubmitBtn').disabled = true;
                     }
                 });
-                console.log('reCAPTCHA initialized successfully');
+                console.log('Main reCAPTCHA initialized successfully');
             } else {
-                console.error('reCAPTCHA container not found or grecaptcha not loaded');
+                console.error('Main reCAPTCHA container not found or grecaptcha not loaded');
             }
         } catch (error) {
-            console.error('Error initializing reCAPTCHA:', error);
+            console.error('Error initializing main reCAPTCHA:', error);
         }
     }
 
-    // Function to get reCAPTCHA response
-    function getRecaptchaResponse() {
-        if (recaptchaWidgetId !== null && window.grecaptcha) {
-            return grecaptcha.getResponse(recaptchaWidgetId);
+    // Function to get main reCAPTCHA response
+    function getMainRecaptchaResponse() {
+        if (mainRecaptchaWidgetId !== null && window.grecaptcha) {
+            return grecaptcha.getResponse(mainRecaptchaWidgetId);
         }
         return '';
     }
 
-    // Function to reset reCAPTCHA
-    function resetRecaptcha() {
-        if (recaptchaWidgetId !== null && window.grecaptcha) {
-            grecaptcha.reset(recaptchaWidgetId);
+    // Function to reset main reCAPTCHA
+    function resetMainRecaptcha() {
+        if (mainRecaptchaWidgetId !== null && window.grecaptcha) {
+            grecaptcha.reset(mainRecaptchaWidgetId);
+            document.getElementById('mainRecaptchaSubmitBtn').disabled = true;
+        }
+    }
+
+    // Function to show main reCAPTCHA error
+    function showMainRecaptchaError(message) {
+        const statusDiv = document.getElementById('mainRecaptchaModalStatus');
+        statusDiv.className = 'mb-4 bg-red-50 border border-red-400 text-red-800 p-4 rounded-lg';
+        statusDiv.innerHTML = `
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-bold">Verification Error</span>
+            </div>
+            <p class="mt-1">${message}</p>
+        `;
+        statusDiv.classList.remove('hidden');
+    }
+
+    // Function to open main reCAPTCHA modal
+    function openMainRecaptchaModal(formElement) {
+        mainPendingFormElement = formElement;
+
+        document.getElementById('mainRecaptchaModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // Reset reCAPTCHA
+        resetMainRecaptcha();
+        document.getElementById('mainRecaptchaModalStatus').classList.add('hidden');
+
+        console.log('Main reCAPTCHA modal opened');
+    }
+
+    // Function to close main reCAPTCHA modal
+    function closeMainRecaptchaModal() {
+        document.getElementById('mainRecaptchaModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+
+        // Clear pending data
+        mainPendingFormData = null;
+        mainPendingFormElement = null;
+
+        console.log('Main reCAPTCHA modal closed');
+    }
+
+    // Function to complete main reCAPTCHA verification and submit form
+    function completeMainRecaptchaVerification() {
+        const recaptchaResponse = getMainRecaptchaResponse();
+
+        if (!recaptchaResponse) {
+            showMainRecaptchaError('Please complete the reCAPTCHA verification.');
+            return;
+        }
+
+        if (!mainPendingFormElement) {
+            showMainRecaptchaError('Form data not found. Please try again.');
+            return;
+        }
+
+        try {
+            console.log('Main reCAPTCHA verification completed, submitting form...');
+
+            // Add reCAPTCHA response to form data
+            const hiddenRecaptchaField = mainPendingFormElement.querySelector('[name="g-recaptcha-response"]');
+            if (hiddenRecaptchaField) {
+                hiddenRecaptchaField.value = recaptchaResponse;
+            }
+
+            // Close modal
+            closeMainRecaptchaModal();
+
+            // Submit the form
+            mainPendingFormElement.submit();
+
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            showMainRecaptchaError('Error submitting form. Please try again.');
         }
     }
     function selectRole(role) {
@@ -449,48 +573,76 @@
         document.getElementById('roleInput').value = '';
     }
 
-    // Enhanced form submission handler with debugging
+    // Enhanced form submission handler with reCAPTCHA popup
     function handleFormSubmit(event) {
         console.log('=== FORM SUBMISSION STARTED ===');
-        console.log('Event:', event);
-        console.log('Form action:', event.target.action);
-        console.log('Form method:', event.target.method);
-        console.log('Current URL:', window.location.href);
+        event.preventDefault(); // Always prevent initial submission
 
-        // Run validation first
-        if (!validateForm()) {
-            console.log('❌ Validation failed, preventing submission');
+        const form = event.target;
+        console.log('Form action:', form.action);
+        console.log('Form method:', form.method);
+
+        // Run basic validation first (excluding reCAPTCHA)
+        if (!validateForm(true)) {
+            console.log('❌ Basic validation failed');
             return false;
         }
 
-        console.log('✅ Validation passed, submitting form');
-        console.log('Expected redirect: After form submits, should go to registration success page');
+        console.log('✅ Basic validation passed, opening reCAPTCHA modal');
 
-        // Let the form submit normally
-        return true;
+        // Open reCAPTCHA verification modal
+        openMainRecaptchaModal(form);
+
+        return false; // Prevent form submission until reCAPTCHA is completed
     }
 
-    // Form validation before submission
-    function validateForm() {
+    // Form validation before submission (skipRecaptcha for basic validation)
+    function validateForm(skipRecaptcha = false) {
         const role = document.getElementById('roleInput').value;
-        console.log('Form validation - Role:', role); // Debug log
+        console.log('Form validation - Role:', role, 'Skip reCAPTCHA:', skipRecaptcha);
 
-        // Check reCAPTCHA first
-        const recaptchaResponse = getRecaptchaResponse();
-        if (!recaptchaResponse) {
-            document.getElementById('recaptcha-error').classList.remove('hidden');
-            alert('Please complete the reCAPTCHA verification.');
+        // Basic field validation for all users
+        const name = document.querySelector('[name="name"]').value.trim();
+        const email = document.querySelector('[name="email"]').value.trim();
+        const phone = document.querySelector('[name="phone"]').value.trim();
+        const password = document.querySelector('[name="password"]').value;
+        const passwordConfirmation = document.querySelector('[name="password_confirmation"]').value;
+
+        if (!name) {
+            alert('Please enter your full name.');
+            document.querySelector('[name="name"]').focus();
             return false;
-        } else {
-            document.getElementById('recaptcha-error').classList.add('hidden');
-            // Set the reCAPTCHA response in the hidden field
-            document.getElementById('g-recaptcha-response').value = recaptchaResponse;
         }
 
+        if (!email) {
+            alert('Please enter your email address.');
+            document.querySelector('[name="email"]').focus();
+            return false;
+        }
+
+        if (!phone) {
+            alert('Please enter your phone number.');
+            document.querySelector('[name="phone"]').focus();
+            return false;
+        }
+
+        if (!password) {
+            alert('Please enter a password.');
+            document.querySelector('[name="password"]').focus();
+            return false;
+        }
+
+        if (password !== passwordConfirmation) {
+            alert('Passwords do not match.');
+            document.querySelector('[name="password_confirmation"]').focus();
+            return false;
+        }
+
+        // Role-specific validation
         if (role === 'tenant') {
             const address = document.querySelector('[name="address"]').value.trim();
             const city = document.querySelector('[name="city"]').value;
-            console.log('Tenant validation - Address:', address, 'City:', city); // Debug log
+            console.log('Tenant validation - Address:', address, 'City:', city);
 
             if (!address) {
                 alert('Please provide your current address.');
@@ -505,8 +657,17 @@
             }
         }
 
-        console.log('Form validation passed, submitting...'); // Debug log
-        return true; // Allow form submission
+        // Skip reCAPTCHA validation if requested (for basic validation before popup)
+        if (!skipRecaptcha) {
+            const recaptchaResponse = getMainRecaptchaResponse();
+            if (!recaptchaResponse) {
+                alert('Please complete the reCAPTCHA verification.');
+                return false;
+            }
+        }
+
+        console.log('Form validation passed');
+        return true;
     }
 
     // Initialize the form when page loads
