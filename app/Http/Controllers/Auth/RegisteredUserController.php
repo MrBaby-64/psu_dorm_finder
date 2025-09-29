@@ -43,7 +43,8 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'in:tenant,landlord'],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
-            'g-recaptcha-response' => ['required', 'captcha'],
+            // Temporarily make reCAPTCHA optional for popup testing
+            'g-recaptcha-response' => ['nullable', 'captcha'],
         ];
 
         if ($request->role === 'tenant') {
@@ -61,7 +62,6 @@ class RegisteredUserController extends Controller
             'email.unique' => 'This email address is already registered. Please use a different email or login if you already have an account.',
             'address.required' => 'Please provide your current address so we can show you relevant properties nearby.',
             'city.required' => 'Please select your city from the dropdown list.',
-            'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification.',
             'g-recaptcha-response.captcha' => 'reCAPTCHA verification failed. Please try again.',
         ];
 
