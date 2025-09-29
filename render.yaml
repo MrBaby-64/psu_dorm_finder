@@ -3,11 +3,9 @@ services:
     name: psu-dorm-finder
     env: php
     plan: free
-    runtime: php
-    runtimeVersion: "8.2"
     buildCommand: |
       composer install --no-dev --optimize-autoloader
-      npm ci --only=production
+      npm install
       npm run build
       php artisan config:cache
       php artisan route:cache
@@ -27,16 +25,6 @@ services:
         value: https://psu-dorm-finder.onrender.com
       - key: DB_CONNECTION
         value: pgsql
-      - key: LOG_CHANNEL
-        value: stderr
-      - key: LOG_LEVEL
-        value: info
-      - key: SESSION_DRIVER
-        value: database
-      - key: CACHE_DRIVER
-        value: file
-      - key: QUEUE_CONNECTION
-        value: database
       - key: DB_HOST
         fromDatabase:
           name: psu-dorm-finder-db
@@ -57,11 +45,28 @@ services:
         fromDatabase:
           name: psu-dorm-finder-db
           property: password
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: info
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_DRIVER
+        value: file
+      - key: QUEUE_CONNECTION
+        value: database
       - key: NOCAPTCHA_SITEKEY
         value: 6LdontgrAAAAADF6Wl923X1kXTDVBZdBU5oFHImD
       - key: NOCAPTCHA_SECRET
         value: 6LdontgrAAAAACkN0f77aL7bOsGo1PfcAFFHxs3N
+      - key: MAIL_MAILER
+        value: log
+      - key: MAIL_FROM_ADDRESS
+        value: noreply@psu-dorm-finder.onrender.com
+      - key: MAIL_FROM_NAME
+        value: PSU Dorm Finder
 
 databases:
   - name: psu-dorm-finder-db
+    databaseName: psu_dorm_finder
     plan: free
