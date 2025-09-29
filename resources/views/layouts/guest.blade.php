@@ -591,10 +591,11 @@
                             </div>
                         </div>
 
-                        <!-- reCAPTCHA - Replace the "will be required" text -->
+                        <!-- reCAPTCHA - Smart security verification -->
                         <div class="mt-6">
                             <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
-                                <p class="text-sm text-blue-800 font-medium mb-3">🔒 Security Verification</p>
+                                <p class="text-sm text-blue-800 font-medium mb-2">🔒 Security Verification</p>
+                                <p class="text-xs text-blue-600 mb-3">Please complete the verification below to ensure you're human</p>
                                 <div class="flex justify-center">
                                     <div class="g-recaptcha" data-sitekey="6LdontgrAAAAADF6Wl923X1kXTDVBZdBU5oFHImD"></div>
                                 </div>
@@ -608,6 +609,13 @@
                                         </div>
                                     </div>
                                 @enderror
+
+                                <!-- Development/Testing Notice -->
+                                @if(app()->environment(['local', 'development']))
+                                    <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
+                                        <i class="fas fa-info-circle"></i> Development Mode: Security verification is simplified for testing
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
