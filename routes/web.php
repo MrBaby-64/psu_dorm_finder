@@ -128,35 +128,50 @@ Route::delete('/scheduled-visits/{visit}', [App\Http\Controllers\ScheduledVisitC
 Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(function () {
     Route::get('/account', [\App\Http\Controllers\Landlord\AccountController::class, 'index'])->name('account');
     
-    // Property management - Simplified fallback routes
+    // Property management - Enhanced with fallback system
     Route::get('/properties', function() {
         try {
-            return app(\App\Http\Controllers\Landlord\PropertyController::class)->index();
+            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->index();
         } catch (\Exception $e) {
-            \Log::error('Primary PropertyController failed, using simplified: ' . $e->getMessage());
+            \Log::error('Enhanced PropertyController failed, using simplified: ' . $e->getMessage());
             return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->index();
         }
     })->name('properties.index');
 
     Route::get('/properties/create', function() {
         try {
-            return app(\App\Http\Controllers\Landlord\PropertyController::class)->create();
+            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->create();
         } catch (\Exception $e) {
-            \Log::error('Primary PropertyController create failed, using simplified: ' . $e->getMessage());
+            \Log::error('Enhanced PropertyController create failed, using simplified: ' . $e->getMessage());
             return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->create();
         }
     })->name('properties.create');
 
     Route::post('/properties', function(\Illuminate\Http\Request $request) {
         try {
-            return app(\App\Http\Controllers\Landlord\PropertyController::class)->store($request);
+            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->store($request);
         } catch (\Exception $e) {
-            \Log::error('Primary PropertyController store failed, using simplified: ' . $e->getMessage());
+            \Log::error('Enhanced PropertyController store failed, using simplified: ' . $e->getMessage());
             return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->store($request);
         }
     })->name('properties.store');
-    Route::post('/properties/remove-temp-image', [\App\Http\Controllers\Landlord\PropertyController::class, 'removeTempImage'])->name('properties.remove-temp-image');
-    Route::post('/properties/store-map-position', [\App\Http\Controllers\Landlord\PropertyController::class, 'storeMapPosition'])->name('properties.store-map-position');
+    Route::post('/properties/remove-temp-image', function(\Illuminate\Http\Request $request) {
+        try {
+            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->removeTempImage($request);
+        } catch (\Exception $e) {
+            \Log::error('Enhanced removeTempImage failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to remove image']);
+        }
+    })->name('properties.remove-temp-image');
+
+    Route::post('/properties/store-map-position', function(\Illuminate\Http\Request $request) {
+        try {
+            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->storeMapPosition($request);
+        } catch (\Exception $e) {
+            \Log::error('Enhanced storeMapPosition failed: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to store map position']);
+        }
+    })->name('properties.store-map-position');
     Route::get('/properties/{property}/edit', [\App\Http\Controllers\Landlord\PropertyController::class, 'edit'])->name('properties.edit');
     Route::put('/properties/{property}', [\App\Http\Controllers\Landlord\PropertyController::class, 'update'])->name('properties.update');
     Route::delete('/properties/{property}', [\App\Http\Controllers\Landlord\PropertyController::class, 'destroy'])->name('properties.destroy');
