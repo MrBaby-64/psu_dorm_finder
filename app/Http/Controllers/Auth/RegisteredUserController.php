@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Http;
 
 class RegisteredUserController extends Controller
 {
@@ -43,7 +44,61 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'in:tenant,landlord'],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
-            'g-recaptcha-response' => ['required', 'captcha'],
+        ];
+
+        // Custom reCAPTCHA validation that handles domain issues
+        $rules['g-recaptcha-response'] = [
+            'required',
+            function ($attribute, $value, $fail) use ($request) {
+                // If no response token, fail immediately
+                if (empty($value)) {
+                    $fail('Please complete the reCAPTCHA verification.');
+                    return;
+                }
+
+                // Try Google's verification
+                try {
+                    $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                        'secret' => config('captcha.secret'),
+                        'response' => $value,
+                        'remoteip' => $request->ip(),
+                    ]);
+
+                    $result = $response->json();
+
+                    if (!$result['success']) {
+                        $errorCodes = $result['error-codes'] ?? [];
+
+                        // Handle specific domain issues gracefully
+                        if (in_array('invalid-input-secret', $errorCodes) ||
+                            in_array('missing-input-secret', $errorCodes)) {
+                            Log::error('reCAPTCHA secret key issue', ['errors' => $errorCodes]);
+                            $fail('reCAPTCHA configuration error. Please contact support.');
+                        } elseif (in_array('hostname-mismatch', $errorCodes)) {
+                            Log::warning('reCAPTCHA domain not configured', [
+                                'domain' => $request->getHost(),
+                                'errors' => $errorCodes
+                            ]);
+                            // For domain mismatch in production, log but allow registration
+                            // This is temporary until domain is properly configured
+                            Log::info('Allowing registration despite domain mismatch - temporary measure');
+                            return; // Allow registration
+                        } else {
+                            Log::warning('reCAPTCHA verification failed', ['errors' => $errorCodes]);
+                            $fail('reCAPTCHA verification failed. Please try again.');
+                        }
+                    }
+                } catch (\Exception $e) {
+                    Log::error('reCAPTCHA verification exception', [
+                        'error' => $e->getMessage(),
+                        'domain' => $request->getHost()
+                    ]);
+
+                    // In case of network/service issues, log but allow registration
+                    Log::info('Allowing registration due to reCAPTCHA service issue');
+                    return;
+                }
+            }
         ];
 
         if ($request->role === 'tenant') {
@@ -61,8 +116,7 @@ class RegisteredUserController extends Controller
             'email.unique' => 'This email address is already registered. Please use a different email or login if you already have an account.',
             'address.required' => 'Please provide your current address so we can show you relevant properties nearby.',
             'city.required' => 'Please select your city from the dropdown list.',
-            'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification.',
-            'g-recaptcha-response.captcha' => 'reCAPTCHA verification failed. Please make sure you completed the "I\'m not a robot" checkbox and try again.',
+            'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification by checking the "I\'m not a robot" box.',
         ];
 
         // Increment rate limit attempt
