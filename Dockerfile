@@ -93,11 +93,24 @@ echo "Database: $DB_CONNECTION"\n\
 echo "Host: $DB_HOST"\n\
 echo "Database: $DB_DATABASE"\n\
 \n\
+# Verify APP_KEY is set and valid\n\
+if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then\n\
+    echo "ERROR: APP_KEY is not set or invalid!"\n\
+    echo "Generating new APP_KEY..."\n\
+    php artisan key:generate --force\n\
+else\n\
+    echo "APP_KEY is configured"\n\
+fi\n\
+\n\
 # Clear any cached config that might conflict\n\
 echo "Clearing application caches..."\n\
 php artisan config:clear\n\
 php artisan cache:clear\n\
 php artisan view:clear\n\
+\n\
+# Test basic Laravel boot\n\
+echo "Testing Laravel application boot..."\n\
+php artisan --version || { echo "Laravel boot failed - check APP_KEY and configuration"; exit 1; }\n\
 \n\
 # Run migrations\n\
 echo "Running database migrations..."\n\
@@ -105,7 +118,7 @@ php artisan migrate --force\n\
 \n\
 # Create storage link\n\
 echo "Creating storage link..."\n\
-php artisan storage:link\n\
+php artisan storage:link || echo "Storage link already exists or failed"\n\
 \n\
 # Seed database if needed\n\
 echo "Checking database setup..."\n\
