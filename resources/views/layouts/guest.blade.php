@@ -598,6 +598,16 @@
                                 <div class="flex justify-center">
                                     <div class="g-recaptcha" data-sitekey="6LdontgrAAAAADF6Wl923X1kXTDVBZdBU5oFHImD"></div>
                                 </div>
+                                @error('g-recaptcha-response')
+                                    <div class="mt-3 p-3 bg-red-50 border border-red-300 rounded-lg">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                                        </div>
+                                    </div>
+                                @enderror
                             </div>
                         </div>
 
