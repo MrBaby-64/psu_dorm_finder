@@ -166,6 +166,7 @@
             <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data" onsubmit="return handleFormSubmit(event)">
                 @csrf
                 <input type="hidden" id="roleInput" name="role" value="{{ $oldRole }}">
+                <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" value="">
 
                 <div class="space-y-5">
                     <div>
@@ -265,17 +266,27 @@
 
                     <!-- reCAPTCHA -->
                     <div class="flex justify-center">
-                        {!! NoCaptcha::display() !!}
-                        @error('g-recaptcha-response')
-                            <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded-lg">
+                        <div id="recaptcha-container" class="flex flex-col items-center">
+                            <div id="manual-recaptcha" class="mb-2"></div>
+                            <div id="recaptcha-error" class="hidden mt-2 p-2 bg-red-100 border border-red-300 rounded-lg w-full">
                                 <div class="flex items-center gap-2">
                                     <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
-                                    <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                                    <span class="text-red-700 text-sm font-medium">Please complete the reCAPTCHA verification.</span>
                                 </div>
                             </div>
-                        @enderror
+                            @error('g-recaptcha-response')
+                                <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded-lg w-full">
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                                    </div>
+                                </div>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 
@@ -294,8 +305,51 @@
 @endsection
 
 @push('scripts')
-{!! NoCaptcha::renderJs() !!}
+<script src="https://www.google.com/recaptcha/api.js?onload=initRecaptcha&render=explicit" async defer></script>
 <script>
+    let recaptchaWidgetId = null;
+
+    // Initialize reCAPTCHA when Google API loads
+    function initRecaptcha() {
+        console.log('Initializing reCAPTCHA...');
+        try {
+            const container = document.getElementById('manual-recaptcha');
+            if (container && window.grecaptcha) {
+                recaptchaWidgetId = grecaptcha.render('manual-recaptcha', {
+                    'sitekey': '{{ config('captcha.sitekey') }}',
+                    'callback': function(response) {
+                        console.log('reCAPTCHA completed:', response);
+                        // Hide error message if showing
+                        document.getElementById('recaptcha-error').classList.add('hidden');
+                    },
+                    'expired-callback': function() {
+                        console.log('reCAPTCHA expired');
+                        document.getElementById('recaptcha-error').classList.remove('hidden');
+                    }
+                });
+                console.log('reCAPTCHA initialized successfully');
+            } else {
+                console.error('reCAPTCHA container not found or grecaptcha not loaded');
+            }
+        } catch (error) {
+            console.error('Error initializing reCAPTCHA:', error);
+        }
+    }
+
+    // Function to get reCAPTCHA response
+    function getRecaptchaResponse() {
+        if (recaptchaWidgetId !== null && window.grecaptcha) {
+            return grecaptcha.getResponse(recaptchaWidgetId);
+        }
+        return '';
+    }
+
+    // Function to reset reCAPTCHA
+    function resetRecaptcha() {
+        if (recaptchaWidgetId !== null && window.grecaptcha) {
+            grecaptcha.reset(recaptchaWidgetId);
+        }
+    }
     function selectRole(role) {
         console.log('=== selectRole function called with role:', role, '===');
 
@@ -422,14 +476,15 @@
         console.log('Form validation - Role:', role); // Debug log
 
         // Check reCAPTCHA first
-        try {
-            const recaptchaResponse = grecaptcha.getResponse();
-            if (!recaptchaResponse) {
-                alert('Please complete the reCAPTCHA verification.');
-                return false;
-            }
-        } catch (error) {
-            console.log('reCAPTCHA not loaded yet, skipping validation');
+        const recaptchaResponse = getRecaptchaResponse();
+        if (!recaptchaResponse) {
+            document.getElementById('recaptcha-error').classList.remove('hidden');
+            alert('Please complete the reCAPTCHA verification.');
+            return false;
+        } else {
+            document.getElementById('recaptcha-error').classList.add('hidden');
+            // Set the reCAPTCHA response in the hidden field
+            document.getElementById('g-recaptcha-response').value = recaptchaResponse;
         }
 
         if (role === 'tenant') {

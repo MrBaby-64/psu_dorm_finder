@@ -512,6 +512,7 @@
                     <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data" onsubmit="return validateGuestRegistrationForm()">
                         @csrf
                         <input type="hidden" id="roleInput" name="role" value="">
+                        <input type="hidden" id="modal-g-recaptcha-response" name="g-recaptcha-response" value="">
                         
                         <div class="space-y-4">
                             <div>
@@ -593,17 +594,27 @@
                         <!-- reCAPTCHA -->
                         <div class="mt-6">
                             <div class="flex justify-center">
-                                {!! NoCaptcha::display() !!}
-                                @error('g-recaptcha-response')
-                                    <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded-lg w-full">
+                                <div id="modal-recaptcha-container" class="flex flex-col items-center">
+                                    <div id="modal-recaptcha" class="mb-2"></div>
+                                    <div id="modal-recaptcha-error" class="hidden mt-2 p-2 bg-red-100 border border-red-300 rounded-lg w-full">
                                         <div class="flex items-center gap-2">
                                             <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                             </svg>
-                                            <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                                            <span class="text-red-700 text-sm font-medium">Please complete the reCAPTCHA verification.</span>
                                         </div>
                                     </div>
-                                @enderror
+                                    @error('g-recaptcha-response')
+                                        <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded-lg w-full">
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                </svg>
+                                                <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                                            </div>
+                                        </div>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
 
@@ -758,10 +769,15 @@
             console.log('Validating guest form for role:', role);
 
             // Check reCAPTCHA first
-            const recaptchaResponse = grecaptcha.getResponse();
+            const recaptchaResponse = getModalRecaptchaResponse();
             if (!recaptchaResponse) {
+                document.getElementById('modal-recaptcha-error').classList.remove('hidden');
                 alert('Please complete the reCAPTCHA verification.');
                 return false;
+            } else {
+                document.getElementById('modal-recaptcha-error').classList.add('hidden');
+                // Set the reCAPTCHA response in the hidden field
+                document.getElementById('modal-g-recaptcha-response').value = recaptchaResponse;
             }
 
             if (role === 'tenant') {
@@ -1029,7 +1045,51 @@
         @endif
     </script>
 
-    {!! NoCaptcha::renderJs() !!}
+    <script src="https://www.google.com/recaptcha/api.js?onload=initGuestRecaptcha&render=explicit" async defer></script>
+    <script>
+        let modalRecaptchaWidgetId = null;
+
+        // Initialize modal reCAPTCHA when Google API loads
+        function initGuestRecaptcha() {
+            console.log('Initializing modal reCAPTCHA...');
+            try {
+                const container = document.getElementById('modal-recaptcha');
+                if (container && window.grecaptcha) {
+                    modalRecaptchaWidgetId = grecaptcha.render('modal-recaptcha', {
+                        'sitekey': '{{ config('captcha.sitekey') }}',
+                        'callback': function(response) {
+                            console.log('Modal reCAPTCHA completed:', response);
+                            document.getElementById('modal-recaptcha-error').classList.add('hidden');
+                        },
+                        'expired-callback': function() {
+                            console.log('Modal reCAPTCHA expired');
+                            document.getElementById('modal-recaptcha-error').classList.remove('hidden');
+                        }
+                    });
+                    console.log('Modal reCAPTCHA initialized successfully');
+                } else {
+                    console.error('Modal reCAPTCHA container not found or grecaptcha not loaded');
+                }
+            } catch (error) {
+                console.error('Error initializing modal reCAPTCHA:', error);
+            }
+        }
+
+        // Function to get modal reCAPTCHA response
+        function getModalRecaptchaResponse() {
+            if (modalRecaptchaWidgetId !== null && window.grecaptcha) {
+                return grecaptcha.getResponse(modalRecaptchaWidgetId);
+            }
+            return '';
+        }
+
+        // Function to reset modal reCAPTCHA
+        function resetModalRecaptcha() {
+            if (modalRecaptchaWidgetId !== null && window.grecaptcha) {
+                grecaptcha.reset(modalRecaptchaWidgetId);
+            }
+        }
+    </script>
     @stack('scripts')
 </body>
 </html>
