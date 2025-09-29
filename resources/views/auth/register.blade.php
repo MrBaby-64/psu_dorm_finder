@@ -8,19 +8,6 @@
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
     }
-
-    /* Debug styles for modal */
-    #mainRecaptchaModal {
-        background-color: rgba(0, 0, 0, 0.7) !important;
-    }
-
-    #mainRecaptchaModal.hidden {
-        display: none !important;
-    }
-
-    #mainRecaptchaModal:not(.hidden) {
-        display: block !important;
-    }
 </style>
 @endpush
 
@@ -179,7 +166,6 @@
             <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" id="roleInput" name="role" value="{{ $oldRole }}">
-                <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" value="">
 
                 <div class="space-y-5">
                     <div>
@@ -277,12 +263,11 @@
                         <input type="password" name="password_confirmation" required class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
                     </div>
 
-                    <!-- reCAPTCHA Verification -->
+                    <!-- reCAPTCHA - Simple "I'm not a robot" checkbox -->
                     <div class="flex justify-center">
                         <div class="w-full">
-                            <label class="block font-semibold mb-3 text-center">Security Verification *</label>
                             <div class="flex justify-center">
-                                <div id="recaptcha-widget" class="inline-block"></div>
+                                <div class="g-recaptcha" data-sitekey="{{ config('captcha.sitekey') }}"></div>
                             </div>
                             @error('g-recaptcha-response')
                                 <div class="mt-3 p-3 bg-red-50 border border-red-300 rounded-lg text-center">
@@ -314,50 +299,9 @@
 @endsection
 
 @push('scripts')
-<script src="https://www.google.com/recaptcha/api.js?onload=initRecaptcha&render=explicit" async defer></script>
+<!-- Simple reCAPTCHA v2 - "I'm not a robot" checkbox -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
-    let recaptchaWidgetId = null;
-
-    // Initialize reCAPTCHA when Google API loads
-    function initRecaptcha() {
-        console.log('Initializing reCAPTCHA...');
-        try {
-            const container = document.getElementById('recaptcha-widget');
-            if (container && window.grecaptcha) {
-                recaptchaWidgetId = grecaptcha.render('recaptcha-widget', {
-                    'sitekey': '{{ config('captcha.sitekey') }}',
-                    'callback': function(response) {
-                        console.log('reCAPTCHA completed successfully');
-                        // Set the response in the hidden field
-                        document.getElementById('g-recaptcha-response').value = response;
-                    },
-                    'expired-callback': function() {
-                        console.log('reCAPTCHA expired');
-                        document.getElementById('g-recaptcha-response').value = '';
-                    }
-                });
-                console.log('reCAPTCHA initialized successfully');
-            } else {
-                console.error('reCAPTCHA container not found or grecaptcha not loaded');
-                // Fallback: show error message
-                setTimeout(() => {
-                    if (!window.grecaptcha && container) {
-                        container.innerHTML = '<div class="text-red-600 text-center p-4 border border-red-300 rounded">Failed to load reCAPTCHA. Please refresh the page.</div>';
-                    }
-                }, 5000);
-            }
-        } catch (error) {
-            console.error('Error initializing reCAPTCHA:', error);
-        }
-    }
-
-    // Function to get reCAPTCHA response
-    function getRecaptchaResponse() {
-        if (recaptchaWidgetId !== null && window.grecaptcha) {
-            return grecaptcha.getResponse(recaptchaWidgetId);
-        }
-        return '';
-    }
     function selectRole(role) {
         console.log('=== selectRole function called with role:', role, '===');
 
