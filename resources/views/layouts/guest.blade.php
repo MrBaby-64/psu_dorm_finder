@@ -591,14 +591,12 @@
                             </div>
                         </div>
 
-                        <!-- Note about verification -->
+                        <!-- reCAPTCHA - Replace the "will be required" text -->
                         <div class="mt-6">
-                            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-center">
-                                <div class="flex items-center justify-center gap-2">
-                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    <span class="text-sm text-blue-800 font-medium">Security verification will be required</span>
+                            <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
+                                <p class="text-sm text-blue-800 font-medium mb-3">🔒 Security Verification</p>
+                                <div class="flex justify-center">
+                                    <div class="g-recaptcha" data-sitekey="6LdontgrAAAAADF6Wl923X1kXTDVBZdBU5oFHImD"></div>
                                 </div>
                             </div>
                         </div>
