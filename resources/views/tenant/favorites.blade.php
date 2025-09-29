@@ -62,13 +62,24 @@
                         <!-- Property Image -->
                         <div class="relative">
                             @php
-                                $mainImage = $property->images->where('is_cover', true)->first() ?? $property->images->first();
-                                $imageUrl = $mainImage ? asset('storage/' . $mainImage->image_path) : 'https://via.placeholder.com/300x200?text=No+Image';
+                                // First try to get cover image, then any image, with better fallback
+                                $coverImage = $property->images->where('is_cover', true)->first();
+                                $firstImage = $property->images->first();
+                                $selectedImage = $coverImage ?: $firstImage;
+
+                                // Use the model's accessor for proper URL generation
+                                if ($selectedImage && $selectedImage->full_url) {
+                                    $imageUrl = $selectedImage->full_url;
+                                } else {
+                                    $imageUrl = 'https://via.placeholder.com/400x300/f3f4f6/9ca3af?text=' . urlencode($property->title ?: 'Property');
+                                }
                             @endphp
-                            
-                            <img src="{{ $imageUrl }}" 
-                                 alt="{{ $property->title }}" 
-                                 class="w-full h-48 object-cover">
+
+                            <img src="{{ $imageUrl }}"
+                                 alt="{{ $property->title }}"
+                                 class="w-full h-48 object-cover"
+                                 onerror="this.src='https://via.placeholder.com/400x300/f3f4f6/9ca3af?text={{ urlencode($property->title ?: 'Property') }}'"
+                                 loading="lazy">
                             
                             <!-- Remove from favorites button -->
                             <form action="{{ route('favorites.destroy', $property) }}" method="POST" class="absolute top-3 right-3">

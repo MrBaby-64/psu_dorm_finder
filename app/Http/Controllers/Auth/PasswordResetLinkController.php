@@ -23,22 +23,62 @@ class PasswordResetLinkController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
-        $request->validate([
-            'email' => ['required', 'email'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'email' => ['required', 'email'],
+            ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+            $status = Password::sendResetLink(
+                $request->only('email')
+            );
 
-        return $status == Password::RESET_LINK_SENT
-                    ? back()->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+            // Log for debugging
+            \Log::info('Password reset requested', [
+                'email' => $request->email,
+                'status' => $status,
+                'mail_driver' => config('mail.default')
+            ]);
+
+            if ($request->wantsJson() || $request->expectsJson()) {
+                if ($status == Password::RESET_LINK_SENT) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'We have sent a password reset link to your email address. Please check your inbox and click the link to reset your password.'
+                    ], 200);
+                } else {
+                    return response()->json([
+                        'success' => false,
+                        'message' => __($status)
+                    ], 422);
+                }
+            }
+
+            if ($status == Password::RESET_LINK_SENT) {
+                return back()->with('status', 'We have sent a password reset link to your email address. Please check your inbox and click the link to reset your password.');
+            } else {
+                return back()->withInput($request->only('email'))
+                    ->withErrors(['email' => __($status)]);
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please provide a valid email address.',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            if ($request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unable to send reset link. Please try again later.'
+                ], 500);
+            }
+            return back()->withErrors(['email' => 'Unable to send reset link. Please try again later.']);
+        }
     }
 }

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\AuditLog;
+use App\Models\Inquiry;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -77,7 +78,7 @@ class UserController extends Controller
 
         try {
             // Load user with related data for comprehensive view
-            $user->load(['properties', 'bookings', 'reviews']);
+            $user->load(['properties', 'bookings.property', 'reviews.property', 'inquiries.property']);
 
             // Get user statistics safely with null checks
             $stats = [
@@ -85,6 +86,7 @@ class UserController extends Controller
                 'active_properties' => $user->properties ? $user->properties->where('status', 'approved')->count() : 0,
                 'total_bookings' => $user->bookings ? $user->bookings->count() : 0,
                 'total_reviews' => $user->reviews ? $user->reviews->count() : 0,
+                'total_inquiries' => $user->inquiries ? $user->inquiries->count() : 0,
                 'unread_notifications' => 0, // Simplified for now
                 'account_age_days' => $user->created_at ? $user->created_at->diffInDays(now()) : 0,
             ];

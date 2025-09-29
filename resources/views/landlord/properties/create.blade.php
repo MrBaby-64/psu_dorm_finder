@@ -603,6 +603,214 @@
     </div>
 </div>
 
+<!-- Room Details Modal -->
+<div id="roomDetailsModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900" id="modalTitle">Edit Room Details</h3>
+            <button type="button" onclick="closeRoomDetailsModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form id="roomDetailsForm" class="space-y-6">
+            <!-- Basic Information -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                    🏠 Basic Information
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea id="modal_description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Describe this room's features and condition"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Size (sqm)</label>
+                        <input type="number" id="modal_size_sqm" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 12.5">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Price (₱)</label>
+                        <input type="number" id="modal_price" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 5500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Physical Details -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                    📏 Physical Details
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Furnished Status</label>
+                        <select id="modal_furnished_status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select status</option>
+                            <option value="furnished">Furnished</option>
+                            <option value="semi_furnished">Semi-furnished</option>
+                            <option value="unfurnished">Unfurnished</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Bathroom Type</label>
+                        <select id="modal_bathroom_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select type</option>
+                            <option value="private">Private</option>
+                            <option value="shared">Shared</option>
+                            <option value="communal">Communal</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Flooring Type</label>
+                        <select id="modal_flooring_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select flooring</option>
+                            <option value="tile">Tile</option>
+                            <option value="wood">Wood</option>
+                            <option value="concrete">Concrete</option>
+                            <option value="carpet">Carpet</option>
+                            <option value="vinyl">Vinyl</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Utilities & Features -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                    ⚡ Utilities & Features
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">AC Type</label>
+                        <select id="modal_ac_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select AC type</option>
+                            <option value="central">Central AC</option>
+                            <option value="split">Split Type</option>
+                            <option value="window">Window Type</option>
+                            <option value="ceiling_fan">Ceiling Fan</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Internet Speed (Mbps)</label>
+                        <input type="number" id="modal_internet_speed_mbps" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 50">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Storage Space</label>
+                        <select id="modal_storage_space" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select storage</option>
+                            <option value="closet">Closet</option>
+                            <option value="wardrobe">Wardrobe</option>
+                            <option value="built_in">Built-in</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Feature Checkboxes -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Room Features</label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="modal_has_kitchenette" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Kitchenette</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="modal_has_refrigerator" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Refrigerator</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="modal_has_study_desk" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Study Desk</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="modal_has_balcony" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Balcony</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Policies -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                    📋 Booking & Policies
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Security Deposit (₱)</label>
+                        <input type="number" id="modal_security_deposit" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 10000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Advance Payment (months)</label>
+                        <input type="number" id="modal_advance_payment_months" min="1" max="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Stay (months)</label>
+                        <input type="number" id="modal_minimum_stay_months" min="1" max="24" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 6">
+                    </div>
+                </div>
+
+                <!-- Policy Checkboxes -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Policies</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="modal_pets_allowed" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Pets Allowed</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="modal_smoking_allowed" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                            <span class="ml-2 text-sm text-gray-700">Smoking Allowed</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- House Rules -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">House Rules</label>
+                    <textarea id="modal_house_rules" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., No loud music after 10 PM, Keep common areas clean"></textarea>
+                </div>
+            </div>
+
+            <!-- Included Utilities -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h4 class="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                    💵 Included Utilities
+                </h4>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="modal_utility_electricity" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">Electricity</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="modal_utility_water" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">Water</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="modal_utility_internet" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">Internet</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="modal_utility_cable_tv" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-700">Cable TV</span>
+                    </label>
+                </div>
+            </div>
+        </form>
+
+        <div class="flex justify-end space-x-3 mt-6 pt-4 border-t">
+            <button type="button" onclick="closeRoomDetailsModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                Cancel
+            </button>
+            <button type="button" onclick="saveRoomDetails()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                Save Details
+            </button>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -638,8 +846,8 @@
             return false;
         }
 
-        // Skip room validation entirely - let server handle it
-        // Room details are now optional and server will create defaults if not provided
+        // Room details validation is handled by the modal system
+        // Room enhanced details are stored in roomDetailsData and submitted via hidden inputs
 
         // Skip visit scheduling validation - let server handle it
         // Server will provide better error messages for visit scheduling
@@ -1108,13 +1316,23 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
-                        Room Description
+                        Room Description & Details
                     </label>
-                    <input type="text"
-                           name="rooms[${i-1}][description]"
-                           value="${oldDescription}"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                           placeholder="e.g., With aircon, shared bathroom">
+                    <div class="relative">
+                        <input type="text"
+                               name="rooms[${i-1}][description]"
+                               id="room_description_${i-1}"
+                               value="${oldDescription}"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 pr-32"
+                               placeholder="Click 'Edit Details' to add description and room features"
+                               readonly>
+                        <button type="button"
+                                onclick="openRoomDetailsModal(${i-1})"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 transition">
+                            📝 Edit Details
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">Add comprehensive room details, amenities, and policies</p>
                 </div>
 
                 <!-- Room Images Upload -->
@@ -1218,6 +1436,187 @@
         button.parentElement.remove();
         // Note: This only removes the preview, actual file handling would need more complex logic
     }
+
+    // Room Details Modal Functions
+    let currentRoomIndex = -1;
+    let roomDetailsData = {}; // Store room details data
+
+    function openRoomDetailsModal(roomIndex) {
+        currentRoomIndex = roomIndex;
+        const modal = document.getElementById('roomDetailsModal');
+        const modalTitle = document.getElementById('modalTitle');
+
+        modalTitle.textContent = `Edit Room ${roomIndex + 1} Details`;
+
+        // Load existing data if available
+        if (roomDetailsData[roomIndex]) {
+            loadRoomDetailsToModal(roomDetailsData[roomIndex]);
+        } else {
+            clearModalForm();
+        }
+
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function closeRoomDetailsModal() {
+        const modal = document.getElementById('roomDetailsModal');
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+        currentRoomIndex = -1;
+    }
+
+    function saveRoomDetails() {
+        if (currentRoomIndex === -1) return;
+
+        // Collect all form data
+        const formData = {
+            description: document.getElementById('modal_description').value,
+            size_sqm: document.getElementById('modal_size_sqm').value,
+            price: document.getElementById('modal_price').value,
+            furnished_status: document.getElementById('modal_furnished_status').value,
+            bathroom_type: document.getElementById('modal_bathroom_type').value,
+            flooring_type: document.getElementById('modal_flooring_type').value,
+            ac_type: document.getElementById('modal_ac_type').value,
+            internet_speed_mbps: document.getElementById('modal_internet_speed_mbps').value,
+            storage_space: document.getElementById('modal_storage_space').value,
+            has_kitchenette: document.getElementById('modal_has_kitchenette').checked,
+            has_refrigerator: document.getElementById('modal_has_refrigerator').checked,
+            has_study_desk: document.getElementById('modal_has_study_desk').checked,
+            has_balcony: document.getElementById('modal_has_balcony').checked,
+            security_deposit: document.getElementById('modal_security_deposit').value,
+            advance_payment_months: document.getElementById('modal_advance_payment_months').value,
+            minimum_stay_months: document.getElementById('modal_minimum_stay_months').value,
+            pets_allowed: document.getElementById('modal_pets_allowed').checked,
+            smoking_allowed: document.getElementById('modal_smoking_allowed').checked,
+            house_rules: document.getElementById('modal_house_rules').value,
+            included_utilities: getSelectedUtilities()
+        };
+
+        // Store the data
+        roomDetailsData[currentRoomIndex] = formData;
+
+        // Update the description field and add hidden inputs
+        updateRoomDescriptionField(currentRoomIndex, formData);
+
+        // Close modal
+        closeRoomDetailsModal();
+
+        alert('Room details saved successfully!');
+    }
+
+    function getSelectedUtilities() {
+        const utilities = [];
+        if (document.getElementById('modal_utility_electricity').checked) utilities.push('electricity');
+        if (document.getElementById('modal_utility_water').checked) utilities.push('water');
+        if (document.getElementById('modal_utility_internet').checked) utilities.push('internet');
+        if (document.getElementById('modal_utility_cable_tv').checked) utilities.push('cable_tv');
+        return utilities;
+    }
+
+    function updateRoomDescriptionField(roomIndex, formData) {
+        const descriptionField = document.getElementById(`room_description_${roomIndex}`);
+        if (!descriptionField) return;
+
+        // Create a summary description
+        let summary = formData.description || 'Room details configured';
+        if (formData.furnished_status) summary += ` \u2022 ${capitalizeFirst(formData.furnished_status.replace('_', ' '))}`;
+        if (formData.ac_type && formData.ac_type !== 'none') summary += ` \u2022 ${capitalizeFirst(formData.ac_type.replace('_', ' '))} AC`;
+        if (formData.bathroom_type) summary += ` \u2022 ${capitalizeFirst(formData.bathroom_type)} bathroom`;
+
+        descriptionField.value = summary;
+
+        // Add hidden inputs for all the detailed data
+        removeExistingRoomDetailInputs(roomIndex);
+        addRoomDetailHiddenInputs(roomIndex, formData);
+    }
+
+    function removeExistingRoomDetailInputs(roomIndex) {
+        const existingInputs = document.querySelectorAll(`input[name^="room_details[${roomIndex}]"]`);
+        existingInputs.forEach(input => input.remove());
+    }
+
+    function addRoomDetailHiddenInputs(roomIndex, formData) {
+        const container = document.getElementById('roomInputsContainer');
+        if (!container) return;
+
+        Object.keys(formData).forEach(key => {
+            if (formData[key] !== '' && formData[key] !== null && formData[key] !== undefined) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `room_details[${roomIndex}][${key}]`;
+
+                if (Array.isArray(formData[key])) {
+                    input.value = JSON.stringify(formData[key]);
+                } else if (typeof formData[key] === 'boolean') {
+                    input.value = formData[key] ? '1' : '0';
+                } else {
+                    input.value = formData[key];
+                }
+
+                container.appendChild(input);
+            }
+        });
+    }
+
+    function loadRoomDetailsToModal(data) {
+        document.getElementById('modal_description').value = data.description || '';
+        document.getElementById('modal_size_sqm').value = data.size_sqm || '';
+        document.getElementById('modal_price').value = data.price || '';
+        document.getElementById('modal_furnished_status').value = data.furnished_status || '';
+        document.getElementById('modal_bathroom_type').value = data.bathroom_type || '';
+        document.getElementById('modal_flooring_type').value = data.flooring_type || '';
+        document.getElementById('modal_ac_type').value = data.ac_type || '';
+        document.getElementById('modal_internet_speed_mbps').value = data.internet_speed_mbps || '';
+        document.getElementById('modal_storage_space').value = data.storage_space || '';
+        document.getElementById('modal_has_kitchenette').checked = data.has_kitchenette || false;
+        document.getElementById('modal_has_refrigerator').checked = data.has_refrigerator || false;
+        document.getElementById('modal_has_study_desk').checked = data.has_study_desk || false;
+        document.getElementById('modal_has_balcony').checked = data.has_balcony || false;
+        document.getElementById('modal_security_deposit').value = data.security_deposit || '';
+        document.getElementById('modal_advance_payment_months').value = data.advance_payment_months || '';
+        document.getElementById('modal_minimum_stay_months').value = data.minimum_stay_months || '';
+        document.getElementById('modal_pets_allowed').checked = data.pets_allowed || false;
+        document.getElementById('modal_smoking_allowed').checked = data.smoking_allowed || false;
+        document.getElementById('modal_house_rules').value = data.house_rules || '';
+
+        // Load utilities
+        const utilities = data.included_utilities || [];
+        document.getElementById('modal_utility_electricity').checked = utilities.includes('electricity');
+        document.getElementById('modal_utility_water').checked = utilities.includes('water');
+        document.getElementById('modal_utility_internet').checked = utilities.includes('internet');
+        document.getElementById('modal_utility_cable_tv').checked = utilities.includes('cable_tv');
+    }
+
+    function clearModalForm() {
+        const inputs = document.querySelectorAll('#roomDetailsForm input, #roomDetailsForm select, #roomDetailsForm textarea');
+        inputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            } else {
+                input.value = '';
+            }
+        });
+    }
+
+    function capitalizeFirst(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('roomDetailsModal');
+        if (event.target === modal) {
+            closeRoomDetailsModal();
+        }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeRoomDetailsModal();
+        }
+    });
 </script>
 @endpush
 @endsection

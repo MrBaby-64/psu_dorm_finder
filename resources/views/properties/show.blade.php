@@ -84,23 +84,28 @@
 
     #propertyLightbox img {
         max-width: 100%;
-        max-height: calc(100vh - 160px);
+        max-height: calc(100vh - 180px);
         width: auto;
         height: auto;
         display: block;
         margin: 0 auto;
         object-fit: contain;
+        background: transparent;
     }
 
     /* Responsive adjustments */
     @media (max-width: 768px) {
         #propertyLightbox img {
-            max-height: calc(100vh - 140px);
+            max-height: calc(100vh - 160px);
         }
 
-        #propertyLightbox .px-16 {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
+        #propertyLightbox button {
+            padding: 0.5rem !important;
+        }
+
+        #propertyLightbox button svg {
+            width: 1.25rem !important;
+            height: 1.25rem !important;
         }
     }
 
@@ -562,6 +567,25 @@
         const display = document.getElementById('roomSelectionDisplay');
         if (display) display.style.display = 'none';
         closeRoomSelectionModal();
+    }
+
+    // Toggle room details display
+    function toggleRoomDetails(roomIndex) {
+        const detailsDiv = document.getElementById('roomDetails' + roomIndex);
+        const textSpan = document.getElementById('roomDetailsText' + roomIndex);
+        const iconSvg = document.getElementById('roomDetailsIcon' + roomIndex);
+
+        if (detailsDiv.classList.contains('hidden')) {
+            // Show details
+            detailsDiv.classList.remove('hidden');
+            textSpan.textContent = '📋 Less Details';
+            iconSvg.style.transform = 'rotate(180deg)';
+        } else {
+            // Hide details
+            detailsDiv.classList.add('hidden');
+            textSpan.textContent = '📋 More Details';
+            iconSvg.style.transform = 'rotate(0deg)';
+        }
     }
 
     function proceedWithInquiry() {
@@ -1125,21 +1149,21 @@
                 </div>
 
                 <!-- Main Image Container -->
-                <div class="flex-1 flex items-center justify-center relative min-h-0 px-4 md:px-20">
+                <div class="flex-1 flex items-center justify-center relative min-h-0">
                     <!-- Previous Button -->
-                    <button onclick="previousLightboxImage()" id="prevBtn" class="absolute left-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-all duration-200 z-20 bg-black bg-opacity-60 rounded-full p-4 hover:bg-opacity-80 hover:scale-110" style="display: ${showNavigation ? 'flex' : 'none'}; align-items: center; justify-content: center;">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 18l-6-6 6-6"></path>
+                    <button onclick="previousLightboxImage()" id="prevBtn" class="absolute text-white hover:text-gray-300 transition-all duration-200 z-20 bg-black bg-opacity-70 rounded-full p-3 hover:bg-opacity-90 hover:scale-110" style="display: ${showNavigation ? 'flex' : 'none'}; align-items: center; justify-content: center; left: 16px; top: 50%; transform: translateY(-50%);">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 18l-6-6 6-6"></path>
                         </svg>
                     </button>
 
                     <!-- Image -->
-                    <img id="lightboxImage" src="" alt="" class="max-w-full max-h-full object-contain mx-auto block" style="max-height: calc(100vh - 200px); background: transparent;">
+                    <img id="lightboxImage" src="" alt="" class="max-w-full max-h-full object-contain mx-auto block" style="max-height: calc(100vh - 180px); background: transparent;">
 
                     <!-- Next Button -->
-                    <button onclick="nextLightboxImage()" id="nextBtn" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-300 transition-all duration-200 z-20 bg-black bg-opacity-60 rounded-full p-4 hover:bg-opacity-80 hover:scale-110" style="display: ${showNavigation ? 'flex' : 'none'}; align-items: center; justify-content: center;">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18l6-6-6-6"></path>
+                    <button onclick="nextLightboxImage()" id="nextBtn" class="absolute text-white hover:text-gray-300 transition-all duration-200 z-20 bg-black bg-opacity-70 rounded-full p-3 hover:bg-opacity-90 hover:scale-110" style="display: ${showNavigation ? 'flex' : 'none'}; align-items: center; justify-content: center; right: 16px; top: 50%; transform: translateY(-50%);">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 18l6-6-6-6"></path>
                         </svg>
                     </button>
                 </div>
@@ -1689,31 +1713,288 @@
                             <div class="space-y-6">
                                 @foreach($property->rooms as $roomIndex => $room)
                                     <div class="border-2 border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors {{ $room->status !== 'available' ? 'bg-gray-50' : 'bg-white' }}">
-                                        <!-- Room Header Info -->
+                                        <!-- Room Header -->
                                         <div class="flex justify-between items-start mb-4">
-                                            <div>
-                                                <h3 class="text-lg font-semibold text-gray-900">{{ $room->room_number }}</h3>
-                                                <div class="flex items-center space-x-3 text-sm text-gray-600 mt-1">
-                                                    <span class="capitalize">{{ str_replace('_', ' ', $room->room_type) }}</span>
-                                                    <span>•</span>
-                                                    <span>{{ $room->capacity }} {{ $room->capacity > 1 ? 'tenants' : 'tenant' }}</span>
+                                            <div class="flex-1">
+                                                <div class="flex items-center space-x-3 mb-2">
+                                                    <h3 class="text-lg font-bold text-gray-900">{{ $room->room_number }}</h3>
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                        {{ $room->type_name }}
+                                                    </span>
+                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                                                        {{ $room->status === 'available' ? 'bg-green-100 text-green-800' : ($room->status === 'occupied' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
+                                                        {{ ucfirst($room->status) }}
+                                                    </span>
+                                                </div>
+
+                                                <!-- Room Capacity Display -->
+                                                <div class="flex items-center space-x-1 text-sm text-gray-600 mb-2">
+                                                    <span>🛏️ {{ $room->capacity }} pax in a room</span>
+
                                                     @if($room->size_sqm)
                                                         <span>•</span>
                                                         <span>{{ $room->size_sqm }}m²</span>
                                                     @endif
                                                 </div>
+
                                                 @if($room->description)
-                                                    <p class="text-sm text-gray-600 mt-2">{{ $room->description }}</p>
+                                                    <p class="text-sm text-gray-700 mb-3">{{ $room->description }}</p>
+                                                @endif
+
+                                                {{-- Edit Room Details Button (for property owner) --}}
+                                                @if(auth()->check() && auth()->user()->id === $property->user_id)
+                                                    <button
+                                                        onclick="openRoomEditModal({{ $room->id }}, {{ $roomIndex }})"
+                                                        class="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium mb-3">
+                                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                        </svg>
+                                                        Edit Room Details
+                                                    </button>
+                                                @endif
+
+                                                <!-- Rental Details (Only show if landlord actually input these) -->
+                                                <div class="space-y-1 text-sm">
+                                                    {{-- Only show furnished status if landlord specifically set it (not default unfurnished) --}}
+                                                    @if($room->furnished_status && $room->furnished_status !== 'unfurnished' && $room->furnished_status !== '')
+                                                        <div class="flex items-center text-gray-700">
+                                                            <span class="text-blue-600 mr-2">🛋️</span>
+                                                            <span>{{ $room->furnished_status_name }}</span>
+                                                        </div>
+                                                    @endif
+
+                                                    {{-- Only show bathroom type if landlord specifically set it (not default shared) --}}
+                                                    @if($room->bathroom_type && $room->bathroom_type !== 'shared' && $room->bathroom_type !== '')
+                                                        <div class="flex items-center text-gray-700">
+                                                            <span class="text-blue-600 mr-2">🚿</span>
+                                                            <span>{{ $room->bathroom_type_name }}</span>
+                                                        </div>
+                                                    @endif
+
+                                                    {{-- Only show cooking info if landlord specifically set it --}}
+                                                    @if($room->has_kitchenette === true)
+                                                        <div class="flex items-center text-gray-700">
+                                                            <span class="text-green-600 mr-2">🍳</span>
+                                                            <span>Cooking Allowed</span>
+                                                        </div>
+                                                    @elseif($room->has_kitchenette === false)
+                                                        <div class="flex items-center text-gray-700">
+                                                            <span class="text-red-600 mr-2">🚭</span>
+                                                            <span>No Cooking in Room</span>
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                <!-- More Details Button -->
+                                                <button
+                                                    onclick="toggleRoomDetails({{ $roomIndex }})"
+                                                    class="mt-3 text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center">
+                                                    <span id="roomDetailsText{{ $roomIndex }}">📋 More Details</span>
+                                                    <svg id="roomDetailsIcon{{ $roomIndex }}" class="w-4 h-4 ml-1 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                    </svg>
+                                                </button>
+                                            </div>
+
+                                            <!-- Price Section -->
+                                            <div class="text-right">
+                                                <p class="text-2xl font-bold text-green-600">₱{{ number_format($room->price) }}</p>
+                                                <p class="text-sm text-gray-500">per month</p>
+                                                @if($room->available_spaces < $room->capacity && $room->status === 'available')
+                                                    <p class="text-xs text-orange-600 mt-1">{{ $room->available_spaces }} space{{ $room->available_spaces > 1 ? 's' : '' }} left</p>
                                                 @endif
                                             </div>
-                                            <div class="text-right">
-                                                <p class="text-xl font-bold text-green-600">₱{{ number_format($room->price) }}</p>
-                                                <p class="text-sm text-gray-500">per month</p>
-                                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2
-                                                    {{ $room->status === 'available' ? 'bg-green-100 text-green-800' : ($room->status === 'occupied' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
-                                                    {{ ucfirst($room->status) }}
-                                                </span>
-                                            </div>
+                                        </div>
+
+                                        <!-- Expandable Room Details -->
+                                        <div id="roomDetails{{ $roomIndex }}" class="hidden border-t border-gray-200 pt-4 mt-4">
+                                            {{-- Only show Payment Terms if landlord actually set custom values --}}
+                                            @if(
+                                                ($room->advance_payment_months && $room->advance_payment_months > 1) ||
+                                                ($room->security_deposit && $room->security_deposit > 0) ||
+                                                ($room->minimum_stay_months && $room->minimum_stay_months > 1) ||
+                                                ($room->included_utilities && count($room->included_utilities) > 0)
+                                            )
+                                                <div class="mb-4">
+                                                    <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                                                        <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                                        </svg>
+                                                        Payment Terms
+                                                    </h4>
+                                                    <div class="space-y-2 text-sm bg-gray-50 rounded-lg p-3">
+                                                        @if($room->advance_payment_months && $room->advance_payment_months > 1)
+                                                            <div class="flex justify-between">
+                                                                <span class="text-gray-600">Advance Payments:</span>
+                                                                <span class="font-medium">₱{{ number_format($room->price * $room->advance_payment_months) }} ({{ $room->advance_payment_months }} month{{ $room->advance_payment_months > 1 ? 's' : '' }})</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($room->security_deposit && $room->security_deposit > 0)
+                                                            <div class="flex justify-between">
+                                                                <span class="text-gray-600">Security Deposit:</span>
+                                                                <span class="font-medium">₱{{ number_format($room->security_deposit) }} ({{ number_format($room->security_deposit / $room->price, 1) }} month{{ $room->security_deposit >= ($room->price * 2) ? 's' : '' }})</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($room->minimum_stay_months && $room->minimum_stay_months > 1)
+                                                            <div class="flex justify-between">
+                                                                <span class="text-gray-600">Minimum Stay:</span>
+                                                                <span class="font-medium">{{ $room->minimum_stay_months }} month{{ $room->minimum_stay_months > 1 ? 's' : '' }}</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($room->included_utilities && count($room->included_utilities) > 0)
+                                                            @foreach($room->included_utilities as $utility)
+                                                                <div class="flex justify-between">
+                                                                    <span class="text-gray-600">{{ ucwords(str_replace('_', ' ', $utility)) }} Bill:</span>
+                                                                    <span class="font-medium text-green-600">Included</span>
+                                                                </div>
+                                                            @endforeach
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            {{-- Only show Room Features if landlord actually provided info --}}
+                                            @if(
+                                                ($room->ac_type && $room->ac_type !== 'none' && $room->ac_type !== '') ||
+                                                ($room->internet_speed_mbps && $room->internet_speed_mbps > 0) ||
+                                                ($room->has_refrigerator === true) ||
+                                                ($room->storage_space && $room->storage_space !== 'none' && $room->storage_space !== '') ||
+                                                ($room->flooring_type && $room->flooring_type !== '') ||
+                                                ($room->has_balcony === true) ||
+                                                ($room->has_study_desk === true)
+                                            )
+                                                <div class="mb-4">
+                                                    <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                                                        <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                                        </svg>
+                                                        Room Features
+                                                    </h4>
+                                                    <div class="grid grid-cols-2 gap-2 text-sm">
+                                                        @if($room->ac_type && $room->ac_type !== 'none' && $room->ac_type !== '')
+                                                            <div class="flex items-center text-gray-700">
+                                                                <span class="text-blue-500 mr-2">❄️</span>
+                                                                <span>{{ $room->ac_type_name }}</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($room->internet_speed_mbps && $room->internet_speed_mbps > 0)
+                                                            <div class="flex items-center text-gray-700">
+                                                                <span class="text-green-500 mr-2">📶</span>
+                                                                <span>{{ $room->internet_speed_mbps }} Mbps Internet</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($room->has_refrigerator === true)
+                                                            <div class="flex items-center text-gray-700">
+                                                                <span class="text-blue-500 mr-2">🧊</span>
+                                                                <span>Refrigerator</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($room->storage_space && $room->storage_space !== 'none' && $room->storage_space !== '')
+                                                            <div class="flex items-center text-gray-700">
+                                                                <span class="text-brown-500 mr-2">🗄️</span>
+                                                                <span>{{ $room->storage_space_name }}</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($room->flooring_type && $room->flooring_type !== '')
+                                                            <div class="flex items-center text-gray-700">
+                                                                <span class="text-gray-500 mr-2">🏗️</span>
+                                                                <span>{{ $room->flooring_type_name }} Floor</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($room->has_balcony === true)
+                                                            <div class="flex items-center text-gray-700">
+                                                                <span class="text-green-500 mr-2">🌿</span>
+                                                                <span>Balcony</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($room->has_study_desk === true)
+                                                            <div class="flex items-center text-gray-700">
+                                                                <span class="text-purple-500 mr-2">📚</span>
+                                                                <span>Study Desk</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            {{-- Only show House Rules if landlord specifically set them --}}
+                                            @if(
+                                                ($room->house_rules && $room->house_rules !== '') ||
+                                                ($room->pets_allowed !== null) ||
+                                                ($room->smoking_allowed !== null && $room->smoking_allowed !== false)
+                                            )
+                                                <div class="mb-4">
+                                                    <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                                                        <svg class="w-5 h-5 mr-2 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                        </svg>
+                                                        House Rules
+                                                    </h4>
+                                                    <div class="bg-orange-50 rounded-lg p-3 text-sm">
+                                                        @if($room->house_rules && $room->house_rules !== '')
+                                                            <p class="text-gray-700 mb-2">{{ $room->house_rules }}</p>
+                                                        @endif
+
+                                                        <div class="flex space-x-4">
+                                                            @if($room->pets_allowed !== null)
+                                                                <div class="flex items-center">
+                                                                    @if($room->pets_allowed)
+                                                                        <span class="text-green-600 mr-1">✅</span>
+                                                                        <span class="text-gray-700">Pets Allowed</span>
+                                                                    @else
+                                                                        <span class="text-red-600 mr-1">❌</span>
+                                                                        <span class="text-gray-700">No Pets</span>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
+
+                                                            @if($room->smoking_allowed !== null && $room->smoking_allowed !== false)
+                                                                <div class="flex items-center">
+                                                                    @if($room->smoking_allowed)
+                                                                        <span class="text-green-600 mr-1">✅</span>
+                                                                        <span class="text-gray-700">Smoking Allowed</span>
+                                                                    @endif
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            {{-- Show message if no additional details provided --}}
+                                            @if(
+                                                !($room->advance_payment_months && $room->advance_payment_months > 1) &&
+                                                !($room->security_deposit && $room->security_deposit > 0) &&
+                                                !($room->minimum_stay_months && $room->minimum_stay_months > 1) &&
+                                                !($room->included_utilities && count($room->included_utilities) > 0) &&
+                                                !($room->ac_type && $room->ac_type !== 'none' && $room->ac_type !== '') &&
+                                                !($room->internet_speed_mbps && $room->internet_speed_mbps > 0) &&
+                                                !($room->has_refrigerator === true) &&
+                                                !($room->storage_space && $room->storage_space !== 'none' && $room->storage_space !== '') &&
+                                                !($room->flooring_type && $room->flooring_type !== '') &&
+                                                !($room->has_balcony === true) &&
+                                                !($room->has_study_desk === true) &&
+                                                !($room->house_rules && $room->house_rules !== '') &&
+                                                !($room->pets_allowed !== null) &&
+                                                !($room->smoking_allowed !== null && $room->smoking_allowed !== false)
+                                            )
+                                                <div class="text-center py-6 text-gray-500">
+                                                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
+                                                    <p class="text-sm">No additional room details provided by landlord yet.</p>
+                                                    <p class="text-xs mt-1">Landlord can add payment terms, features, and house rules.</p>
+                                                </div>
+                                            @endif
                                         </div>
 
                                         <!-- Room Gallery -->
@@ -2119,11 +2400,11 @@
                             @auth
                                 @if(auth()->user()->role === 'tenant')
                                     @php
-                                        // Check if tenant has any pending inquiries
-                                        $pendingInquiry = \App\Models\Inquiry::where('user_id', auth()->id())
-                                                                              ->where('status', 'pending')
-                                                                              ->with(['property'])
-                                                                              ->first();
+                                        // Check if tenant has any active inquiries (pending or approved)
+                                        $activeInquiry = \App\Models\Inquiry::getTenantActiveInquiry(auth()->id());
+
+                                        // Check if tenant has any active bookings (pending, approved, or active)
+                                        $activeBooking = \App\Models\Booking::getTenantActiveBooking(auth()->id());
 
                                         // Check if tenant has already inquired about THIS specific property
                                         $existingInquiry = \App\Models\Inquiry::where('user_id', auth()->id())
@@ -2233,29 +2514,55 @@
                                                 </button>
                                             @endif
                                         @endif
-                                    @elseif($pendingInquiry)
-                                        <!-- User has pending inquiry for DIFFERENT property -->
-                                        <div class="mb-4 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
-                                            <div class="flex items-center">
-                                                <svg class="w-6 h-6 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
-                                                </svg>
-                                                <div class="flex-1">
-                                                    <h4 class="font-semibold text-yellow-900">⏳ You have a pending booking inquiry</h4>
-                                                    <p class="text-sm text-yellow-700 mt-1">Property: <strong>{{ $pendingInquiry->property->title }}</strong></p>
-                                                    <p class="text-xs text-yellow-600 mt-1">Please wait for approval before submitting new inquiries.</p>
+                                    @elseif($activeInquiry || $activeBooking)
+                                        <!-- User has active inquiry or booking for DIFFERENT property -->
+                                        @if($activeBooking)
+                                            <div class="mb-4 bg-orange-50 border-l-4 border-orange-500 p-4 rounded-lg">
+                                                <div class="flex items-center">
+                                                    <svg class="w-6 h-6 text-orange-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
+                                                    </svg>
+                                                    <div class="flex-1">
+                                                        <h4 class="font-semibold text-orange-900">📋 You have an active booking</h4>
+                                                        <p class="text-sm text-orange-700 mt-1">Property: <strong>{{ $activeBooking->property->title }}</strong></p>
+                                                        <p class="text-xs text-orange-600 mt-1">Status: <span class="capitalize">{{ $activeBooking->status }}</span></p>
+                                                        <p class="text-xs text-orange-600 mt-1">You can only have one active booking at a time.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-3">
+                                                    <a href="{{ route('bookings.index') }}" class="inline-flex items-center px-3 py-1 bg-orange-600 text-white text-sm rounded-lg hover:bg-orange-700 transition-colors">
+                                                        📋 View Booking
+                                                    </a>
                                                 </div>
                                             </div>
-                                            <div class="mt-3">
-                                                <a href="{{ route('messages.index') }}" class="inline-flex items-center px-3 py-1 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700 transition-colors">
-                                                    💬 Check Messages
-                                                </a>
+                                            <!-- Disabled booking button -->
+                                            <button type="button" class="w-full bg-orange-100 text-orange-800 py-3 px-4 rounded-lg cursor-not-allowed font-semibold mb-2 border border-orange-300" disabled>
+                                                <span class="font-weight: 600;">📋 Active booking in progress</span>
+                                            </button>
+                                        @elseif($activeInquiry)
+                                            <div class="mb-4 bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
+                                                <div class="flex items-center">
+                                                    <svg class="w-6 h-6 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"></path>
+                                                    </svg>
+                                                    <div class="flex-1">
+                                                        <h4 class="font-semibold text-yellow-900">⏳ You have an active inquiry</h4>
+                                                        <p class="text-sm text-yellow-700 mt-1">Property: <strong>{{ $activeInquiry->property->title }}</strong></p>
+                                                        <p class="text-xs text-yellow-600 mt-1">Status: <span class="capitalize">{{ $activeInquiry->status }}</span></p>
+                                                        <p class="text-xs text-yellow-600 mt-1">You can only have one active inquiry at a time.</p>
+                                                    </div>
+                                                </div>
+                                                <div class="mt-3">
+                                                    <a href="{{ route('messages.index') }}" class="inline-flex items-center px-3 py-1 bg-yellow-600 text-white text-sm rounded-lg hover:bg-yellow-700 transition-colors">
+                                                        💬 Check Messages
+                                                    </a>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <!-- Disabled booking button -->
-                                        <button type="button" class="w-full bg-yellow-100 text-yellow-800 py-3 px-4 rounded-lg cursor-not-allowed font-semibold mb-2 border border-yellow-300" disabled>
-                                            <span class="font-weight: 600;">⏳ Complete pending inquiry first</span>
-                                        </button>
+                                            <!-- Disabled booking button -->
+                                            <button type="button" class="w-full bg-yellow-100 text-yellow-800 py-3 px-4 rounded-lg cursor-not-allowed font-semibold mb-2 border border-yellow-300" disabled>
+                                                <span class="font-weight: 600;">⏳ Complete active inquiry first</span>
+                                            </button>
+                                        @endif
                                     @else
                                         <!-- No pending inquiries - show normal booking button -->
                                         @if($property->rooms->where('status', 'available')->count() > 0)
@@ -2840,5 +3147,321 @@
             if (typeof L !== 'undefined') initMap();
         }, 1000);
     });
+
+    // Room Edit Modal Functions
+    function openRoomEditModal(roomId, roomIndex) {
+        const modal = document.getElementById('roomEditModal');
+        const form = document.getElementById('roomEditForm');
+
+        // Set form action with room ID
+        form.action = `/rooms/${roomId}/update`;
+
+        // Reset form
+        form.reset();
+
+        // Load current room data via AJAX
+        fetch(`/rooms/${roomId}/data`)
+            .then(response => response.json())
+            .then(data => {
+                // Populate form with current data
+                document.getElementById('edit_room_number').value = data.room_number || '';
+                document.getElementById('edit_capacity').value = data.capacity || '';
+                document.getElementById('edit_price').value = data.price || '';
+                document.getElementById('edit_size_sqm').value = data.size_sqm || '';
+                document.getElementById('edit_description').value = data.description || '';
+                document.getElementById('edit_furnished_status').value = data.furnished_status || '';
+                document.getElementById('edit_bathroom_type').value = data.bathroom_type || '';
+                document.getElementById('edit_ac_type').value = data.ac_type || '';
+                document.getElementById('edit_internet_speed').value = data.internet_speed_mbps || '';
+                document.getElementById('edit_storage_space').value = data.storage_space || '';
+                document.getElementById('edit_flooring_type').value = data.flooring_type || '';
+                document.getElementById('edit_advance_payment').value = data.advance_payment_months || '';
+                document.getElementById('edit_security_deposit').value = data.security_deposit || '';
+                document.getElementById('edit_minimum_stay').value = data.minimum_stay_months || '';
+                document.getElementById('edit_house_rules').value = data.house_rules || '';
+
+                // Handle checkboxes
+                document.getElementById('edit_has_kitchenette').checked = data.has_kitchenette === true;
+                document.getElementById('edit_has_refrigerator').checked = data.has_refrigerator === true;
+                document.getElementById('edit_has_study_desk').checked = data.has_study_desk === true;
+                document.getElementById('edit_has_balcony').checked = data.has_balcony === true;
+                document.getElementById('edit_pets_allowed').checked = data.pets_allowed === true;
+                document.getElementById('edit_smoking_allowed').checked = data.smoking_allowed === true;
+
+                // Handle utilities
+                const utilities = data.included_utilities || [];
+                document.getElementById('edit_utilities_electricity').checked = utilities.includes('electricity');
+                document.getElementById('edit_utilities_water').checked = utilities.includes('water');
+                document.getElementById('edit_utilities_internet').checked = utilities.includes('internet');
+                document.getElementById('edit_utilities_cable').checked = utilities.includes('cable_tv');
+            })
+            .catch(error => {
+                console.error('Error loading room data:', error);
+            });
+
+        // Show modal
+        modal.classList.remove('hidden');
+    }
+
+    function closeRoomEditModal() {
+        document.getElementById('roomEditModal').classList.add('hidden');
+    }
+
+    function saveRoomDetails() {
+        const form = document.getElementById('roomEditForm');
+        const formData = new FormData(form);
+
+        // Collect utilities
+        const utilities = [];
+        if (document.getElementById('edit_utilities_electricity').checked) utilities.push('electricity');
+        if (document.getElementById('edit_utilities_water').checked) utilities.push('water');
+        if (document.getElementById('edit_utilities_internet').checked) utilities.push('internet');
+        if (document.getElementById('edit_utilities_cable').checked) utilities.push('cable_tv');
+
+        // Add utilities to form data
+        formData.set('included_utilities', JSON.stringify(utilities));
+
+        // Add CSRF token
+        formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+        formData.append('_method', 'PUT');
+
+        // Submit form via AJAX
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload page to show updated data
+                window.location.reload();
+            } else {
+                alert('Error updating room details: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating room details');
+        });
+    }
 </script>
+
+<!-- Room Edit Modal -->
+<div id="roomEditModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-900">Edit Room Details</h3>
+            <button onclick="closeRoomEditModal()" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form id="roomEditForm" class="space-y-6">
+            <!-- Basic Room Info -->
+            <div class="bg-blue-50 rounded-lg p-4">
+                <h4 class="font-semibold text-blue-900 mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                    Basic Room Information
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
+                        <input type="text" id="edit_room_number" name="room_number" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 101">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Capacity (pax)</label>
+                        <input type="number" id="edit_capacity" name="capacity" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Price per Month (₱)</label>
+                        <input type="number" id="edit_price" name="price" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 5000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Size (m²)</label>
+                        <input type="number" step="0.1" id="edit_size_sqm" name="size_sqm" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 15.5">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="edit_description" name="description" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Brief description of the room..."></textarea>
+                </div>
+            </div>
+
+            <!-- Room Features -->
+            <div class="bg-green-50 rounded-lg p-4">
+                <h4 class="font-semibold text-green-900 mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                    </svg>
+                    Room Features
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Furnished Status</label>
+                        <select id="edit_furnished_status" name="furnished_status" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                            <option value="">Not specified</option>
+                            <option value="furnished">Fully Furnished</option>
+                            <option value="semi_furnished">Semi Furnished</option>
+                            <option value="unfurnished">Unfurnished</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Bathroom Type</label>
+                        <select id="edit_bathroom_type" name="bathroom_type" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                            <option value="">Not specified</option>
+                            <option value="private">Private Bathroom</option>
+                            <option value="shared">Shared Bathroom</option>
+                            <option value="communal">Communal Bathroom</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Air Conditioning</label>
+                        <select id="edit_ac_type" name="ac_type" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                            <option value="">Not specified</option>
+                            <option value="central">Central AC</option>
+                            <option value="split">Split AC</option>
+                            <option value="window">Window AC</option>
+                            <option value="ceiling_fan">Ceiling Fan</option>
+                            <option value="none">No AC/Fan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Internet Speed (Mbps)</label>
+                        <input type="number" id="edit_internet_speed" name="internet_speed_mbps" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 50">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Storage Space</label>
+                        <select id="edit_storage_space" name="storage_space" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                            <option value="">Not specified</option>
+                            <option value="closet">Closet</option>
+                            <option value="wardrobe">Wardrobe</option>
+                            <option value="built_in">Built-in Storage</option>
+                            <option value="none">No Storage</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Flooring Type</label>
+                        <select id="edit_flooring_type" name="flooring_type" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm">
+                            <option value="">Not specified</option>
+                            <option value="tile">Tile</option>
+                            <option value="wood">Wood</option>
+                            <option value="concrete">Concrete</option>
+                            <option value="carpet">Carpet</option>
+                            <option value="vinyl">Vinyl</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Feature Checkboxes -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Additional Features</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_has_kitchenette" name="has_kitchenette" class="rounded border-gray-300 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">🍳 Kitchenette</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_has_refrigerator" name="has_refrigerator" class="rounded border-gray-300 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">🧊 Refrigerator</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_has_study_desk" name="has_study_desk" class="rounded border-gray-300 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">📚 Study Desk</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_has_balcony" name="has_balcony" class="rounded border-gray-300 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">🌿 Balcony</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Terms -->
+            <div class="bg-yellow-50 rounded-lg p-4">
+                <h4 class="font-semibold text-yellow-900 mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                    </svg>
+                    Payment Terms
+                </h4>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Advance Payment (months)</label>
+                        <input type="number" id="edit_advance_payment" name="advance_payment_months" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Security Deposit (₱)</label>
+                        <input type="number" id="edit_security_deposit" name="security_deposit" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 5000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Minimum Stay (months)</label>
+                        <input type="number" id="edit_minimum_stay" name="minimum_stay_months" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 1">
+                    </div>
+                </div>
+
+                <!-- Included Utilities -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Included Utilities</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_utilities_electricity" class="rounded border-gray-300 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">⚡ Electricity</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_utilities_water" class="rounded border-gray-300 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">💧 Water</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_utilities_internet" class="rounded border-gray-300 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">📶 Internet</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="edit_utilities_cable" class="rounded border-gray-300 text-blue-600">
+                            <span class="ml-2 text-sm text-gray-700">📺 Cable TV</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- House Rules -->
+            <div class="bg-orange-50 rounded-lg p-4">
+                <h4 class="font-semibold text-orange-900 mb-3 flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    House Rules & Policies
+                </h4>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">House Rules</label>
+                    <textarea id="edit_house_rules" name="house_rules" rows="3" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., No loud music after 10 PM. Keep common areas clean."></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="edit_pets_allowed" name="pets_allowed" class="rounded border-gray-300 text-blue-600">
+                        <span class="ml-2 text-sm text-gray-700">🐕 Pets Allowed</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="edit_smoking_allowed" name="smoking_allowed" class="rounded border-gray-300 text-blue-600">
+                        <span class="ml-2 text-sm text-gray-700">🚬 Smoking Allowed</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="flex justify-end space-x-3 pt-4 border-t">
+                <button type="button" onclick="closeRoomEditModal()" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button type="button" onclick="saveRoomDetails()" class="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700">
+                    Save Room Details
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @endpush

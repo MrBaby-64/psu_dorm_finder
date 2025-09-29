@@ -51,6 +51,10 @@
                     <div class="text-2xl font-bold text-purple-600">{{ $stats['total_bookings'] }}</div>
                     <div class="text-sm text-gray-600">Bookings</div>
                 </div>
+                <div class="bg-white p-3 rounded-lg border text-center">
+                    <div class="text-2xl font-bold text-blue-600">{{ $stats['total_inquiries'] }}</div>
+                    <div class="text-sm text-gray-600">Inquiries</div>
+                </div>
             @endif
             <div class="bg-white p-3 rounded-lg border text-center">
                 <div class="text-2xl font-bold text-orange-600">{{ $stats['total_reviews'] }}</div>
@@ -185,6 +189,10 @@
                             <span class="text-gray-600">Total Bookings:</span>
                             <span class="text-gray-900">{{ $stats['total_bookings'] }}</span>
                         </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total Inquiries:</span>
+                            <span class="text-gray-900">{{ $stats['total_inquiries'] }}</span>
+                        </div>
                     @endif
                     <div class="flex justify-between">
                         <span class="text-gray-600">Reviews Written:</span>
@@ -198,6 +206,187 @@
             </div>
         </div>
     </div>
+
+    {{-- Tenant Activity Tabs --}}
+    @if($user->role === 'tenant')
+    <div class="px-6 py-4 border-t">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Tenant Activity</h3>
+
+        <!-- Tab Navigation -->
+        <div class="border-b border-gray-200 mb-4">
+            <nav class="-mb-px flex space-x-8">
+                <button onclick="switchTab('bookings')" id="bookings-tab" class="tenant-tab py-2 px-1 border-b-2 border-purple-500 text-purple-600 font-medium text-sm whitespace-nowrap">
+                    📋 Bookings ({{ $stats['total_bookings'] }})
+                </button>
+                <button onclick="switchTab('inquiries')" id="inquiries-tab" class="tenant-tab py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm whitespace-nowrap">
+                    ❓ Inquiries ({{ $stats['total_inquiries'] }})
+                </button>
+                <button onclick="switchTab('reviews')" id="reviews-tab" class="tenant-tab py-2 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 font-medium text-sm whitespace-nowrap">
+                    ⭐ Reviews ({{ $stats['total_reviews'] }})
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="tab-content">
+            <!-- Bookings Tab Content -->
+            <div id="bookings-content" class="tab-content">
+                @if($user->bookings && $user->bookings->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($user->bookings->take(5) as $booking)
+                            <div class="bg-gray-50 rounded-lg p-4 border">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-medium text-gray-900">{{ $booking->property->title ?? 'Property Deleted' }}</h4>
+                                        <div class="text-sm text-gray-600 mt-1">
+                                            <span>Check-in: {{ \Carbon\Carbon::parse($booking->check_in)->format('M d, Y') }}</span>
+                                            <span class="mx-2">•</span>
+                                            <span>Check-out: {{ \Carbon\Carbon::parse($booking->check_out)->format('M d, Y') }}</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            Submitted: {{ $booking->created_at->format('M d, Y g:i A') }}
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            @if($booking->status === 'pending') bg-yellow-100 text-yellow-800
+                                            @elseif($booking->status === 'approved') bg-green-100 text-green-800
+                                            @elseif($booking->status === 'rejected') bg-red-100 text-red-800
+                                            @elseif($booking->status === 'active') bg-blue-100 text-blue-800
+                                            @elseif($booking->status === 'completed') bg-gray-100 text-gray-800
+                                            @else bg-gray-100 text-gray-800 @endif">
+                                            {{ ucfirst($booking->status) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if($user->bookings->count() > 5)
+                            <div class="text-center text-sm text-gray-500 mt-3">
+                                Showing 5 of {{ $user->bookings->count() }} bookings
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                        <p>No bookings found</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Inquiries Tab Content -->
+            <div id="inquiries-content" class="tab-content hidden">
+                @if($user->inquiries && $user->inquiries->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($user->inquiries->take(5) as $inquiry)
+                            <div class="bg-gray-50 rounded-lg p-4 border">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-medium text-gray-900">{{ $inquiry->property->title ?? 'Property Deleted' }}</h4>
+                                        <div class="text-sm text-gray-600 mt-1">
+                                            @if($inquiry->move_in_date)
+                                                <span>Move-in: {{ \Carbon\Carbon::parse($inquiry->move_in_date)->format('M d, Y') }}</span>
+                                            @endif
+                                            @if($inquiry->move_out_date)
+                                                <span class="mx-2">•</span>
+                                                <span>Move-out: {{ \Carbon\Carbon::parse($inquiry->move_out_date)->format('M d, Y') }}</span>
+                                            @endif
+                                        </div>
+                                        @if($inquiry->message)
+                                            <div class="text-sm text-gray-600 mt-1">
+                                                Message: "{{ Str::limit($inquiry->message, 100) }}"
+                                            </div>
+                                        @endif
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            Submitted: {{ $inquiry->created_at->format('M d, Y g:i A') }}
+                                        </div>
+                                    </div>
+                                    <div class="ml-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                            @if($inquiry->status === 'pending') bg-yellow-100 text-yellow-800
+                                            @elseif($inquiry->status === 'approved') bg-green-100 text-green-800
+                                            @elseif($inquiry->status === 'rejected') bg-red-100 text-red-800
+                                            @else bg-gray-100 text-gray-800 @endif">
+                                            {{ ucfirst($inquiry->status) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if($user->inquiries->count() > 5)
+                            <div class="text-center text-sm text-gray-500 mt-3">
+                                Showing 5 of {{ $user->inquiries->count() }} inquiries
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <p>No inquiries found</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Reviews Tab Content -->
+            <div id="reviews-content" class="tab-content hidden">
+                @if($user->reviews && $user->reviews->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($user->reviews->take(5) as $review)
+                            <div class="bg-gray-50 rounded-lg p-4 border">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-medium text-gray-900">{{ $review->property->title ?? 'Property Deleted' }}</h4>
+                                        <div class="flex items-center mt-1">
+                                            <div class="flex text-yellow-400">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    @if($i <= $review->rating)
+                                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+                                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                        </svg>
+                                                    @else
+                                                        <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                                        </svg>
+                                                    @endif
+                                                @endfor
+                                            </div>
+                                            <span class="ml-2 text-sm text-gray-600">({{ $review->rating }}/5)</span>
+                                        </div>
+                                        @if($review->comment)
+                                            <div class="text-sm text-gray-600 mt-2">
+                                                "{{ Str::limit($review->comment, 150) }}"
+                                            </div>
+                                        @endif
+                                        <div class="text-xs text-gray-500 mt-2">
+                                            Posted: {{ $review->created_at->format('M d, Y g:i A') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                        @if($user->reviews->count() > 5)
+                            <div class="text-center text-sm text-gray-500 mt-3">
+                                Showing 5 of {{ $user->reviews->count() }} reviews
+                            </div>
+                        @endif
+                    </div>
+                @else
+                    <div class="text-center py-8 text-gray-500">
+                        <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                        </svg>
+                        <p>No reviews found</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Admin Actions --}}
     <div class="px-6 py-4 bg-gray-50 border-t">
@@ -225,3 +414,47 @@
         </div>
     </div>
 </div>
+
+@if($user->role === 'tenant')
+<script>
+function switchTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => content.classList.add('hidden'));
+
+    // Remove active styles from all tabs
+    const tabs = document.querySelectorAll('.tenant-tab');
+    tabs.forEach(tab => {
+        tab.classList.remove('border-purple-500', 'text-purple-600', 'border-blue-500', 'text-blue-600', 'border-orange-500', 'text-orange-600');
+        tab.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+    });
+
+    // Show selected tab content
+    const selectedContent = document.getElementById(tabName + '-content');
+    if (selectedContent) {
+        selectedContent.classList.remove('hidden');
+    }
+
+    // Add active styles to selected tab
+    const selectedTab = document.getElementById(tabName + '-tab');
+    if (selectedTab) {
+        selectedTab.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+
+        // Set appropriate color based on tab
+        if (tabName === 'bookings') {
+            selectedTab.classList.add('border-purple-500', 'text-purple-600');
+        } else if (tabName === 'inquiries') {
+            selectedTab.classList.add('border-blue-500', 'text-blue-600');
+        } else if (tabName === 'reviews') {
+            selectedTab.classList.add('border-orange-500', 'text-orange-600');
+        }
+    }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+    // Default to bookings tab
+    switchTab('bookings');
+});
+</script>
+@endif

@@ -50,8 +50,8 @@
 
                     @elseif(auth()->user()->role === 'admin')
                         {{-- Admin Menu --}}
-                        <a href="{{ route('admin.dashboard') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg text-gray-700 hover:text-green-600 hover:bg-gray-100 transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Admin Panel</a>
-                        <a href="{{ route('admin.account') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg {{ request()->routeIs('admin.account') ? 'text-green-600 bg-green-50' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100' }} transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Dashboard</a>
+                        <a href="{{ route('admin.dashboard') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg text-gray-700 hover:text-green-600 hover:bg-gray-100 transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Dashboard</a>
+                        <a href="{{ route('admin.account') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg {{ request()->routeIs('admin.account') ? 'text-green-600 bg-green-50' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100' }} transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Admin</a>
 
                     @else
                         {{-- Landlord Menu --}}
@@ -86,22 +86,22 @@
 
                     {{-- User dropdown with logout - ONLY VISIBLE ON DESKTOP --}}
                     <div class="relative" id="userDropdown">
-                        <button onclick="toggleUserDropdown()" class="flex items-center text-gray-700 hover:text-green-600 font-medium px-2 lg:px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200 text-xs lg:text-sm" id="userDropdownButton">
+                        <button onclick="toggleUserDropdown(event)" class="flex items-center text-gray-700 hover:text-green-600 font-medium px-2 lg:px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200 text-xs lg:text-sm" id="userDropdownButton">
                             {{ auth()->user()->name }}
                             <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" id="userDropdownArrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </button>
-                        <div class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 opacity-0 invisible transform scale-95 transition-all duration-200 z-50" id="userDropdownMenu">
+                        <div class="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 transform scale-95 transition-all duration-200 z-50 hidden" id="userDropdownMenu">
                             <div class="py-2">
                                 <a href="{{ route('profile.edit') }}" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
                                     <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                     Settings
                                 </a>
                                 <div class="border-t border-gray-200 my-1"></div>
-                                <form method="POST" action="{{ route('logout') }}">
+                                <form method="POST" action="{{ route('logout') }}" id="desktop-logout-form" onsubmit="event.stopPropagation(); return confirm('LOGOUT: Are you sure you want to logout?');">
                                     @csrf
-                                    <button type="submit" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center">
+                                    <button type="submit" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center" onclick="event.stopPropagation();">
                                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                                         Logout
                                     </button>
@@ -120,9 +120,9 @@
             <div class="md:hidden flex items-center space-x-3" id="mobileNavigation">
                 @auth
                     {{-- Logout button for mobile --}}
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
+                    <form method="POST" action="{{ route('logout') }}" class="inline" id="mobile-logout-form" onsubmit="event.stopPropagation(); return confirm('LOGOUT: Are you sure you want to logout?');">
                         @csrf
-                        <button type="submit" class="flex items-center text-gray-700 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200" title="Logout">
+                        <button type="submit" class="flex items-center text-gray-700 hover:text-red-600 px-3 py-2 rounded-lg hover:bg-gray-100 transition-all duration-200" title="Logout" onclick="event.stopPropagation();">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                             </svg>
@@ -252,13 +252,13 @@
                                 <a href="{{ route('admin.dashboard') }}" class="mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
                                     <div class="flex items-center space-x-3">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                        <span>Admin Panel</span>
+                                        <span>Dashboard</span>
                                     </div>
                                 </a>
                                 <a href="{{ route('admin.account') }}" class="mobile-nav-link block px-4 py-3 rounded-lg {{ request()->routeIs('admin.account') ? 'text-green-600 bg-green-50' : 'text-gray-700 hover:text-green-600 hover:bg-green-50' }} transition-all duration-200 font-medium">
                                     <div class="flex items-center space-x-3">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v0H8v0z"></path></svg>
-                                        <span>Dashboard</span>
+                                        <span>Admin</span>
                                     </div>
                                 </a>
 
@@ -391,34 +391,83 @@ function goBack() {
     }
 }
 
-// User dropdown functionality
-function toggleUserDropdown() {
+// User dropdown functionality - COMPLETELY ISOLATED
+let userDropdownOpen = false;
+
+// Initialize dropdown state on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdown = document.getElementById('userDropdownMenu');
+    if (dropdown) {
+        // Ensure dropdown is properly closed and state is synchronized
+        userDropdownOpen = false;
+    }
+});
+
+function toggleUserDropdown(event) {
+    // Stop any event bubbling to prevent interference
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+    }
+
     const dropdown = document.getElementById('userDropdownMenu');
     const arrow = document.getElementById('userDropdownArrow');
 
-    if (dropdown.classList.contains('opacity-0')) {
+    if (!dropdown || !arrow) return;
+
+    // Check current state using the hidden class instead of our variable
+    const isCurrentlyHidden = dropdown.classList.contains('hidden');
+
+    if (isCurrentlyHidden) {
         // Show dropdown
-        dropdown.classList.remove('opacity-0', 'invisible', 'scale-95');
-        dropdown.classList.add('opacity-100', 'visible', 'scale-100');
+        dropdown.classList.remove('hidden', 'scale-95');
+        dropdown.classList.add('scale-100');
         arrow.classList.add('rotate-180');
+        userDropdownOpen = true;
     } else {
         // Hide dropdown
-        dropdown.classList.remove('opacity-100', 'visible', 'scale-100');
-        dropdown.classList.add('opacity-0', 'invisible', 'scale-95');
+        dropdown.classList.remove('scale-100');
+        dropdown.classList.add('hidden', 'scale-95');
         arrow.classList.remove('rotate-180');
+        userDropdownOpen = false;
     }
 }
 
-// Close dropdown when clicking outside
+function closeUserDropdown() {
+    const dropdown = document.getElementById('userDropdownMenu');
+    const arrow = document.getElementById('userDropdownArrow');
+
+    if (dropdown && arrow && userDropdownOpen) {
+        dropdown.classList.remove('scale-100');
+        dropdown.classList.add('hidden', 'scale-95');
+        arrow.classList.remove('rotate-180');
+        userDropdownOpen = false;
+    }
+}
+
+// Only close dropdown on very specific outside clicks
 document.addEventListener('click', function(event) {
     const dropdown = document.getElementById('userDropdown');
     const dropdownMenu = document.getElementById('userDropdownMenu');
-    const arrow = document.getElementById('userDropdownArrow');
 
-    if (dropdown && !dropdown.contains(event.target)) {
-        dropdownMenu.classList.remove('opacity-100', 'visible', 'scale-100');
-        dropdownMenu.classList.add('opacity-0', 'invisible', 'scale-95');
-        arrow.classList.remove('rotate-180');
+    // Only process if dropdown elements exist and dropdown is actually open AND visible
+    if (!dropdown || !dropdownMenu ||
+        !userDropdownOpen ||
+        dropdownMenu.classList.contains('hidden') ||
+        dropdownMenu.classList.contains('invisible') ||
+        dropdownMenu.classList.contains('opacity-0')) {
+        return;
+    }
+
+    // ONLY close if clicking completely outside the dropdown area
+    // AND not on any form elements anywhere
+    if (!dropdown.contains(event.target) &&
+        !event.target.closest('form') &&
+        !event.target.closest('button') &&
+        event.target.tagName !== 'BUTTON' &&
+        event.target.type !== 'submit') {
+        closeUserDropdown();
     }
 });
 
@@ -486,7 +535,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const dropdownMenu = document.getElementById('userDropdownMenu');
     const arrow = document.getElementById('userDropdownArrow');
     if (dropdownMenu) {
-        dropdownMenu.classList.add('opacity-0', 'invisible', 'scale-95');
+        dropdownMenu.classList.add('hidden', 'scale-95');
+        dropdownMenu.classList.remove('scale-100', 'opacity-0', 'invisible');
         arrow.classList.remove('rotate-180');
     }
 

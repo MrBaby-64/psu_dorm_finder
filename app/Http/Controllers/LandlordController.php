@@ -419,18 +419,71 @@ class LandlordController extends Controller
         return view('landlord.notifications', compact('notifications', 'notificationTypes'));
     }
 
-    // Mark all notifications as read
-    public function markAllNotificationsRead()
+    // Test method to check authentication
+    public function markAllNotificationsReadTest()
     {
         $user = Auth::user();
 
-        $user->notifications()->unread()->update([
-            'is_read' => true,
-            'read_at' => now()
-        ]);
+        if (!$user) {
+            return response()->json([
+                'authenticated' => false,
+                'message' => 'User not authenticated'
+            ]);
+        }
 
-        return redirect()->route('landlord.notifications')
-            ->with('success', 'All notifications marked as read.');
+        $unreadCount = $user->notifications()->where('is_read', false)->count();
+
+        return response()->json([
+            'authenticated' => true,
+            'user_id' => $user->id,
+            'user_role' => $user->role,
+            'unread_count' => $unreadCount,
+            'message' => 'Authentication working - ready to mark notifications as read'
+        ]);
+    }
+
+    // Mark all notifications as read
+    public function markAllNotificationsRead(Request $request)
+    {
+        try {
+            $user = Auth::user();
+
+            if (!$user) {
+                if ($request->wantsJson()) {
+                    return response()->json(['error' => 'Unauthenticated'], 401);
+                }
+                return redirect()->route('login')->with('error', 'Please login to continue.');
+            }
+
+            // Simple and safe approach - just mark notifications as read
+            $updated = $user->notifications()->where('is_read', false)->update([
+                'is_read' => true,
+                'read_at' => now()
+            ]);
+
+            $message = $updated > 0
+                ? "Successfully marked {$updated} notification(s) as read."
+                : 'No unread notifications found.';
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'updated' => $updated
+                ]);
+            }
+
+            return redirect()->route('landlord.notifications')->with('success', $message);
+
+        } catch (\Exception $e) {
+            \Log::error('Error marking notifications as read: ' . $e->getMessage());
+
+            if ($request->wantsJson()) {
+                return response()->json(['error' => 'Failed to mark notifications as read'], 500);
+            }
+
+            return redirect()->route('landlord.notifications')->with('error', 'Failed to mark notifications as read. Please try again.');
+        }
     }
 
     // Mark single notification as read

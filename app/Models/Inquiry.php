@@ -214,26 +214,37 @@ class Inquiry extends Model
         return $query->where('status', self::STATUS_REPLIED);
     }
 
-    // Static method to check if tenant has pending inquiries
-    public static function tenantHasPendingInquiry($tenantId): bool
+    // Static method to check if tenant has active inquiries (pending or approved)
+    public static function tenantHasActiveInquiry($tenantId): bool
     {
         return self::where('user_id', $tenantId)
-                   ->where('status', self::STATUS_PENDING)
+                   ->whereIn('status', [self::STATUS_PENDING, self::STATUS_APPROVED])
                    ->exists();
     }
 
-    // Static method to get tenant's pending inquiry
-    public static function getTenantPendingInquiry($tenantId)
+    // Static method to get tenant's active inquiry
+    public static function getTenantActiveInquiry($tenantId)
     {
         return self::where('user_id', $tenantId)
-                   ->where('status', self::STATUS_PENDING)
+                   ->whereIn('status', [self::STATUS_PENDING, self::STATUS_APPROVED])
                    ->with(['property', 'room'])
                    ->first();
+    }
+
+    // Legacy methods for backward compatibility
+    public static function tenantHasPendingInquiry($tenantId): bool
+    {
+        return self::tenantHasActiveInquiry($tenantId);
+    }
+
+    public static function getTenantPendingInquiry($tenantId)
+    {
+        return self::getTenantActiveInquiry($tenantId);
     }
 
     // Check if this inquiry prevents new inquiries
     public function preventsNewInquiries(): bool
     {
-        return $this->status === self::STATUS_PENDING;
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_APPROVED]);
     }
 }

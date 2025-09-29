@@ -1,5 +1,4 @@
 <?php
-// routes/web.php
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PropertyController;
@@ -19,7 +18,6 @@ use Illuminate\Support\Facades\Route;
 // Home
 Route::get('/', [PropertyController::class, 'home'])->name('home');
 
-// Add these lines after the home route
 Route::get('/about', [App\Http\Controllers\PageController::class, 'about'])->name('about');
 Route::get('/how-it-works', [App\Http\Controllers\PageController::class, 'howItWorks'])->name('how-it-works');
 // Browse properties
@@ -37,13 +35,16 @@ Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth')->group(function () {
+// Google OAuth Routes
+Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Account routes - moved to tenant routes section below
 
 /*
 |--------------------------------------------------------------------------
@@ -52,7 +53,7 @@ Route::middleware('auth')->group(function () {
 */
 
 Route::middleware(['auth'])->group(function () {
-    
+
     // Dashboard
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -86,6 +87,10 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/favorites/{property}', [App\Http\Controllers\FavoriteController::class, 'destroy'])->name('favorites.destroy');
     Route::post('/favorites/toggle', [App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::post('/favorites/check', [App\Http\Controllers\FavoriteController::class, 'check'])->name('favorites.check');
+
+    // Room management routes
+    Route::get('/rooms/{room}/data', [App\Http\Controllers\RoomController::class, 'getData'])->name('rooms.data');
+    Route::put('/rooms/{room}/update', [App\Http\Controllers\RoomController::class, 'update'])->name('rooms.update');
 });
 
 /*
@@ -95,15 +100,12 @@ Route::middleware(['auth'])->group(function () {
 */
 
 Route::middleware(['auth'])->prefix('tenant')->name('tenant.')->group(function () {
-    // Account and dashboard
     Route::get('/account', [App\Http\Controllers\TenantController::class, 'account'])->name('account');
-    
-    
-    // Favorites - already exists, just add the route name if missing
     
     // Notifications
     Route::get('/notifications', [App\Http\Controllers\TenantController::class, 'notifications'])->name('notifications');
-    Route::post('/notifications/mark-all-read', [App\Http\Controllers\TenantController::class, 'notifications'])->name('notifications.mark-all-read');
+    Route::get('/notifications/mark-all-read-test', [App\Http\Controllers\TenantController::class, 'markAllNotificationsReadTest'])->name('notifications.mark-all-read-test');
+    Route::post('/notifications/mark-all-read', [App\Http\Controllers\TenantController::class, 'markAllNotificationsRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/{notification}/read', [App\Http\Controllers\TenantController::class, 'markNotificationRead'])->name('notifications.read');
     
     // Scheduled Visits
@@ -117,13 +119,6 @@ Route::delete('/scheduled-visits/{visit}', [App\Http\Controllers\ScheduledVisitC
     Route::get('/reviews', [App\Http\Controllers\TenantController::class, 'reviews'])->name('reviews');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Enhanced Landlord Routes
-|--------------------------------------------------------------------------
-*/
-
-// Removed duplicate landlord routes - these are defined below
 /*
 |--------------------------------------------------------------------------
 | Landlord Routes
@@ -175,6 +170,7 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
     // Notifications
     Route::get('/notifications', [App\Http\Controllers\LandlordController::class, 'notifications'])->name('notifications');
     Route::get('/admin-response', [App\Http\Controllers\LandlordController::class, 'viewAdminResponse'])->name('admin-response');
+    Route::get('/notifications/mark-all-read-test', [App\Http\Controllers\LandlordController::class, 'markAllNotificationsReadTest'])->name('notifications.mark-all-read-test');
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\LandlordController::class, 'markAllNotificationsRead'])->name('notifications.mark-all-read');
     Route::post('/notifications/{notification}/read', [App\Http\Controllers\LandlordController::class, 'markNotificationRead'])->name('notifications.read');
     // Temporary GET fallback for cached requests - redirects to POST form
@@ -190,8 +186,7 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
-    // ADMIN ACCOUNT ROUTE - MUST BE INSIDE THE GROUP
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/account', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('account');
     
     // Dashboard

@@ -29,7 +29,13 @@ class FavoriteController extends Controller
         
         $query = $user->favorites()
             ->with(['property' => function($q) {
-                $q->with(['images', 'landlord', 'amenities']);
+                $q->with([
+                    'images' => function($imageQuery) {
+                        $imageQuery->orderBy('is_cover', 'desc')->orderBy('sort_order');
+                    },
+                    'landlord',
+                    'amenities'
+                ]);
             }]);
 
         // Search in favorites
@@ -73,7 +79,7 @@ class FavoriteController extends Controller
             ->orderBy('city')
             ->pluck('city');
 
-        return view('favorites.index', compact('favorites', 'cities'));
+        return view('tenant.favorites', compact('favorites', 'cities'));
     }
 
     public function store(Request $request)

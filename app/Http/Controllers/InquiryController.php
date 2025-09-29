@@ -31,20 +31,20 @@ class InquiryController extends Controller
             return redirect()->back()->withErrors(['general' => 'Only tenants can submit inquiries.']);
         }
 
-        // Check if tenant already has a pending inquiry
-        if (Inquiry::tenantHasPendingInquiry(auth()->id())) {
-            $pendingInquiry = Inquiry::getTenantPendingInquiry(auth()->id());
+        // Check if tenant already has an active inquiry (pending or approved)
+        if (Inquiry::tenantHasActiveInquiry(auth()->id())) {
+            $activeInquiry = Inquiry::getTenantActiveInquiry(auth()->id());
 
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => "You already have a pending inquiry for \"{$pendingInquiry->property->title}\". Please wait for landlord approval before submitting another inquiry."
+                    'message' => "You already have an active inquiry for \"{$activeInquiry->property->title}\". Please wait for landlord action on your current inquiry before submitting another one."
                 ], 422);
             }
 
             return redirect()->back()->withErrors([
-                'inquiry_restriction' => "You already have a pending inquiry for \"{$pendingInquiry->property->title}\". Please wait for landlord approval before submitting another inquiry."
-            ])->with('pending_inquiry', $pendingInquiry);
+                'inquiry_restriction' => "You already have an active inquiry for \"{$activeInquiry->property->title}\". Please wait for landlord action on your current inquiry before submitting another one."
+            ])->with('active_inquiry', $activeInquiry);
         }
 
         $validated = $request->validate([

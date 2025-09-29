@@ -62,6 +62,33 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
+        // Check if user is a tenant
+        if (auth()->user()->role !== 'tenant') {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only tenants can submit booking requests.'
+                ], 403);
+            }
+            return redirect()->back()->withErrors(['general' => 'Only tenants can submit booking requests.']);
+        }
+
+        // Check if tenant already has an active booking (pending, approved, or active)
+        if (Booking::tenantHasActiveBooking(auth()->id())) {
+            $activeBooking = Booking::getTenantActiveBooking(auth()->id());
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "You already have an active booking for \"{$activeBooking->property->title}\". Please wait for landlord action on your current booking before submitting another one."
+                ], 422);
+            }
+
+            return redirect()->back()->withErrors([
+                'booking_restriction' => "You already have an active booking for \"{$activeBooking->property->title}\". Please wait for landlord action on your current booking before submitting another one."
+            ])->with('active_booking', $activeBooking);
+        }
+
         $validated = $request->validate([
             'property_id' => 'required|exists:properties,id',
             'room_id' => 'nullable|exists:rooms,id',
