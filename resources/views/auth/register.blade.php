@@ -8,6 +8,19 @@
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
     }
+
+    /* Debug styles for modal */
+    #mainRecaptchaModal {
+        background-color: rgba(0, 0, 0, 0.7) !important;
+    }
+
+    #mainRecaptchaModal.hidden {
+        display: none !important;
+    }
+
+    #mainRecaptchaModal:not(.hidden) {
+        display: block !important;
+    }
 </style>
 @endpush
 
@@ -416,16 +429,34 @@
 
     // Function to open main reCAPTCHA modal
     function openMainRecaptchaModal(formElement) {
+        console.log('openMainRecaptchaModal called with:', formElement);
+
         mainPendingFormElement = formElement;
 
-        document.getElementById('mainRecaptchaModal').classList.remove('hidden');
+        // Check if modal element exists
+        const modal = document.getElementById('mainRecaptchaModal');
+        console.log('Modal element found:', !!modal);
+
+        if (!modal) {
+            throw new Error('reCAPTCHA modal element not found');
+        }
+
+        modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
         // Reset reCAPTCHA
-        resetMainRecaptcha();
-        document.getElementById('mainRecaptchaModalStatus').classList.add('hidden');
+        try {
+            resetMainRecaptcha();
+        } catch (error) {
+            console.warn('Error resetting reCAPTCHA:', error);
+        }
 
-        console.log('Main reCAPTCHA modal opened');
+        const statusElement = document.getElementById('mainRecaptchaModalStatus');
+        if (statusElement) {
+            statusElement.classList.add('hidden');
+        }
+
+        console.log('Main reCAPTCHA modal opened successfully');
     }
 
     // Function to close main reCAPTCHA modal
@@ -582,16 +613,15 @@
         console.log('Form action:', form.action);
         console.log('Form method:', form.method);
 
-        // Run basic validation first (excluding reCAPTCHA)
-        if (!validateForm(true)) {
-            console.log('❌ Basic validation failed');
-            return false;
+        // Test: Try to open modal immediately for debugging
+        console.log('Testing modal opening...');
+        try {
+            openMainRecaptchaModal(form);
+            console.log('✅ Modal opened successfully');
+        } catch (error) {
+            console.error('❌ Error opening modal:', error);
+            alert('Error opening reCAPTCHA modal: ' + error.message);
         }
-
-        console.log('✅ Basic validation passed, opening reCAPTCHA modal');
-
-        // Open reCAPTCHA verification modal
-        openMainRecaptchaModal(form);
 
         return false; // Prevent form submission until reCAPTCHA is completed
     }
