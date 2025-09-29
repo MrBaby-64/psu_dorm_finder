@@ -13,6 +13,7 @@ use App\Models\PropertyDeletionRequest;
 use App\Models\AdminMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class PropertyController extends Controller
 {
@@ -23,17 +24,40 @@ class PropertyController extends Controller
         }
 
         try {
-            $query = Property::where('user_id', auth()->id())
-                ->with([
-                    'images' => function($query) {
+            // Start with basic query
+            $query = Property::where('user_id', auth()->id());
+
+            // Add relationships that are guaranteed to exist
+            $relationships = [];
+
+            // Check if images table/relationship exists
+            try {
+                if (\Schema::hasTable('property_images')) {
+                    $relationships['images'] = function($query) {
                         $query->select('id', 'property_id', 'image_path', 'alt_text', 'is_cover')
                               ->orderBy('sort_order');
-                    },
-                    'deletionRequest' => function($q) {
+                    };
+                }
+            } catch (\Exception $e) {
+                Log::warning('Property images relationship not available: ' . $e->getMessage());
+            }
+
+            // Check if deletion requests table exists
+            try {
+                if (\Schema::hasTable('property_deletion_requests')) {
+                    $relationships['deletionRequest'] = function($q) {
                         $q->where('status', 'pending')
                           ->select('id', 'property_id', 'status', 'reason', 'created_at');
-                    }
-                ]);
+                    };
+                }
+            } catch (\Exception $e) {
+                Log::warning('Property deletion requests relationship not available: ' . $e->getMessage());
+            }
+
+            // Only add relationships that are available
+            if (!empty($relationships)) {
+                $query->with($relationships);
+            }
 
             // Apply search filter
             if ($request->filled('search')) {
@@ -72,27 +96,57 @@ class PropertyController extends Controller
         } catch (\Exception $e) {
             Log::error('Landlord Properties Index Error: ' . $e->getMessage(), [
                 'user_id' => auth()->id(),
+                'error_type' => get_class($e),
+                'error_message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'url' => request()->fullUrl(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // Fallback with empty collection
-            $properties = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect([]),
-                0,
-                10,
-                1,
-                ['path' => request()->url(), 'pageName' => 'page']
-            );
+            // Try to get basic properties without relationships as fallback
+            try {
+                $basicProperties = Property::where('user_id', auth()->id())
+                    ->select('id', 'title', 'description', 'price', 'approval_status', 'created_at', 'updated_at')
+                    ->latest()
+                    ->paginate(10)
+                    ->withQueryString();
 
-            $statuses = [
-                'approved' => 'Approved',
-                'pending' => 'Pending Approval',
-                'rejected' => 'Rejected',
-            ];
+                $statuses = [
+                    'approved' => 'Approved',
+                    'pending' => 'Pending Approval',
+                    'rejected' => 'Rejected',
+                ];
 
-            session()->flash('error', 'Unable to load properties. Please try again or contact support.');
+                session()->flash('warning', 'Some property features may not be available. Basic property list loaded successfully.');
 
-            return view('landlord.properties.index', compact('properties', 'statuses'));
+                return view('landlord.properties.index', [
+                    'properties' => $basicProperties,
+                    'statuses' => $statuses
+                ]);
+
+            } catch (\Exception $fallbackError) {
+                Log::error('Landlord Properties Fallback Also Failed: ' . $fallbackError->getMessage());
+
+                // Final fallback with completely empty data
+                $properties = new \Illuminate\Pagination\LengthAwarePaginator(
+                    collect([]),
+                    0,
+                    10,
+                    1,
+                    ['path' => request()->url(), 'pageName' => 'page']
+                );
+
+                $statuses = [
+                    'approved' => 'Approved',
+                    'pending' => 'Pending Approval',
+                    'rejected' => 'Rejected',
+                ];
+
+                session()->flash('error', 'Unable to load properties due to database issues. Please contact support if this persists.');
+
+                return view('landlord.properties.index', compact('properties', 'statuses'));
+            }
         }
     }
 
