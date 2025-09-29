@@ -62,13 +62,38 @@ class RegisteredUserController extends Controller
             'address.required' => 'Please provide your current address so we can show you relevant properties nearby.',
             'city.required' => 'Please select your city from the dropdown list.',
             'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification.',
-            'g-recaptcha-response.captcha' => 'reCAPTCHA verification failed. Please try again.',
+            'g-recaptcha-response.captcha' => 'reCAPTCHA verification failed. Please make sure you completed the "I\'m not a robot" checkbox and try again.',
         ];
 
         // Increment rate limit attempt
         RateLimiter::hit($key, 3600); // 1 hour expiry
 
-        $validated = $request->validate($rules, $messages);
+        // Debug reCAPTCHA configuration in non-production environments
+        if (app()->environment('local', 'development')) {
+            Log::info('reCAPTCHA Debug Info', [
+                'site_key' => config('captcha.sitekey'),
+                'secret_key_exists' => !empty(config('captcha.secret')),
+                'recaptcha_response_exists' => !empty($request->input('g-recaptcha-response')),
+                'recaptcha_response_length' => strlen($request->input('g-recaptcha-response', '')),
+                'request_ip' => $request->ip(),
+                'user_agent' => $request->header('User-Agent'),
+            ]);
+        }
+
+        try {
+            $validated = $request->validate($rules, $messages);
+        } catch (ValidationException $e) {
+            // Log reCAPTCHA validation failures for debugging
+            if ($e->validator->errors()->has('g-recaptcha-response')) {
+                Log::warning('reCAPTCHA validation failed', [
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->header('User-Agent'),
+                    'recaptcha_response' => $request->input('g-recaptcha-response') ? 'present' : 'missing',
+                    'error' => $e->validator->errors()->get('g-recaptcha-response'),
+                ]);
+            }
+            throw $e;
+        }
 
         try {
             $user = DB::transaction(function () use ($validated, $request) {
