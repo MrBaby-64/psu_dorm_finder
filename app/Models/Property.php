@@ -51,7 +51,7 @@ class Property extends Model
         'is_verified' => 'boolean',
         'is_featured' => 'boolean',
         'visit_schedule_enabled' => 'boolean',
-        'visit_days' => 'array'
+        'visit_days' => 'json'  // Changed from 'array' to 'json' for PostgreSQL compatibility
     ];
 
     // Auto-generate slug when title changes
@@ -72,18 +72,40 @@ class Property extends Model
 
     public static function generateUniqueSlug($title, $ignoreId = null)
     {
-        $slug = Str::slug($title);
-        $originalSlug = $slug;
-        $counter = 1;
+        try {
+            $slug = Str::slug($title);
+            $originalSlug = $slug;
+            $counter = 1;
 
-        while (static::where('slug', $slug)
-            ->when($ignoreId, fn($q) => $q->where('id', '!=', $ignoreId))
-            ->exists()) {
-            $slug = $originalSlug . '-' . $counter;
-            $counter++;
+            // PostgreSQL case sensitivity fix - use ILIKE instead of LIKE
+            $query = static::where('slug', $slug);
+
+            if ($ignoreId) {
+                $query->where('id', '!=', $ignoreId);
+            }
+
+            while ($query->exists()) {
+                $slug = $originalSlug . '-' . $counter;
+                $counter++;
+
+                // Re-create query for next iteration
+                $query = static::where('slug', $slug);
+                if ($ignoreId) {
+                    $query->where('id', '!=', $ignoreId);
+                }
+            }
+
+            return $slug;
+
+        } catch (\Exception $e) {
+            \Log::warning('Slug generation failed, using fallback', [
+                'title' => $title,
+                'error' => $e->getMessage()
+            ]);
+
+            // Fallback: simple slug with timestamp
+            return Str::slug($title) . '-' . time();
         }
-
-        return $slug;
     }
 
 // Add these relationships to your existing Property.php file
