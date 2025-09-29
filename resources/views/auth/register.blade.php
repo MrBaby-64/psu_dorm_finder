@@ -272,7 +272,11 @@
                             <div class="flex justify-center mb-4">
                                 <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                     <p class="text-blue-800 text-center font-medium mb-3">🔒 Security Verification Required</p>
-                                    <p style="color: purple; text-align: center;">Config sitekey: {{ config('captcha.sitekey') ?: 'MISSING' }}</p>
+                                    <p style="color: purple; text-align: center; font-weight: bold;">
+                        Config sitekey: {{ config('captcha.sitekey') ?: 'MISSING' }}<br>
+                        Env NOCAPTCHA_SITEKEY: {{ env('NOCAPTCHA_SITEKEY') ?: 'MISSING' }}<br>
+                        Expected: 6LdontgrAAAAADF6Wl923X1kXTDVBZdBU5oFHImD
+                    </p>
 
                                     @if(config('captcha.sitekey'))
                                         <div id="recaptcha-container" class="flex justify-center">
