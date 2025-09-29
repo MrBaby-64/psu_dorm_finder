@@ -1078,7 +1078,8 @@
         @endif
     </script>
 
-    <script src="https://www.google.com/recaptcha/api.js?onload=initPopupRecaptcha&render=explicit" async defer></script>
+    <!-- Simple reCAPTCHA script that auto-renders -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <script>
         let popupRecaptchaWidgetId = null;
         let pendingFormData = null;
