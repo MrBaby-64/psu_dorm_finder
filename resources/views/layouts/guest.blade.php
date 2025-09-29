@@ -593,8 +593,17 @@
                         <!-- reCAPTCHA -->
                         <div class="mt-6">
                             <div class="flex justify-center">
-                                {!! NoCaptcha::renderJs() !!}
                                 {!! NoCaptcha::display() !!}
+                                @error('g-recaptcha-response')
+                                    <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded-lg w-full">
+                                        <div class="flex items-center gap-2">
+                                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                                        </div>
+                                    </div>
+                                @enderror
                             </div>
                         </div>
 
@@ -747,6 +756,13 @@
         function validateGuestRegistrationForm() {
             const role = document.getElementById('roleInput').value;
             console.log('Validating guest form for role:', role);
+
+            // Check reCAPTCHA first
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse) {
+                alert('Please complete the reCAPTCHA verification.');
+                return false;
+            }
 
             if (role === 'tenant') {
                 const addressField = document.querySelector('#tenantAddressSection [name="address"]');
@@ -1013,6 +1029,7 @@
         @endif
     </script>
 
+    {!! NoCaptcha::renderJs() !!}
     @stack('scripts')
 </body>
 </html>
