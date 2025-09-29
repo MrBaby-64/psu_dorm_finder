@@ -128,10 +128,33 @@ Route::delete('/scheduled-visits/{visit}', [App\Http\Controllers\ScheduledVisitC
 Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(function () {
     Route::get('/account', [\App\Http\Controllers\Landlord\AccountController::class, 'index'])->name('account');
     
-    // Property management
-    Route::get('/properties', [\App\Http\Controllers\Landlord\PropertyController::class, 'index'])->name('properties.index');
-    Route::get('/properties/create', [\App\Http\Controllers\Landlord\PropertyController::class, 'create'])->name('properties.create');
-    Route::post('/properties', [\App\Http\Controllers\Landlord\PropertyController::class, 'store'])->name('properties.store');
+    // Property management - Simplified fallback routes
+    Route::get('/properties', function() {
+        try {
+            return app(\App\Http\Controllers\Landlord\PropertyController::class)->index();
+        } catch (\Exception $e) {
+            \Log::error('Primary PropertyController failed, using simplified: ' . $e->getMessage());
+            return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->index();
+        }
+    })->name('properties.index');
+
+    Route::get('/properties/create', function() {
+        try {
+            return app(\App\Http\Controllers\Landlord\PropertyController::class)->create();
+        } catch (\Exception $e) {
+            \Log::error('Primary PropertyController create failed, using simplified: ' . $e->getMessage());
+            return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->create();
+        }
+    })->name('properties.create');
+
+    Route::post('/properties', function(\Illuminate\Http\Request $request) {
+        try {
+            return app(\App\Http\Controllers\Landlord\PropertyController::class)->store($request);
+        } catch (\Exception $e) {
+            \Log::error('Primary PropertyController store failed, using simplified: ' . $e->getMessage());
+            return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->store($request);
+        }
+    })->name('properties.store');
     Route::post('/properties/remove-temp-image', [\App\Http\Controllers\Landlord\PropertyController::class, 'removeTempImage'])->name('properties.remove-temp-image');
     Route::post('/properties/store-map-position', [\App\Http\Controllers\Landlord\PropertyController::class, 'storeMapPosition'])->name('properties.store-map-position');
     Route::get('/properties/{property}/edit', [\App\Http\Controllers\Landlord\PropertyController::class, 'edit'])->name('properties.edit');
@@ -189,8 +212,15 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/account', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('account');
     
-    // Dashboard
-    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard - Simplified fallback
+    Route::get('/', function() {
+        try {
+            return app(\App\Http\Controllers\Admin\DashboardController::class)->index();
+        } catch (\Exception $e) {
+            \Log::error('Primary Admin Dashboard failed, using simplified: ' . $e->getMessage());
+            return app(\App\Http\Controllers\Admin\DashboardControllerSimplified::class)->index();
+        }
+    })->name('dashboard');
     
     // Property approval
     Route::get('/properties/pending', [\App\Http\Controllers\Admin\PropertyController::class, 'pending'])->name('properties.pending');
@@ -224,3 +254,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 });
 
 require __DIR__.'/auth.php';
+
+/*
+|--------------------------------------------------------------------------
+| Production Debug Routes (Remove after fixing)
+|--------------------------------------------------------------------------
+*/
+if (app()->environment(['local', 'staging', 'production'])) {
+    require __DIR__.'/debug.php';
+}
