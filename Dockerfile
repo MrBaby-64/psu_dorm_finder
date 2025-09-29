@@ -9,11 +9,12 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libpq-dev \
+    libmariadb-dev \
     zip \
     unzip \
     nodejs \
     npm \
-    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd \
+    && docker-php-ext-install pdo pdo_pgsql pdo_mysql mbstring exif pcntl bcmath gd \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -49,7 +50,18 @@ RUN chown -R www-data:www-data /var/www/html && \
 # Expose the port that Render will use
 EXPOSE $PORT
 
+# Create a startup script
+RUN echo '#!/bin/bash\n\
+set -e\n\
+echo "Database configuration:"\n\
+echo "DB_CONNECTION=$DB_CONNECTION"\n\
+echo "DB_HOST=$DB_HOST"\n\
+echo "DB_DATABASE=$DB_DATABASE"\n\
+echo "Starting Laravel application..."\n\
+php artisan config:clear\n\
+php artisan migrate --force\n\
+php artisan storage:link\n\
+exec php artisan serve --host=0.0.0.0 --port=$PORT' > /start.sh && chmod +x /start.sh
+
 # Start the application
-CMD php artisan migrate --force && \
-    php artisan storage:link && \
-    php artisan serve --host=0.0.0.0 --port=$PORT
+CMD ["/start.sh"]
