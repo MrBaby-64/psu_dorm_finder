@@ -13,9 +13,22 @@ return new class extends Migration
     private function indexExists(string $table, string $indexName): bool
     {
         try {
-            $schema = Schema::getConnection()->getDoctrineSchemaManager();
-            $indexes = $schema->listTableIndexes($table);
-            return array_key_exists($indexName, $indexes);
+            $connection = DB::connection();
+            $driver = $connection->getDriverName();
+
+            if ($driver === 'pgsql') {
+                // PostgreSQL specific query
+                $result = $connection->select("
+                    SELECT 1 FROM pg_indexes
+                    WHERE tablename = ? AND indexname = ?
+                ", [$table, $indexName]);
+                return !empty($result);
+            } else {
+                // MySQL/other databases
+                $schema = Schema::getConnection()->getDoctrineSchemaManager();
+                $indexes = $schema->listTableIndexes($table);
+                return array_key_exists($indexName, $indexes);
+            }
         } catch (\Exception $e) {
             // If we can't check, assume it doesn't exist to be safe
             return false;
@@ -36,11 +49,20 @@ return new class extends Migration
         if (Schema::hasTable('users')) {
             Schema::table('users', function (Blueprint $table) {
                 // Ensure proper constraints for PostgreSQL
-                if (!$this->indexExists('users', 'users_email_index')) {
-                    $table->index('email');
+                try {
+                    if (!$this->indexExists('users', 'users_email_index')) {
+                        $table->index('email');
+                    }
+                } catch (\Exception $e) {
+                    // Index might already exist, continue
                 }
-                if (!$this->indexExists('users', 'users_role_index')) {
-                    $table->index('role');
+
+                try {
+                    if (!$this->indexExists('users', 'users_role_index')) {
+                        $table->index('role');
+                    }
+                } catch (\Exception $e) {
+                    // Index might already exist, continue
                 }
             });
         }
@@ -48,14 +70,28 @@ return new class extends Migration
         if (Schema::hasTable('properties')) {
             Schema::table('properties', function (Blueprint $table) {
                 // Ensure proper indexes
-                if (!$this->indexExists('properties', 'properties_approval_status_index')) {
-                    $table->index('approval_status');
+                try {
+                    if (!$this->indexExists('properties', 'properties_approval_status_index')) {
+                        $table->index('approval_status');
+                    }
+                } catch (\Exception $e) {
+                    // Index might already exist, continue
                 }
-                if (!$this->indexExists('properties', 'properties_city_index')) {
-                    $table->index('city');
+
+                try {
+                    if (!$this->indexExists('properties', 'properties_city_index')) {
+                        $table->index('city');
+                    }
+                } catch (\Exception $e) {
+                    // Index might already exist, continue
                 }
-                if (!$this->indexExists('properties', 'properties_latitude_longitude_index')) {
-                    $table->index(['latitude', 'longitude']);
+
+                try {
+                    if (!$this->indexExists('properties', 'properties_latitude_longitude_index')) {
+                        $table->index(['latitude', 'longitude']);
+                    }
+                } catch (\Exception $e) {
+                    // Index might already exist, continue
                 }
             });
         }
@@ -63,8 +99,12 @@ return new class extends Migration
         if (Schema::hasTable('rooms')) {
             Schema::table('rooms', function (Blueprint $table) {
                 // Ensure proper indexes for performance
-                if (!$this->indexExists('rooms', 'rooms_property_id_status_index')) {
-                    $table->index(['property_id', 'status']);
+                try {
+                    if (!$this->indexExists('rooms', 'rooms_property_id_status_index')) {
+                        $table->index(['property_id', 'status']);
+                    }
+                } catch (\Exception $e) {
+                    // Index might already exist, continue
                 }
             });
         }
@@ -78,33 +118,60 @@ return new class extends Migration
         // Remove indexes if they exist
         if (Schema::hasTable('users')) {
             Schema::table('users', function (Blueprint $table) {
-                if ($this->indexExists('users', 'users_email_index')) {
-                    $table->dropIndex(['email']);
+                try {
+                    if ($this->indexExists('users', 'users_email_index')) {
+                        $table->dropIndex(['email']);
+                    }
+                } catch (\Exception $e) {
+                    // Index might not exist, continue
                 }
-                if ($this->indexExists('users', 'users_role_index')) {
-                    $table->dropIndex(['role']);
+
+                try {
+                    if ($this->indexExists('users', 'users_role_index')) {
+                        $table->dropIndex(['role']);
+                    }
+                } catch (\Exception $e) {
+                    // Index might not exist, continue
                 }
             });
         }
 
         if (Schema::hasTable('properties')) {
             Schema::table('properties', function (Blueprint $table) {
-                if ($this->indexExists('properties', 'properties_approval_status_index')) {
-                    $table->dropIndex(['approval_status']);
+                try {
+                    if ($this->indexExists('properties', 'properties_approval_status_index')) {
+                        $table->dropIndex(['approval_status']);
+                    }
+                } catch (\Exception $e) {
+                    // Index might not exist, continue
                 }
-                if ($this->indexExists('properties', 'properties_city_index')) {
-                    $table->dropIndex(['city']);
+
+                try {
+                    if ($this->indexExists('properties', 'properties_city_index')) {
+                        $table->dropIndex(['city']);
+                    }
+                } catch (\Exception $e) {
+                    // Index might not exist, continue
                 }
-                if ($this->indexExists('properties', 'properties_latitude_longitude_index')) {
-                    $table->dropIndex(['latitude', 'longitude']);
+
+                try {
+                    if ($this->indexExists('properties', 'properties_latitude_longitude_index')) {
+                        $table->dropIndex(['latitude', 'longitude']);
+                    }
+                } catch (\Exception $e) {
+                    // Index might not exist, continue
                 }
             });
         }
 
         if (Schema::hasTable('rooms')) {
             Schema::table('rooms', function (Blueprint $table) {
-                if ($this->indexExists('rooms', 'rooms_property_id_status_index')) {
-                    $table->dropIndex(['property_id', 'status']);
+                try {
+                    if ($this->indexExists('rooms', 'rooms_property_id_status_index')) {
+                        $table->dropIndex(['property_id', 'status']);
+                    }
+                } catch (\Exception $e) {
+                    // Index might not exist, continue
                 }
             });
         }
