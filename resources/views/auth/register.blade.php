@@ -421,6 +421,17 @@
         const role = document.getElementById('roleInput').value;
         console.log('Form validation - Role:', role); // Debug log
 
+        // Check reCAPTCHA first
+        try {
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse) {
+                alert('Please complete the reCAPTCHA verification.');
+                return false;
+            }
+        } catch (error) {
+            console.log('reCAPTCHA not loaded yet, skipping validation');
+        }
+
         if (role === 'tenant') {
             const address = document.querySelector('[name="address"]').value.trim();
             const city = document.querySelector('[name="city"]').value;
