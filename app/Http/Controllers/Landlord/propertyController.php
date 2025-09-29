@@ -370,29 +370,44 @@ class PropertyController extends Controller
 
             // Wrap all operations in transaction
             DB::transaction(function () use ($validated, $uploadedFiles, $request) {
-                // Create the property
-                $property = Property::create([
+                // Prepare property data for creation - handle PostgreSQL differences
+                $propertyData = [
                     'user_id' => auth()->id(),
                     'title' => $validated['title'],
-                    'slug' => \Str::slug($validated['title']),
+                    'slug' => Property::generateUniqueSlug($validated['title']), // Use model method for better error handling
                     'description' => $validated['description'],
                     'location_text' => $validated['location_text'],
                     'address_line' => $validated['address_line'],
                     'barangay' => $validated['barangay'],
                     'city' => $validated['city'],
                     'province' => 'Pampanga',
-                    'latitude' => $validated['latitude'],
-                    'longitude' => $validated['longitude'],
-                    'price' => $validated['price'],
-                    'room_count' => $validated['room_count'],
+                    'latitude' => (float) $validated['latitude'], // Explicit type casting for PostgreSQL
+                    'longitude' => (float) $validated['longitude'],
+                    'price' => (float) $validated['price'],
+                    'room_count' => (int) $validated['room_count'],
                     'visit_schedule_enabled' => $request->boolean('visit_schedule_enabled'),
-                    'visit_days' => $request->boolean('visit_schedule_enabled') ? ($validated['visit_days'] ?? null) : null,
-                    'visit_time_start' => $request->boolean('visit_schedule_enabled') ? ($validated['visit_time_start'] ?? null) : null,
-                    'visit_time_end' => $request->boolean('visit_schedule_enabled') ? ($validated['visit_time_end'] ?? null) : null,
-                    'visit_duration' => $request->boolean('visit_schedule_enabled') ? ($validated['visit_duration'] ?? null) : null,
-                    'visit_instructions' => $request->boolean('visit_schedule_enabled') ? ($validated['visit_instructions'] ?? null) : null,
-                    'approval_status' => 'pending', // Set to pending for admin approval
-                ]);
+                    'approval_status' => 'pending',
+                ];
+
+                // Handle visit scheduling data - JSON format for PostgreSQL
+                if ($request->boolean('visit_schedule_enabled')) {
+                    $propertyData['visit_days'] = !empty($validated['visit_days']) ?
+                        json_encode(array_values($validated['visit_days'])) : null;
+                    $propertyData['visit_time_start'] = $validated['visit_time_start'] ?? null;
+                    $propertyData['visit_time_end'] = $validated['visit_time_end'] ?? null;
+                    $propertyData['visit_duration'] = !empty($validated['visit_duration']) ?
+                        (int) $validated['visit_duration'] : null;
+                    $propertyData['visit_instructions'] = $validated['visit_instructions'] ?? null;
+                } else {
+                    $propertyData['visit_days'] = null;
+                    $propertyData['visit_time_start'] = null;
+                    $propertyData['visit_time_end'] = null;
+                    $propertyData['visit_duration'] = null;
+                    $propertyData['visit_instructions'] = null;
+                }
+
+                // Create the property
+                $property = Property::create($propertyData);
 
                 // Handle property images
                 foreach ($uploadedFiles as $index => $fileData) {
@@ -413,12 +428,12 @@ class PropertyController extends Controller
                 if (!empty($validated['rooms'])) {
                     // Create rooms from user input
                     foreach ($validated['rooms'] as $index => $roomData) {
-                        // Prepare room data with enhanced details if available
+                        // Prepare room data with enhanced details if available - PostgreSQL compatible
                         $roomCreateData = [
                             'property_id' => $property->id,
                             'room_number' => trim($roomData['name']),
                             'room_type' => 'shared', // Default room type
-                            'price' => $validated['price'], // Use property price as room price
+                            'price' => (float) $validated['price'], // Explicit float casting for PostgreSQL
                             'description' => !empty($roomData['description']) ? trim($roomData['description']) : null,
                             'capacity' => (int) $roomData['capacity'], // Ensure integer conversion
                             'status' => 'available',
@@ -434,7 +449,7 @@ class PropertyController extends Controller
 
                             // Override price with room-specific price if provided
                             if (!empty($roomDetails['price'])) {
-                                $roomCreateData['price'] = $roomDetails['price'];
+                                $roomCreateData['price'] = (float) $roomDetails['price'];
                             }
 
                             // Add all enhanced fields
@@ -497,7 +512,7 @@ class PropertyController extends Controller
                                 'property_id' => $property->id,
                                 'room_number' => 'Room ' . $i,
                                 'room_type' => 'shared',
-                                'price' => $validated['price'],
+                                'price' => (float) $validated['price'], // PostgreSQL compatible
                                 'description' => null,
                                 'capacity' => 2, // Default capacity for additional rooms
                                 'status' => 'available',
@@ -511,7 +526,7 @@ class PropertyController extends Controller
                             'property_id' => $property->id,
                             'room_number' => 'Room ' . $i,
                             'room_type' => 'shared', // Default room type
-                            'price' => $validated['price'], // Use property price as room price
+                            'price' => (float) $validated['price'], // PostgreSQL compatible
                             'description' => null,
                             'capacity' => 2, // Default capacity
                             'status' => 'available',
@@ -541,24 +556,43 @@ class PropertyController extends Controller
                 }
             }
 
-            // Log the actual error for debugging
-            Log::error('Property creation failed', [
+            // Enhanced logging for debugging PostgreSQL vs MySQL differences
+            Log::error('Property creation failed - Production Error', [
                 'user_id' => auth()->id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'environment' => app()->environment(),
+                'database_driver' => DB::connection()->getDriverName(),
+                'error_class' => get_class($e),
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'form_data' => [
+                    'title' => $request->input('title'),
+                    'city' => $request->input('city'),
+                    'price' => $request->input('price'),
+                    'room_count' => $request->input('room_count'),
+                    'visit_schedule_enabled' => $request->boolean('visit_schedule_enabled'),
+                    'visit_days' => $request->input('visit_days'),
+                    'has_images' => $request->hasFile('images'),
+                    'has_rooms' => !empty($request->input('rooms')),
+                ],
+                'stack_trace' => $e->getTraceAsString()
             ]);
 
-            // Provide more specific error messages based on the error type
+            // Provide detailed error messages based on the actual error
             $errorMessage = 'Failed to create property. ';
 
-            if (str_contains($e->getMessage(), 'SQLSTATE')) {
-                $errorMessage .= 'Database error occurred. Please check your input and try again.';
-            } elseif (str_contains($e->getMessage(), 'Storage')) {
-                $errorMessage .= 'Image upload failed. Please check your images and try again.';
-            } elseif (str_contains($e->getMessage(), 'rooms')) {
-                $errorMessage .= 'Room data processing failed. Please check room details or use default settings.';
+            if (str_contains($e->getMessage(), 'SQLSTATE') || str_contains($e->getMessage(), 'constraint')) {
+                $errorMessage .= 'Database validation error. This may be due to duplicate data or invalid field values. Please check your input and try again.';
+            } elseif (str_contains($e->getMessage(), 'JSON') || str_contains($e->getMessage(), 'json')) {
+                $errorMessage .= 'Data format error occurred. Please try again or contact support if the issue persists.';
+            } elseif (str_contains($e->getMessage(), 'Storage') || str_contains($e->getMessage(), 'file')) {
+                $errorMessage .= 'File upload error. Please check your images (max 5MB each) and try again.';
+            } elseif (str_contains($e->getMessage(), 'slug') || str_contains($e->getMessage(), 'unique')) {
+                $errorMessage .= 'A property with a similar name already exists. Please use a different title and try again.';
+            } elseif (str_contains($e->getMessage(), 'rooms') || str_contains($e->getMessage(), 'room_details')) {
+                $errorMessage .= 'Room configuration error. Please check your room details or use default settings.';
             } else {
-                $errorMessage .= 'Please check all fields and try again. If the problem persists, contact support.';
+                $errorMessage .= 'An unexpected error occurred. Our team has been notified. Please try again in a few minutes.';
             }
 
             return redirect()->back()
