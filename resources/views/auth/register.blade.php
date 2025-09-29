@@ -263,51 +263,50 @@
                         <input type="password" name="password_confirmation" required class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
                     </div>
 
-                    <!-- DEBUG: Test if this section renders at all -->
-                    <div class="flex justify-center" style="background-color: red; padding: 10px; margin: 10px 0;">
-                        <div class="w-full">
-                            <h3 style="color: white; text-align: center;">🔧 DEBUG: This section should be visible!</h3>
+                    </div>
+                </div>
 
-                            <!-- reCAPTCHA - Simple "I'm not a robot" checkbox (shown for both tenant and landlord) -->
-                            <div class="flex justify-center mb-4">
-                                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                    <p class="text-blue-800 text-center font-medium mb-3">🔒 Security Verification Required</p>
-                                    <p style="color: purple; text-align: center; font-weight: bold;">
-                        Config sitekey: {{ config('captcha.sitekey') ?: 'MISSING' }}<br>
-                        Env NOCAPTCHA_SITEKEY: {{ env('NOCAPTCHA_SITEKEY') ?: 'MISSING' }}<br>
-                        Expected: 6LdontgrAAAAADF6Wl923X1kXTDVBZdBU5oFHImD
-                    </p>
+                <!-- reCAPTCHA - Place RIGHT HERE between form fields and buttons -->
+                <div class="mt-6" style="background-color: red; padding: 20px; border: 3px solid yellow;">
+                    <h2 style="color: white; text-align: center; font-size: 20px;">🔧 DEBUG: reCAPTCHA SECTION - YOU SHOULD SEE THIS!</h2>
 
-                                    @if(config('captcha.sitekey'))
-                                        <div id="recaptcha-container" class="flex justify-center">
-                                            <div class="g-recaptcha" data-sitekey="{{ config('captcha.sitekey') }}"></div>
-                                        </div>
-                                        <div id="recaptcha-fallback" style="display: none;" class="text-center mt-3">
-                                            <div class="p-3 bg-yellow-50 border border-yellow-300 rounded">
-                                                <p class="text-yellow-800 text-sm">⚠️ reCAPTCHA is loading...</p>
-                                                <p class="text-yellow-600 text-xs mt-1">If this persists, please refresh the page</p>
-                                            </div>
-                                        </div>
-                                    @else
-                                        <div class="p-4 bg-red-50 border border-red-300 rounded-lg text-center">
-                                            <p class="text-red-800">❌ reCAPTCHA not configured</p>
-                                            <p class="text-sm text-red-600 mt-1">Site key: {{ config('captcha.sitekey') ?: 'MISSING' }}</p>
-                                        </div>
-                                    @endif
+                    <div class="flex justify-center mb-4">
+                        <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg w-full max-w-md">
+                            <p class="text-blue-800 text-center font-medium mb-3">🔒 Security Verification Required</p>
+                            <p style="color: purple; text-align: center; font-weight: bold;">
+                                Config sitekey: {{ config('captcha.sitekey') ?: 'MISSING' }}<br>
+                                Env NOCAPTCHA_SITEKEY: {{ env('NOCAPTCHA_SITEKEY') ?: 'MISSING' }}<br>
+                                Expected: 6LdontgrAAAAADF6Wl923X1kXTDVBZdBU5oFHImD
+                            </p>
+
+                            @if(config('captcha.sitekey'))
+                                <div id="recaptcha-container" class="flex justify-center">
+                                    <div class="g-recaptcha" data-sitekey="{{ config('captcha.sitekey') }}"></div>
                                 </div>
-                            </div>
-                            @error('g-recaptcha-response')
-                                <div class="mt-3 p-3 bg-red-50 border border-red-300 rounded-lg text-center">
-                                    <div class="flex items-center justify-center gap-2">
-                                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                                <div id="recaptcha-fallback" style="display: none;" class="text-center mt-3">
+                                    <div class="p-3 bg-yellow-50 border border-yellow-300 rounded">
+                                        <p class="text-yellow-800 text-sm">⚠️ reCAPTCHA is loading...</p>
+                                        <p class="text-yellow-600 text-xs mt-1">If this persists, please refresh the page</p>
                                     </div>
                                 </div>
-                            @enderror
+                            @else
+                                <div class="p-4 bg-red-50 border border-red-300 rounded-lg text-center">
+                                    <p class="text-red-800">❌ reCAPTCHA not configured</p>
+                                    <p class="text-sm text-red-600 mt-1">Site key: {{ config('captcha.sitekey') ?: 'MISSING' }}</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
+                    @error('g-recaptcha-response')
+                        <div class="mt-3 p-3 bg-red-50 border border-red-300 rounded-lg text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                            </div>
+                        </div>
+                    @enderror
                 </div>
 
                 <div class="flex gap-4 mt-8">
