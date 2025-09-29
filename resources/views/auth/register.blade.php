@@ -266,15 +266,6 @@
                     </div>
                 </div>
 
-                <!-- Simple reCAPTCHA - Just make it visible first -->
-                <div class="mt-6 flex justify-center">
-                    <div class="p-4 bg-white border-2 border-gray-300 rounded-lg">
-                        <p class="text-center text-gray-700 mb-3 font-medium">Please complete the security check:</p>
-                        <div class="flex justify-center">
-                            <div class="g-recaptcha" data-sitekey="6LdontgrAAAAADF6Wl923X1kXTDVBZdBU5oFHImD"></div>
-                        </div>
-                    </div>
-                </div>
 
                 <div class="flex gap-4 mt-8">
                     <button type="button" onclick="goBack()" class="flex-1 bg-gray-200 py-3 rounded-xl font-semibold hover:bg-gray-300">
@@ -292,8 +283,6 @@
 @endsection
 
 @push('scripts')
-<!-- Load Google reCAPTCHA -->
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <script>
     function selectRole(role) {
         console.log('=== selectRole function called with role:', role, '===');
