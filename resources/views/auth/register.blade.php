@@ -267,14 +267,25 @@
                     <div class="flex justify-center">
                         <div class="w-full">
                             <div class="flex justify-center mb-4">
-                                @if(config('captcha.sitekey'))
-                                    <div class="g-recaptcha" data-sitekey="{{ config('captcha.sitekey') }}"></div>
-                                @else
-                                    <div class="p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-center">
-                                        <p class="text-yellow-800">⚠️ reCAPTCHA not configured. Please check your .env file.</p>
-                                        <p class="text-sm text-yellow-600 mt-1">NOCAPTCHA_SITEKEY is missing</p>
-                                    </div>
-                                @endif
+                                <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <p class="text-blue-800 text-center font-medium mb-3">🔒 Security Verification Required</p>
+                                    @if(config('captcha.sitekey'))
+                                        <div id="recaptcha-container" class="flex justify-center">
+                                            <div class="g-recaptcha" data-sitekey="{{ config('captcha.sitekey') }}"></div>
+                                        </div>
+                                        <div id="recaptcha-fallback" style="display: none;" class="text-center mt-3">
+                                            <div class="p-3 bg-yellow-50 border border-yellow-300 rounded">
+                                                <p class="text-yellow-800 text-sm">⚠️ reCAPTCHA is loading...</p>
+                                                <p class="text-yellow-600 text-xs mt-1">If this persists, please refresh the page</p>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="p-4 bg-red-50 border border-red-300 rounded-lg text-center">
+                                            <p class="text-red-800">❌ reCAPTCHA not configured</p>
+                                            <p class="text-sm text-red-600 mt-1">Site key: {{ config('captcha.sitekey') ?: 'MISSING' }}</p>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                             @error('g-recaptcha-response')
                                 <div class="mt-3 p-3 bg-red-50 border border-red-300 rounded-lg text-center">
@@ -307,24 +318,80 @@
 
 @push('scripts')
 <!-- Simple reCAPTCHA v2 - "I'm not a robot" checkbox -->
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit" async defer></script>
 <script>
-    // Debug reCAPTCHA loading
-    console.log('reCAPTCHA: Script loaded');
-    console.log('reCAPTCHA: Site key = {{ config('captcha.sitekey') }}');
+    // Global function that gets called when reCAPTCHA API loads
+    window.onRecaptchaLoad = function() {
+        console.log('✅ reCAPTCHA API loaded, rendering widget...');
 
-    // Check if reCAPTCHA loaded after page is ready
-    window.addEventListener('load', function() {
+        const recaptchaElement = document.querySelector('.g-recaptcha');
+        if (recaptchaElement && typeof grecaptcha !== 'undefined') {
+            try {
+                // Clear any existing content
+                recaptchaElement.innerHTML = '';
+
+                // Render the reCAPTCHA widget
+                const widgetId = grecaptcha.render(recaptchaElement, {
+                    'sitekey': '{{ config('captcha.sitekey') }}',
+                    'callback': function(response) {
+                        console.log('✅ reCAPTCHA completed successfully');
+                    },
+                    'expired-callback': function() {
+                        console.warn('⚠️ reCAPTCHA expired');
+                    }
+                });
+
+                console.log('✅ reCAPTCHA widget rendered with ID:', widgetId);
+
+                // Hide fallback message
+                const fallback = document.getElementById('recaptcha-fallback');
+                if (fallback) fallback.style.display = 'none';
+
+            } catch (error) {
+                console.error('❌ Error rendering reCAPTCHA:', error);
+                showRecaptchaError('Failed to render reCAPTCHA widget: ' + error.message);
+            }
+        } else {
+            console.error('❌ reCAPTCHA element not found or grecaptcha not available');
+            showRecaptchaError('reCAPTCHA element not found');
+        }
+    };
+
+    function showRecaptchaError(message) {
+        const container = document.getElementById('recaptcha-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="p-4 bg-red-50 border border-red-300 rounded-lg text-center">
+                    <p class="text-red-800 font-medium">❌ reCAPTCHA Error</p>
+                    <p class="text-red-600 text-sm mt-1">${message}</p>
+                    <button onclick="location.reload()" class="mt-2 px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700">
+                        Refresh Page
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // Fallback check in case onload callback doesn't fire
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 DOM loaded, checking reCAPTCHA status...');
+
         setTimeout(function() {
-            if (typeof grecaptcha !== 'undefined') {
-                console.log('reCAPTCHA: Google reCAPTCHA API loaded successfully');
-            } else {
-                console.error('reCAPTCHA: Failed to load Google reCAPTCHA API');
-                // Show fallback message
-                const recaptchaDiv = document.querySelector('.g-recaptcha');
-                if (recaptchaDiv) {
-                    recaptchaDiv.innerHTML = '<div class="p-4 bg-red-50 border border-red-300 rounded-lg text-center"><p class="text-red-800">❌ reCAPTCHA failed to load. Please refresh the page.</p></div>';
-                }
+            const recaptchaDiv = document.querySelector('.g-recaptcha');
+            if (recaptchaDiv && recaptchaDiv.innerHTML.trim() === '') {
+                console.warn('⚠️ reCAPTCHA widget appears empty, showing fallback');
+                const fallback = document.getElementById('recaptcha-fallback');
+                if (fallback) fallback.style.display = 'block';
+
+                // Try manual load after another delay
+                setTimeout(function() {
+                    if (typeof grecaptcha !== 'undefined') {
+                        console.log('🔄 Attempting manual reCAPTCHA render...');
+                        onRecaptchaLoad();
+                    } else {
+                        showRecaptchaError('Google reCAPTCHA API failed to load');
+                    }
+                }, 2000);
             }
         }, 3000);
     });
