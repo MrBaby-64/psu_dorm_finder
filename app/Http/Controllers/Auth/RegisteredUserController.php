@@ -25,6 +25,57 @@ class RegisteredUserController extends Controller
         return view('auth.register');
     }
 
+    /**
+     * Determine if reCAPTCHA should be enforced - real-world approach
+     */
+    private function shouldEnforceRecaptcha($request): bool
+    {
+        // Skip in local/development environments
+        if (app()->environment(['local', 'development', 'testing'])) {
+            return false;
+        }
+
+        // Skip if keys aren't properly configured
+        if (empty(config('captcha.sitekey')) || empty(config('captcha.secret'))) {
+            Log::warning('reCAPTCHA keys not configured');
+            return false;
+        }
+
+        // Test the configuration by making a quick API call
+        try {
+            $testResponse = Http::timeout(5)->asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => config('captcha.secret'),
+                'response' => 'test', // Invalid response to test connectivity
+                'remoteip' => $request->ip(),
+            ]);
+
+            if ($testResponse->failed()) {
+                Log::warning('reCAPTCHA service unreachable');
+                return false;
+            }
+
+            $result = $testResponse->json();
+
+            // If we get specific domain errors, disable enforcement temporarily
+            $errorCodes = $result['error-codes'] ?? [];
+            if (in_array('hostname-mismatch', $errorCodes) ||
+                in_array('invalid-input-secret', $errorCodes)) {
+                Log::warning('reCAPTCHA configuration issue detected', [
+                    'errors' => $errorCodes,
+                    'domain' => $request->getHost()
+                ]);
+                return false;
+            }
+
+            return true; // Configuration looks good
+        } catch (\Exception $e) {
+            Log::error('reCAPTCHA configuration test failed', [
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
     public function store(Request $request): RedirectResponse
     {
         // Rate limiting: Max 5 registration attempts per hour per IP
@@ -46,60 +97,19 @@ class RegisteredUserController extends Controller
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
         ];
 
-        // Custom reCAPTCHA validation that handles domain issues
-        $rules['g-recaptcha-response'] = [
-            'required',
-            function ($attribute, $value, $fail) use ($request) {
-                // If no response token, fail immediately
-                if (empty($value)) {
-                    $fail('Please complete the reCAPTCHA verification.');
-                    return;
-                }
+        // Real-world reCAPTCHA approach: Only enforce in production with proper config
+        $shouldEnforceRecaptcha = $this->shouldEnforceRecaptcha($request);
 
-                // Try Google's verification
-                try {
-                    $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                        'secret' => config('captcha.secret'),
-                        'response' => $value,
-                        'remoteip' => $request->ip(),
-                    ]);
-
-                    $result = $response->json();
-
-                    if (!$result['success']) {
-                        $errorCodes = $result['error-codes'] ?? [];
-
-                        // Handle specific domain issues gracefully
-                        if (in_array('invalid-input-secret', $errorCodes) ||
-                            in_array('missing-input-secret', $errorCodes)) {
-                            Log::error('reCAPTCHA secret key issue', ['errors' => $errorCodes]);
-                            $fail('reCAPTCHA configuration error. Please contact support.');
-                        } elseif (in_array('hostname-mismatch', $errorCodes)) {
-                            Log::warning('reCAPTCHA domain not configured', [
-                                'domain' => $request->getHost(),
-                                'errors' => $errorCodes
-                            ]);
-                            // For domain mismatch in production, log but allow registration
-                            // This is temporary until domain is properly configured
-                            Log::info('Allowing registration despite domain mismatch - temporary measure');
-                            return; // Allow registration
-                        } else {
-                            Log::warning('reCAPTCHA verification failed', ['errors' => $errorCodes]);
-                            $fail('reCAPTCHA verification failed. Please try again.');
-                        }
-                    }
-                } catch (\Exception $e) {
-                    Log::error('reCAPTCHA verification exception', [
-                        'error' => $e->getMessage(),
-                        'domain' => $request->getHost()
-                    ]);
-
-                    // In case of network/service issues, log but allow registration
-                    Log::info('Allowing registration due to reCAPTCHA service issue');
-                    return;
-                }
-            }
-        ];
+        if ($shouldEnforceRecaptcha) {
+            $rules['g-recaptcha-response'] = ['required', 'captcha'];
+        } else {
+            // In development or when not properly configured, just require the field exists
+            $rules['g-recaptcha-response'] = ['required'];
+            Log::info('reCAPTCHA enforcement disabled', [
+                'environment' => app()->environment(),
+                'reason' => 'Development mode or configuration issue'
+            ]);
+        }
 
         if ($request->role === 'tenant') {
             $rules['address'] = ['required', 'string', 'max:500'];
