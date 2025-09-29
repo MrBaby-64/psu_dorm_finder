@@ -210,7 +210,15 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
 */
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/account', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('account');
+    // Account - Simplified fallback
+    Route::get('/account', function() {
+        try {
+            return app(\App\Http\Controllers\Admin\AccountController::class)->index();
+        } catch (\Exception $e) {
+            \Log::error('Primary Admin Account failed, using simplified: ' . $e->getMessage());
+            return app(\App\Http\Controllers\Admin\AccountControllerSimplified::class)->index();
+        }
+    })->name('account');
     
     // Dashboard - Simplified fallback
     Route::get('/', function() {
