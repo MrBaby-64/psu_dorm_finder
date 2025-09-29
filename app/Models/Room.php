@@ -21,7 +21,50 @@ class Room extends Model
         'occupied_count',
         'status',
         'description',
-        'amenities'
+        'amenities',
+        // Physical Details
+        'furnished_status',
+        'bathroom_type',
+        'has_balcony',
+        'window_count',
+        'flooring_type',
+        'ceiling_height',
+        // Utilities & Features
+        'ac_type',
+        'internet_speed_mbps',
+        'electrical_outlets',
+        'storage_space',
+        'has_kitchenette',
+        'has_refrigerator',
+        'has_study_desk',
+        // Safety & Security
+        'has_smoke_detector',
+        'has_security_camera',
+        'has_window_grills',
+        'emergency_exit_access',
+        // Accessibility
+        'wheelchair_accessible',
+        'is_ground_floor',
+        'elevator_access',
+        'floor_level',
+        // Maintenance & Condition
+        'last_renovated',
+        'condition_rating',
+        'maintenance_notes',
+        'last_inspection',
+        // Booking & Policies
+        'minimum_stay_months',
+        'maximum_stay_months',
+        'security_deposit',
+        'advance_payment_months',
+        'pets_allowed',
+        'smoking_allowed',
+        'house_rules',
+        // Additional Details
+        'view_description',
+        'included_utilities',
+        'special_features',
+        'room_orientation'
     ];
 
     // Validation rules for room creation
@@ -45,7 +88,40 @@ class Room extends Model
         'size_sqm' => 'decimal:1',
         'capacity' => 'integer',
         'occupied_count' => 'integer',
-        'amenities' => 'array'
+        'amenities' => 'array',
+        // Physical Details
+        'has_balcony' => 'boolean',
+        'window_count' => 'integer',
+        'ceiling_height' => 'decimal:2',
+        // Utilities & Features
+        'internet_speed_mbps' => 'integer',
+        'electrical_outlets' => 'integer',
+        'has_kitchenette' => 'boolean',
+        'has_refrigerator' => 'boolean',
+        'has_study_desk' => 'boolean',
+        // Safety & Security
+        'has_smoke_detector' => 'boolean',
+        'has_security_camera' => 'boolean',
+        'has_window_grills' => 'boolean',
+        'emergency_exit_access' => 'boolean',
+        // Accessibility
+        'wheelchair_accessible' => 'boolean',
+        'is_ground_floor' => 'boolean',
+        'elevator_access' => 'boolean',
+        'floor_level' => 'integer',
+        // Maintenance & Condition
+        'last_renovated' => 'date',
+        'condition_rating' => 'decimal:1',
+        'last_inspection' => 'date',
+        // Booking & Policies
+        'minimum_stay_months' => 'integer',
+        'maximum_stay_months' => 'integer',
+        'security_deposit' => 'decimal:2',
+        'advance_payment_months' => 'decimal:1',
+        'pets_allowed' => 'boolean',
+        'smoking_allowed' => 'boolean',
+        // Additional Details
+        'included_utilities' => 'array'
     ];
 
     // Room types
@@ -60,6 +136,23 @@ class Room extends Model
     const STATUS_OCCUPIED = 'occupied';
     const STATUS_MAINTENANCE = 'maintenance';
     const STATUS_RESERVED = 'reserved';
+
+    // Furnished status constants
+    const FURNISHED_STATUS_FURNISHED = 'furnished';
+    const FURNISHED_STATUS_SEMI_FURNISHED = 'semi_furnished';
+    const FURNISHED_STATUS_UNFURNISHED = 'unfurnished';
+
+    // Bathroom type constants
+    const BATHROOM_TYPE_PRIVATE = 'private';
+    const BATHROOM_TYPE_SHARED = 'shared';
+    const BATHROOM_TYPE_COMMUNAL = 'communal';
+
+    // AC type constants
+    const AC_TYPE_CENTRAL = 'central';
+    const AC_TYPE_WINDOW = 'window';
+    const AC_TYPE_SPLIT = 'split';
+    const AC_TYPE_CEILING_FAN = 'ceiling_fan';
+    const AC_TYPE_NONE = 'none';
 
     public static function getTypes(): array
     {
@@ -79,6 +172,83 @@ class Room extends Model
             self::STATUS_OCCUPIED => 'Occupied',
             self::STATUS_MAINTENANCE => 'Under Maintenance',
             self::STATUS_RESERVED => 'Reserved'
+        ];
+    }
+
+    public static function getFurnishedStatuses(): array
+    {
+        return [
+            self::FURNISHED_STATUS_FURNISHED => 'Fully Furnished',
+            self::FURNISHED_STATUS_SEMI_FURNISHED => 'Semi Furnished',
+            self::FURNISHED_STATUS_UNFURNISHED => 'Unfurnished'
+        ];
+    }
+
+    public static function getBathroomTypes(): array
+    {
+        return [
+            self::BATHROOM_TYPE_PRIVATE => 'Private Bathroom',
+            self::BATHROOM_TYPE_SHARED => 'Shared Bathroom',
+            self::BATHROOM_TYPE_COMMUNAL => 'Communal Bathroom'
+        ];
+    }
+
+    public static function getAcTypes(): array
+    {
+        return [
+            self::AC_TYPE_CENTRAL => 'Central AC',
+            self::AC_TYPE_WINDOW => 'Window AC',
+            self::AC_TYPE_SPLIT => 'Split AC',
+            self::AC_TYPE_CEILING_FAN => 'Ceiling Fan',
+            self::AC_TYPE_NONE => 'No AC/Fan'
+        ];
+    }
+
+    public static function getFlooringTypes(): array
+    {
+        return [
+            'tile' => 'Tile',
+            'wood' => 'Wood',
+            'concrete' => 'Concrete',
+            'carpet' => 'Carpet',
+            'vinyl' => 'Vinyl',
+            'laminate' => 'Laminate'
+        ];
+    }
+
+    public static function getStorageTypes(): array
+    {
+        return [
+            'closet' => 'Closet',
+            'wardrobe' => 'Wardrobe',
+            'built_in' => 'Built-in Storage',
+            'none' => 'No Storage'
+        ];
+    }
+
+    public static function getViewTypes(): array
+    {
+        return [
+            'city' => 'City View',
+            'garden' => 'Garden View',
+            'courtyard' => 'Courtyard View',
+            'street' => 'Street View',
+            'mountain' => 'Mountain View',
+            'parking' => 'Parking View'
+        ];
+    }
+
+    public static function getRoomOrientations(): array
+    {
+        return [
+            'north' => 'North',
+            'south' => 'South',
+            'east' => 'East',
+            'west' => 'West',
+            'northeast' => 'Northeast',
+            'northwest' => 'Northwest',
+            'southeast' => 'Southeast',
+            'southwest' => 'Southwest'
         ];
     }
 
@@ -150,6 +320,76 @@ class Room extends Model
     public function getImageCountAttribute(): int
     {
         return $this->images()->count();
+    }
+
+    // New Enhanced Accessors
+    public function getFurnishedStatusNameAttribute(): string
+    {
+        return self::getFurnishedStatuses()[$this->furnished_status] ?? 'Unknown';
+    }
+
+    public function getBathroomTypeNameAttribute(): string
+    {
+        return self::getBathroomTypes()[$this->bathroom_type] ?? 'Unknown';
+    }
+
+    public function getAcTypeNameAttribute(): string
+    {
+        return self::getAcTypes()[$this->ac_type] ?? 'None';
+    }
+
+    public function getFlooringTypeNameAttribute(): string
+    {
+        return self::getFlooringTypes()[$this->flooring_type] ?? 'Not specified';
+    }
+
+    public function getStorageSpaceNameAttribute(): string
+    {
+        return self::getStorageTypes()[$this->storage_space] ?? 'Not specified';
+    }
+
+    public function getViewDescriptionNameAttribute(): string
+    {
+        return self::getViewTypes()[$this->view_description] ?? 'Not specified';
+    }
+
+    public function getRoomOrientationNameAttribute(): string
+    {
+        return self::getRoomOrientations()[$this->room_orientation] ?? 'Not specified';
+    }
+
+    public function getFormattedSecurityDepositAttribute(): string
+    {
+        return $this->security_deposit ? '₱' . number_format($this->security_deposit, 2) : 'Not required';
+    }
+
+    public function getAvailableSpacesAttribute(): int
+    {
+        return max(0, $this->capacity - $this->occupied_count);
+    }
+
+    public function getOccupancyRateAttribute(): float
+    {
+        return $this->capacity > 0 ? ($this->occupied_count / $this->capacity) * 100 : 0;
+    }
+
+    public function getFormattedConditionRatingAttribute(): string
+    {
+        $rating = (float) $this->condition_rating;
+        $stars = str_repeat('★', (int) $rating) . str_repeat('☆', 5 - (int) $rating);
+        return $stars . ' (' . number_format($rating, 1) . '/5.0)';
+    }
+
+    public function getUtilitiesListAttribute(): array
+    {
+        return $this->included_utilities ?? [];
+    }
+
+    public function hasUtilityAttribute(): \Closure
+    {
+        return function (string $utility) {
+            return in_array($utility, $this->getUtilitiesListAttribute());
+        };
     }
 
     // Methods

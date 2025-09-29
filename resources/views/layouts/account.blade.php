@@ -153,10 +153,10 @@
     {{-- Navbar - Sticky --}}
     @include('layouts.partials.account-navbar')
 
-    <div class="min-h-screen">
-        {{-- Main Content --}}
-        <main class="pt-16 min-h-screen w-full">
-            <div class="p-4 lg:p-8 w-full">
+    {{-- Main Content Container --}}
+    <div class="min-h-screen pt-16">
+        <main class="w-full">
+            <div class="p-4 lg:p-8 w-full max-w-7xl mx-auto">
                 @yield('content')
             </div>
         </main>

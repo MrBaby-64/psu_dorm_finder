@@ -33,7 +33,17 @@ class PropertyImage extends Model
     // Accessors
     public function getFullUrlAttribute(): string
     {
-        return Storage::disk('public')->url($this->image_path);
+        if (empty($this->image_path)) {
+            return '';
+        }
+
+        // Check if file exists before generating URL
+        if (Storage::disk('public')->exists($this->image_path)) {
+            return Storage::disk('public')->url($this->image_path);
+        }
+
+        // If file doesn't exist, return empty string to trigger fallback
+        return '';
     }
 
     public function getThumbnailUrlAttribute(): string

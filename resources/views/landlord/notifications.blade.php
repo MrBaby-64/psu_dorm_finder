@@ -9,9 +9,9 @@
         <div class="flex justify-between items-center">
             <h2 class="text-xl font-semibold text-gray-900">🔔 Notifications</h2>
             @if($notifications->where('is_read', false)->count() > 0)
-                <form method="POST" action="{{ route('landlord.notifications.mark-all-read') }}" class="inline">
+                <form method="POST" action="{{ route('landlord.notifications.mark-all-read') }}" class="inline" id="landlord-mark-all-read-form" onsubmit="event.stopPropagation(); return confirm('NOTIFICATIONS: Are you sure you want to mark all {{ $notifications->where('is_read', false)->count() }} notification(s) as read?');">
                     @csrf
-                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm">
+                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm" id="landlord-mark-all-read-btn" onclick="event.stopPropagation();">
                         Mark All as Read
                     </button>
                 </form>
@@ -111,4 +111,5 @@
         </div>
     @endif
 </div>
+
 @endsection

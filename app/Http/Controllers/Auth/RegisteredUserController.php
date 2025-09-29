@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
@@ -24,12 +26,16 @@ class RegisteredUserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        Log::info('Registration started. Active DB connection: ' . config('database.default'), [
-            'email' => $request->email,
-            'role' => $request->role,
-            'request_method' => $request->method(),
-            'all_request_data' => $request->all()
-        ]);
+        // Rate limiting: Max 5 registration attempts per hour per IP
+        $key = 'register_attempts:' . $request->ip();
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
+            $minutes = ceil($seconds / 60);
+
+            return back()->withErrors([
+                'rate_limit' => "Too many registration attempts. Please try again in {$minutes} minutes."
+            ])->withInput();
+        }
 
         $rules = [
             'name' => ['required', 'string', 'max:255'],
@@ -37,6 +43,7 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => ['required', 'in:tenant,landlord'],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone'],
+            'g-recaptcha-response' => ['required', 'captcha'],
         ];
 
         if ($request->role === 'tenant') {
@@ -54,25 +61,14 @@ class RegisteredUserController extends Controller
             'email.unique' => 'This email address is already registered. Please use a different email or login if you already have an account.',
             'address.required' => 'Please provide your current address so we can show you relevant properties nearby.',
             'city.required' => 'Please select your city from the dropdown list.',
+            'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification.',
+            'g-recaptcha-response.captcha' => 'reCAPTCHA verification failed. Please try again.',
         ];
 
-        try {
-            $validated = $request->validate($rules, $messages);
-        } catch (ValidationException $e) {
-            Log::warning('Validation failed during registration', [
-                'email' => $request->email,
-                'role' => $request->role,
-                'errors' => $e->errors(),
-                'request_data' => [
-                    'has_address' => !empty($request->address),
-                    'has_city' => !empty($request->city),
-                    'has_phone' => !empty($request->phone),
-                ]
-            ]);
-            throw $e;
-        }
+        // Increment rate limit attempt
+        RateLimiter::hit($key, 3600); // 1 hour expiry
 
-        Log::info('Registration validation passed', ['validated_keys' => array_keys($validated), 'user_id' => null]);
+        $validated = $request->validate($rules, $messages);
 
         try {
             $user = DB::transaction(function () use ($validated, $request) {
@@ -104,25 +100,27 @@ class RegisteredUserController extends Controller
                 return $user;
             });
 
-            Log::info('Registration successful', ['user_id' => $user->id, 'role' => $user->role, 'email' => $user->email]);
-
-            event(new Registered($user));
+            // Automatically log the user in after successful registration
             Auth::login($user);
 
-            Log::info('User logged in successfully', ['user_id' => $user->id]);
+            // Clear rate limit on successful registration
+            RateLimiter::clear($key);
 
-            return $user->isLandlord()
-                ? redirect()->route('landlord.account')->with('success', 'Registration successful! Welcome to PSU Dorm Finder.')
-                : redirect()->route('tenant.account')->with('success', 'Registration successful! Welcome to PSU Dorm Finder.');
+            // Fire the registered event without email verification
+            event(new Registered($user));
+
+            // Redirect to dashboard based on user role
+            $redirectRoute = match($user->role) {
+                'admin' => 'admin.dashboard',
+                'landlord' => 'landlord.account',
+                'tenant' => 'tenant.account',
+                default => 'dashboard'
+            };
+
+            return redirect()->route($redirectRoute)
+                ->with('success', 'Welcome! Your account has been created successfully.');
 
         } catch (\Exception $e) {
-            Log::error('Registration failed', [
-                'error' => $e->getMessage(),
-                'first_error' => $e->getMessage(),
-                'validated_keys' => array_keys($validated),
-                'request_keys' => array_keys($request->all())
-            ]);
-
             return back()->withInput()->withErrors(['general' => 'Registration failed. Please try again.']);
         }
     }

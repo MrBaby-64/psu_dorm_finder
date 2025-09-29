@@ -17,8 +17,62 @@
     $oldRole = old('role');
 @endphp
 
+<!-- Success Popup Modal -->
+@if(session('registration_success'))
+<div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8 transform animate-pulse">
+        <!-- Success Header -->
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-green-600 mb-2">🎉 Success!</h2>
+            <p class="text-gray-700">Welcome to PSU Dorm Finder, {{ session('user_name') }}!</p>
+        </div>
+
+        <!-- Message -->
+        <div class="mb-6">
+            @if(session('email_failed'))
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <p class="text-yellow-800 text-sm">⚠️ Email sending failed, but your account was created successfully!</p>
+            </div>
+            @else
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <p class="text-blue-800 text-sm">📧 We sent a verification email to:</p>
+                <p class="text-blue-900 font-semibold">{{ session('user_email') }}</p>
+            </div>
+            @endif
+
+            <p class="text-gray-700 text-sm">{{ session('success_message') }}</p>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <h3 class="font-semibold text-green-800 mb-2">What's next:</h3>
+            <ol class="text-green-700 text-sm space-y-1">
+                <li>1. Check your Gmail inbox (and spam folder)</li>
+                <li>2. Click the verification link</li>
+                <li>3. You'll be automatically logged in!</li>
+            </ol>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-3">
+            <button onclick="closeSuccessModal()" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                Got it!
+            </button>
+            <button onclick="window.location.href='{{ route('home') }}'" class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">
+                Go to Homepage
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
 <div class="min-h-screen flex items-center justify-center py-12 px-4" style="background: linear-gradient(to bottom right, #dcfce7, #dbeafe);">
-    
+
     <!-- Role Selection Modal -->
     <div id="roleModal" class="{{ $oldRole ? 'hidden' : '' }} max-w-md w-full">
         <div class="bg-white rounded-3xl p-8 shadow-2xl">
@@ -109,7 +163,7 @@
 
             <h2 class="text-3xl font-bold mb-8 text-center text-green-600">Create Your Account</h2>
             
-            <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data" onsubmit="return validateForm()">
+            <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data" onsubmit="return handleFormSubmit(event)">
                 @csrf
                 <input type="hidden" id="roleInput" name="role" value="{{ $oldRole }}">
 
@@ -208,6 +262,21 @@
                         <label class="block font-semibold mb-2">Confirm Password *</label>
                         <input type="password" name="password_confirmation" required class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
                     </div>
+
+                    <!-- reCAPTCHA -->
+                    <div class="flex justify-center">
+                        {!! NoCaptcha::display() !!}
+                        @error('g-recaptcha-response')
+                            <div class="mt-2 p-2 bg-red-100 border border-red-300 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-red-700 text-sm font-medium">{{ $message }}</span>
+                                </div>
+                            </div>
+                        @enderror
+                    </div>
                 </div>
 
                 <div class="flex gap-4 mt-8">
@@ -225,6 +294,7 @@
 @endsection
 
 @push('scripts')
+{!! NoCaptcha::renderJs() !!}
 <script>
     function selectRole(role) {
         console.log('=== selectRole function called with role:', role, '===');
@@ -325,6 +395,27 @@
         document.getElementById('roleInput').value = '';
     }
 
+    // Enhanced form submission handler with debugging
+    function handleFormSubmit(event) {
+        console.log('=== FORM SUBMISSION STARTED ===');
+        console.log('Event:', event);
+        console.log('Form action:', event.target.action);
+        console.log('Form method:', event.target.method);
+        console.log('Current URL:', window.location.href);
+
+        // Run validation first
+        if (!validateForm()) {
+            console.log('❌ Validation failed, preventing submission');
+            return false;
+        }
+
+        console.log('✅ Validation passed, submitting form');
+        console.log('Expected redirect: After form submits, should go to registration success page');
+
+        // Let the form submit normally
+        return true;
+    }
+
     // Form validation before submission
     function validateForm() {
         const role = document.getElementById('roleInput').value;
@@ -384,5 +475,24 @@
 
         console.log('=== Initialization complete ===');
     });
+
+    // Function to close success modal
+    function closeSuccessModal() {
+        const modal = document.getElementById('successModal');
+        if (modal) {
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+    }
+
+    // Auto-close modal after 10 seconds
+    @if(session('registration_success'))
+    setTimeout(function() {
+        closeSuccessModal();
+    }, 10000);
+    @endif
 </script>
 @endpush

@@ -188,8 +188,8 @@
                     @else
                         {{-- Guest Desktop Navigation --}}
                         <a href="{{ route('properties.browse') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Find Rentals</a>
-                        <a href="#about" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">About Us</a>
-                        <a href="#how-it-works" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">How It Works</a>
+                        <a href="{{ route('about') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">About Us</a>
+                        <a href="{{ route('how-it-works') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">How It Works</a>
                         <button onclick="openAuthModal('login')" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Login</button>
                         <button onclick="openAuthModal('register')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 font-medium shadow-sm">Sign Up</button>
                     @endauth
@@ -329,13 +329,13 @@
                                     <span>Find Rentals</span>
                                 </div>
                             </a>
-                            <a href="#about" onclick="closeGuestMobileMenu(); document.getElementById('about').scrollIntoView({behavior: 'smooth'});" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
+                            <a href="{{ route('about') }}" onclick="closeGuestMobileMenu();" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     <span>About Us</span>
                                 </div>
                             </a>
-                            <a href="#how-it-works" onclick="closeGuestMobileMenu(); document.getElementById('how-it-works').scrollIntoView({behavior: 'smooth'});" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
+                            <a href="{{ route('how-it-works') }}" onclick="closeGuestMobileMenu();" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     <span>How It Works</span>
@@ -368,201 +368,6 @@
         @yield('content')
     </main>
 
-    {{-- About Us Section --}}
-    <section id="about" class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">About PSU Dorm Finder</h2>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Your trusted platform for finding the perfect student accommodation near Pampanga State University
-                </p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-12 items-center">
-                <div>
-                    <h3 class="text-2xl font-semibold text-gray-900 mb-6">🎓 Built for PSU Students</h3>
-                    <div class="space-y-4 text-gray-700">
-                        <p>
-                            PSU Dorm Finder is specifically designed to help Pampanga State University students find safe,
-                            affordable, and convenient housing options near the campus.
-                        </p>
-                        <p>
-                            We understand the unique needs of college students - from budget constraints to proximity to campus,
-                            from study-friendly environments to reliable internet connectivity.
-                        </p>
-                        <p>
-                            Our platform connects students with verified landlords and property owners who understand
-                            the student lifestyle and offer flexible rental terms.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="bg-green-50 p-8 rounded-2xl">
-                    <h4 class="text-xl font-semibold text-green-800 mb-6">Why Choose PSU Dorm Finder?</h4>
-                    <div class="space-y-4">
-                        <div class="flex items-start gap-3">
-                            <div class="text-green-600 text-xl">✅</div>
-                            <div>
-                                <strong class="text-green-800">Verified Properties</strong>
-                                <p class="text-green-700 text-sm">All listings are verified for authenticity and safety</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <div class="text-green-600 text-xl">🏠</div>
-                            <div>
-                                <strong class="text-green-800">Student-Friendly</strong>
-                                <p class="text-green-700 text-sm">Properties tailored for student needs and budgets</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <div class="text-green-600 text-xl">📍</div>
-                            <div>
-                                <strong class="text-green-800">Near Campus</strong>
-                                <p class="text-green-700 text-sm">All properties within reasonable distance to PSU</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start gap-3">
-                            <div class="text-green-600 text-xl">💬</div>
-                            <div>
-                                <strong class="text-green-800">Direct Communication</strong>
-                                <p class="text-green-700 text-sm">Chat directly with landlords and property owners</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {{-- How It Works Section --}}
-    <section id="how-it-works" class="py-16 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">How It Works</h2>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Finding your perfect student accommodation has never been easier
-                </p>
-            </div>
-
-            <div class="grid md:grid-cols-2 gap-8 mb-16">
-                {{-- For Students --}}
-                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-8">
-                    <div class="text-center mb-6">
-                        <div class="text-4xl mb-3">👤</div>
-                        <h3 class="text-2xl font-bold text-blue-800">For Students</h3>
-                        <p class="text-blue-600">Looking for a place to stay</p>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">1</div>
-                            <div>
-                                <h4 class="font-semibold text-blue-800">Create Your Account</h4>
-                                <p class="text-blue-700 text-sm">Sign up as a student and provide your basic information</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">2</div>
-                            <div>
-                                <h4 class="font-semibold text-blue-800">Browse Properties</h4>
-                                <p class="text-blue-700 text-sm">Search and filter dormitories based on your preferences</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">3</div>
-                            <div>
-                                <h4 class="font-semibold text-blue-800">Send Inquiries</h4>
-                                <p class="text-blue-700 text-sm">Contact landlords directly through our messaging system</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <div class="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">4</div>
-                            <div>
-                                <h4 class="font-semibold text-blue-800">Schedule Visits</h4>
-                                <p class="text-blue-700 text-sm">Arrange property visits and make your decision</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- For Landlords --}}
-                <div class="bg-green-50 border border-green-200 rounded-2xl p-8">
-                    <div class="text-center mb-6">
-                        <div class="text-4xl mb-3">🏢</div>
-                        <h3 class="text-2xl font-bold text-green-800">For Landlords</h3>
-                        <p class="text-green-600">Want to list your property</p>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div class="flex gap-4">
-                            <div class="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">1</div>
-                            <div>
-                                <h4 class="font-semibold text-green-800">Register as Landlord</h4>
-                                <p class="text-green-700 text-sm">Create your landlord account with property owner details</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <div class="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">2</div>
-                            <div>
-                                <h4 class="font-semibold text-green-800">List Your Property</h4>
-                                <p class="text-green-700 text-sm">Add detailed information, photos, and amenities</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <div class="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">3</div>
-                            <div>
-                                <h4 class="font-semibold text-green-800">Receive Inquiries</h4>
-                                <p class="text-green-700 text-sm">Get notifications when students are interested</p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <div class="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">4</div>
-                            <div>
-                                <h4 class="font-semibold text-green-800">Manage Bookings</h4>
-                                <p class="text-green-700 text-sm">Review applications and confirm tenants</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Key Features --}}
-            <div class="text-center">
-                <h3 class="text-2xl font-bold text-gray-900 mb-8">Key Platform Features</h3>
-                <div class="grid md:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <div class="text-3xl mb-3">🔍</div>
-                        <h4 class="font-semibold text-gray-800 mb-2">Smart Search</h4>
-                        <p class="text-gray-600 text-sm">Filter by price, location, amenities, and more</p>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <div class="text-3xl mb-3">❤️</div>
-                        <h4 class="font-semibold text-gray-800 mb-2">Favorites</h4>
-                        <p class="text-gray-600 text-sm">Save properties you like for easy comparison</p>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <div class="text-3xl mb-3">⭐</div>
-                        <h4 class="font-semibold text-gray-800 mb-2">Reviews</h4>
-                        <p class="text-gray-600 text-sm">Read honest reviews from previous tenants</p>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-sm border">
-                        <div class="text-3xl mb-3">🔔</div>
-                        <h4 class="font-semibold text-gray-800 mb-2">Notifications</h4>
-                        <p class="text-gray-600 text-sm">Stay updated on inquiries and bookings</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
     {{-- Footer --}}
     @include('layouts.partials.footer')
@@ -631,7 +436,7 @@
                                 <input type="checkbox" name="remember" class="mr-2">
                                 <span class="text-sm text-gray-600">Remember me</span>
                             </label>
-                            <a href="{{ route('password.request') }}" class="text-sm text-green-600 hover:underline">Forgot Password?</a>
+                            <button type="button" onclick="openForgotPasswordModal()" class="text-sm text-green-600 hover:underline">Forgot Password?</button>
                         </div>
                         
                         <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-semibold">
@@ -785,6 +590,14 @@
                             </div>
                         </div>
 
+                        <!-- reCAPTCHA -->
+                        <div class="mt-6">
+                            <div class="flex justify-center">
+                                {!! NoCaptcha::renderJs() !!}
+                                {!! NoCaptcha::display() !!}
+                            </div>
+                        </div>
+
                         <div class="flex gap-3 mt-6">
                             <button type="button" onclick="switchToRoleSelection()" class="flex-1 bg-gray-200 py-2 rounded-lg font-semibold hover:bg-gray-300">
                                 Back
@@ -794,6 +607,61 @@
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Forgot Password Modal --}}
+    <div id="forgotPasswordModal" class="fixed inset-0 z-50 hidden">
+        <div class="modal-backdrop absolute inset-0" onclick="closeForgotPasswordModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="modal-slide-up bg-white rounded-2xl shadow-2xl w-full relative" style="max-width: 400px;">
+                <button onclick="closeForgotPasswordModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
+                <div class="text-center pt-8 pb-6">
+                    <div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3.586l6.879-6.88a6 6 0 018.242 8.242z"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">Reset Password</h2>
+                    <p class="text-sm text-gray-600 mt-2">Enter your email to receive a reset link</p>
+                </div>
+
+                <div id="forgotPasswordForm" class="px-8 pb-8">
+                    <div id="forgotPasswordStatus" class="mb-4 hidden"></div>
+
+                    <form id="forgotPasswordFormElement" onsubmit="submitForgotPassword(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                            <input type="email" id="forgotEmail" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="your@email.com">
+                        </div>
+
+                        <button type="submit" id="forgotPasswordBtn" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
+                            Send Reset Link
+                        </button>
+                    </form>
+
+                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <h3 class="text-sm font-medium text-blue-800">🔐 Security Notice</h3>
+                                <p class="text-sm text-blue-700 mt-1">
+                                    We'll send the password reset link to your email address. The link will be valid for 60 minutes for security reasons.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -985,6 +853,120 @@
                     closeGuestMobileMenu();
                 }
             });
+        });
+
+        // Forgot Password Modal Functions
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('forgotEmail').focus();
+        }
+
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+
+            // Reset form
+            document.getElementById('forgotPasswordFormElement').reset();
+            document.getElementById('forgotPasswordStatus').classList.add('hidden');
+            document.getElementById('forgotPasswordBtn').disabled = false;
+            document.getElementById('forgotPasswordBtn').innerHTML = 'Send Reset Link';
+        }
+
+        async function submitForgotPassword(event) {
+            event.preventDefault();
+
+            const btn = document.getElementById('forgotPasswordBtn');
+            const statusDiv = document.getElementById('forgotPasswordStatus');
+            const email = document.getElementById('forgotEmail').value;
+
+            // Disable button and show loading
+            btn.disabled = true;
+            btn.innerHTML = 'Sending...';
+            statusDiv.classList.add('hidden');
+
+            try {
+                const response = await fetch('{{ route('password.email') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Success
+                    statusDiv.className = 'mb-4 bg-green-50 border border-green-400 text-green-800 p-4 rounded-lg';
+                    statusDiv.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-bold">Reset Link Sent!</span>
+                        </div>
+                        <p class="mt-2">${data.message}</p>
+                    `;
+                    statusDiv.classList.remove('hidden');
+
+                    // Change button text
+                    btn.innerHTML = 'Email Sent ✓';
+
+                    // Auto close modal after 3 seconds
+                    setTimeout(() => {
+                        closeForgotPasswordModal();
+                    }, 3000);
+
+                } else {
+                    // Error from server
+                    statusDiv.className = 'mb-4 bg-red-50 border border-red-400 text-red-800 p-4 rounded-lg';
+                    statusDiv.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="font-bold">Error</span>
+                        </div>
+                        <p class="mt-1">${data.message || 'Unable to send reset link. Please try again.'}</p>
+                    `;
+                    statusDiv.classList.remove('hidden');
+
+                    // Re-enable button
+                    btn.disabled = false;
+                    btn.innerHTML = 'Send Reset Link';
+                }
+
+            } catch (error) {
+                // Network or parsing error
+                console.error('Fetch error:', error);
+                statusDiv.className = 'mb-4 bg-red-50 border border-red-400 text-red-800 p-4 rounded-lg';
+                statusDiv.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-bold">Connection Error</span>
+                    </div>
+                    <p class="mt-1">Unable to connect to server. Error: ${error.message}</p>
+                    <p class="text-xs mt-1">Please check your internet connection and try again, or contact support if the issue persists.</p>
+                `;
+                statusDiv.classList.remove('hidden');
+
+                // Re-enable button
+                btn.disabled = false;
+                btn.innerHTML = 'Send Reset Link';
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeForgotPasswordModal();
+            }
         });
 
         // Auto-show modal if there are validation errors

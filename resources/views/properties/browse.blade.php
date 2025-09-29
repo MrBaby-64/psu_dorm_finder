@@ -430,6 +430,185 @@
         }
         </script>
     @endif
+
+    <!-- About Us & How It Works Sections (Only for Non-Logged Users) -->
+    @guest
+        <!-- About Us Section -->
+        <section class="bg-gray-50 py-16 mt-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h2 class="text-3xl font-bold mb-6">About PSU Dorm Finder</h2>
+                        <p class="text-gray-600 mb-4 text-lg">
+                            PSU Dorm Finder is a dedicated platform connecting Pampanga State University students
+                            with verified, safe, and affordable housing options near campus.
+                        </p>
+                        <p class="text-gray-600 mb-4 text-lg">
+                            We understand the challenges students face when looking for accommodation - from safety
+                            concerns to budget constraints. That's why we created a platform specifically for the PSU community.
+                        </p>
+                        <p class="text-gray-600 text-lg">
+                            Our mission is simple: <strong>Make renting better, for everyone.</strong>
+                        </p>
+                        <div class="mt-6">
+                            <a href="{{ route('about') }}" class="text-green-600 hover:text-green-700 font-medium">Learn more about us →</a>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg p-8 text-center shadow-md">
+                        <div class="text-6xl mb-4">🏠</div>
+                        <h3 class="text-2xl font-bold text-green-600 mb-2">Your Home Away From Home</h3>
+                        <p class="text-gray-600">Finding safe, affordable student housing made easy</p>
+
+                        <!-- Quick Stats -->
+                        <div class="grid grid-cols-2 gap-4 mt-6 text-center">
+                            <div>
+                                <div class="text-2xl font-bold text-green-600">500+</div>
+                                <p class="text-sm text-gray-600">Properties</p>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-green-600">2,000+</div>
+                                <p class="text-sm text-gray-600">Students Helped</p>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-green-600">100%</div>
+                                <p class="text-sm text-gray-600">Verified</p>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-green-600">24/7</div>
+                                <p class="text-sm text-gray-600">Support</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="bg-white py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold mb-4">How It Works</h2>
+                    <p class="text-xl text-gray-600">Finding your perfect dorm in 3 simple steps</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                    <!-- Step 1 -->
+                    <div class="text-center">
+                        <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span class="text-3xl font-bold text-green-600">1</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Browse</h3>
+                        <p class="text-gray-600 mb-4">
+                            Search through hundreds of verified properties near PSU campuses. Filter by price,
+                            amenities, and location to find your perfect match.
+                        </p>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <ul class="text-left text-sm text-gray-600 space-y-2">
+                                <li>✓ Advanced search filters</li>
+                                <li>✓ Interactive map view</li>
+                                <li>✓ Real student reviews</li>
+                                <li>✓ Photo galleries</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="text-center">
+                        <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span class="text-3xl font-bold text-green-600">2</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Schedule</h3>
+                        <p class="text-gray-600 mb-4">
+                            Book a viewing directly through the platform. Choose your preferred date and time,
+                            and get instant confirmation from the landlord.
+                        </p>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <ul class="text-left text-sm text-gray-600 space-y-2">
+                                <li>✓ Online scheduling</li>
+                                <li>✓ Instant messaging</li>
+                                <li>✓ Virtual tours available</li>
+                                <li>✓ Flexible viewing times</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="text-center">
+                        <div class="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <span class="text-3xl font-bold text-green-600">3</span>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4">Move In</h3>
+                        <p class="text-gray-600 mb-4">
+                            Visit the property, complete the rental agreement, and move into your new home.
+                            We're here to support you every step of the way.
+                        </p>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <ul class="text-left text-sm text-gray-600 space-y-2">
+                                <li>✓ Secure contracts</li>
+                                <li>✓ Move-in checklist</li>
+                                <li>✓ 24/7 support</li>
+                                <li>✓ Community guidelines</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <a href="{{ route('how-it-works') }}" class="text-green-600 hover:text-green-700 font-medium mr-6">Learn more about our process →</a>
+                    <a href="{{ route('register') }}" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition inline-block">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Benefits Section -->
+        <section class="bg-green-600 text-white py-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-center mb-12">Why Use PSU Dorm Finder?</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div class="text-center">
+                        <div class="bg-white bg-opacity-20 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">🛡️</span>
+                        </div>
+                        <h3 class="text-lg font-bold mb-2">Safe & Verified</h3>
+                        <p class="text-green-100">All properties verified by PSU administration</p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="bg-white bg-opacity-20 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">💰</span>
+                        </div>
+                        <h3 class="text-lg font-bold mb-2">Transparent Pricing</h3>
+                        <p class="text-green-100">No hidden fees, clear pricing</p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="bg-white bg-opacity-20 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">📍</span>
+                        </div>
+                        <h3 class="text-lg font-bold mb-2">Near Campus</h3>
+                        <p class="text-green-100">Walking distance to your classes</p>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="bg-white bg-opacity-20 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-2xl">💬</span>
+                        </div>
+                        <h3 class="text-lg font-bold mb-2">Easy Communication</h3>
+                        <p class="text-green-100">Direct messaging with landlords</p>
+                    </div>
+                </div>
+
+                <div class="text-center mt-12">
+                    <a href="{{ route('register') }}" class="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition inline-block">
+                        Join PSU Dorm Finder Today
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endguest
 </div>
 @endsection
 

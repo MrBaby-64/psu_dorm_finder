@@ -1,15 +1,13 @@
 <?php
-// app/Models/User.php
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
@@ -25,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_verified',
         'valid_id_path',
         'profile_picture',
+        'google_id',
     ];
 
     protected $hidden = [
@@ -162,4 +161,13 @@ public function getUnreadNotificationsCountAttribute(): int
 {
     return $this->notifications()->unread()->count();
 }
+
+/**
+ * Send the password reset notification.
+ */
+public function sendPasswordResetNotification($token)
+{
+    $this->notify(new \App\Notifications\CustomPasswordResetNotification($token));
+}
+
 }

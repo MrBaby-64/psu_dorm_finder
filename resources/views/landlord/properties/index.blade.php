@@ -1,5 +1,20 @@
 @extends('layouts.account')
 
+@push('styles')
+<style>
+    .property-image {
+        background: white;
+        min-height: 192px;
+    }
+
+    .property-image img {
+        background: white !important;
+        display: block !important;
+        opacity: 1 !important;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="min-h-screen py-8">
     <div class="max-w-7xl mx-auto">
@@ -168,15 +183,37 @@
                 @foreach($properties as $property)
                     <div class="bg-white rounded-lg shadow-sm overflow-hidden border hover:shadow-md transition-shadow">
                         <!-- Property Image -->
-                        <div class="relative cursor-pointer group" onclick="openImageGallery('{{ $property->id }}')">
+                        <div class="relative cursor-pointer group property-image" onclick="openImageGallery('{{ $property->id }}')">
                             @php
                                 $coverImage = $property->images->where('is_cover', true)->first() ?? $property->images->first();
-                                $imageUrl = $coverImage ? asset('storage/' . $coverImage->image_path) : 'https://via.placeholder.com/300x200?text=No+Image';
+                                $imageUrl = $coverImage ? asset('storage/' . $coverImage->image_path) : null;
                             @endphp
 
-                            <img src="{{ $imageUrl }}"
-                                 alt="{{ $property->title }}"
-                                 class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200">
+                            @if($imageUrl)
+                                <img src="{{ $imageUrl }}"
+                                     alt="{{ $property->title }}"
+                                     style="width: 100%; height: 192px; object-fit: cover; background-color: white; display: block; opacity: 1; visibility: visible; position: relative; z-index: 1;"
+                                     onload="console.log('✅ Cover image loaded successfully:', this.src); this.style.opacity = '1'; this.style.visibility = 'visible';"
+                                     onerror="console.error('❌ Cover image failed to load:', this.src); console.log('URL that failed:', '{{ $imageUrl }}'); this.style.display = 'none'; this.nextElementSibling.style.display = 'flex';">
+                                <!-- Error fallback -->
+                                <div style="width: 100%; height: 192px; background-color: #f3f4f6; display: none; align-items: center; justify-content: center; color: #9ca3af;">
+                                    <div style="text-align: center;">
+                                        <svg style="width: 48px; height: 48px; margin: 0 auto 8px;" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <p style="font-size: 14px; font-weight: 500;">Image not available</p>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400">
+                                    <div class="text-center">
+                                        <svg class="w-12 h-12 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <p class="text-sm font-medium">No image</p>
+                                    </div>
+                                </div>
+                            @endif
 
                             <!-- Gallery Overlay -->
                             <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
@@ -571,28 +608,61 @@ let currentPropertyImages = [];
 let currentImageIndex = 0;
 
 function openImageGallery(propertyId) {
+    console.log('Opening image gallery for property:', propertyId);
+
     const imagesScript = document.getElementById(`property-images-${propertyId}`);
-    if (!imagesScript) return;
+    if (!imagesScript) {
+        console.error('Images script not found for property:', propertyId);
+        return;
+    }
 
     try {
         currentPropertyImages = JSON.parse(imagesScript.textContent);
-        if (currentPropertyImages.length === 0) return;
+        console.log('Loaded images:', currentPropertyImages);
+
+        if (currentPropertyImages.length === 0) {
+            console.error('No images found for property:', propertyId);
+            return;
+        }
+
+        // Use original URLs without cleaning - let's see what we get
+        console.log('Raw images data:', currentPropertyImages);
+        currentPropertyImages.forEach((img, index) => {
+            console.log(`Image ${index}:`, img.url);
+        });
 
         // Start with cover image if available
         const coverIndex = currentPropertyImages.findIndex(img => img.is_cover);
         currentImageIndex = coverIndex >= 0 ? coverIndex : 0;
 
+        console.log('Starting with image index:', currentImageIndex);
+        console.log('Cover image found at index:', coverIndex);
+        console.log('Cleaned image URL:', currentPropertyImages[currentImageIndex].url);
+
         showImageGallery();
     } catch (error) {
         console.error('Failed to load images:', error);
+        console.error('Images script content:', imagesScript.textContent);
     }
 }
 
 function showImageGallery() {
-    document.getElementById('imageGallery').classList.remove('hidden');
+    const gallery = document.getElementById('imageGallery');
+    if (!gallery) {
+        console.error('Gallery element not found!');
+        return;
+    }
+
+    console.log('Showing image gallery...');
+    gallery.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    updateGalleryImage();
-    updateImageCounter();
+
+    // Initialize the gallery with proper sequencing
+    setTimeout(() => {
+        console.log('Initializing gallery...');
+        updateImageTitle(); // Update title first
+        updateGalleryImage(); // Then load image
+    }, 100); // Increased delay to ensure DOM is ready
 }
 
 function closeImageGallery() {
@@ -601,57 +671,117 @@ function closeImageGallery() {
 }
 
 function nextImage() {
-    if (currentPropertyImages.length > 1) {
-        currentImageIndex = (currentImageIndex + 1) % currentPropertyImages.length;
-        updateGalleryImage();
-        updateImageCounter();
-    }
+    // No navigation needed for single cover image
+    console.log('Navigation disabled - showing single cover image');
 }
 
 function previousImage() {
-    if (currentPropertyImages.length > 1) {
-        currentImageIndex = currentImageIndex === 0 ? currentPropertyImages.length - 1 : currentImageIndex - 1;
-        updateGalleryImage();
-        updateImageCounter();
-    }
+    // No navigation needed for single cover image
+    console.log('Navigation disabled - showing single cover image');
 }
 
 function updateGalleryImage() {
+    if (!currentPropertyImages || currentPropertyImages.length === 0) {
+        console.error('No images available');
+        return;
+    }
+
     const currentImage = currentPropertyImages[currentImageIndex];
     const imgElement = document.getElementById('galleryMainImage');
-    imgElement.src = currentImage.url;
-    imgElement.alt = currentImage.alt;
+    const loadingIndicator = document.getElementById('imageLoading');
 
-    // Update cover badge
-    const coverBadge = document.getElementById('coverBadge');
-    if (currentImage.is_cover) {
-        coverBadge.classList.remove('hidden');
-    } else {
-        coverBadge.classList.add('hidden');
+    if (!currentImage) {
+        console.error('Current image is undefined', { currentImageIndex, totalImages: currentPropertyImages.length });
+        return;
     }
+
+    console.log('Loading image:', currentImage);
+    console.log('Image URL:', currentImage.url);
+
+    // Show loading indicator
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'flex';
+    }
+
+    console.log('=== IMAGE LOADING DEBUG ===');
+    console.log('Current image object:', currentImage);
+    console.log('Image URL to load:', currentImage.url);
+    console.log('Image element:', imgElement);
+
+    // Test the URL directly first
+    console.log('Testing if URL is accessible...');
+    fetch(currentImage.url)
+        .then(response => {
+            console.log('Fetch response status:', response.status);
+            console.log('Fetch response ok:', response.ok);
+            if (response.ok) {
+                console.log('URL is accessible via fetch');
+            } else {
+                console.error('URL not accessible via fetch');
+            }
+        })
+        .catch(error => {
+            console.error('Fetch failed:', error);
+        });
+
+    // Simple direct loading like in public galleries
+    imgElement.src = currentImage.url;
+    imgElement.alt = currentImage.alt || 'Property image';
+
+    // Add loading indicator
+    imgElement.onload = function() {
+        console.log('✅ SUCCESS: Gallery image loaded successfully');
+        console.log('Image src that worked:', this.src);
+        this.style.opacity = '1';
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    };
+
+    imgElement.onerror = function() {
+        console.error('❌ FAILED: Could not load gallery image');
+        console.error('Failed URL:', currentImage.url);
+        console.error('Image element src:', this.src);
+        this.style.background = '#f3f4f6';
+        this.style.color = '#374151';
+        this.style.display = 'flex';
+        this.style.alignItems = 'center';
+        this.style.justifyContent = 'center';
+        this.style.opacity = '1';
+        this.innerHTML = '<div style="text-align: center; padding: 20px;"><div style="font-size: 24px; margin-bottom: 10px;">📷</div><div>Image not found</div><div style="font-size: 12px; margin-top: 10px;">Check console for URL</div></div>';
+        if (loadingIndicator) {
+            loadingIndicator.style.display = 'none';
+        }
+    };
 }
 
-function updateImageCounter() {
-    document.getElementById('imageCounter').textContent =
-        `${currentImageIndex + 1} of ${currentPropertyImages.length}`;
+function updateImageTitle() {
+    // Set the title to "Cover Image" and ensure it's centered
+    const titleElement = document.getElementById('imageTitle');
+    if (titleElement) {
+        titleElement.textContent = 'Cover Image';
+        console.log('Title updated to:', titleElement.textContent);
+        console.log('Title element classes:', titleElement.className);
+        console.log('Title element position:', {
+            left: titleElement.style.left,
+            transform: titleElement.style.transform,
+            position: getComputedStyle(titleElement).position
+        });
 
-    // Update navigation button states
-    const prevBtn = document.querySelector('[onclick="previousImage()"]');
-    const nextBtn = document.querySelector('[onclick="nextImage()"]');
-
-    if (currentPropertyImages.length <= 1) {
-        prevBtn.style.display = 'none';
-        nextBtn.style.display = 'none';
+        // Force center positioning
+        titleElement.style.left = '50%';
+        titleElement.style.transform = 'translateX(-50%)';
     } else {
-        prevBtn.style.display = 'flex';
-        nextBtn.style.display = 'flex';
+        console.error('Image title element not found!');
+        // Check if there are any elements that might be conflicting
+        const allElements = document.querySelectorAll('[id*="image"], [id*="counter"], [id*="title"]');
+        console.log('Found elements with image/counter/title IDs:', allElements);
     }
 }
 
 function goToImage(index) {
-    currentImageIndex = index;
-    updateGalleryImage();
-    updateImageCounter();
+    // No navigation needed for single cover image
+    console.log('Navigation disabled - showing single cover image');
 }
 
 // Keyboard navigation
@@ -673,67 +803,39 @@ document.addEventListener('keydown', function(e) {
 </script>
 
 <!-- Professional Image Gallery Modal -->
-<div id="imageGallery" class="fixed inset-0 z-50 hidden bg-black bg-opacity-95 flex items-center justify-center">
-    <div class="relative w-full h-full flex items-center justify-center">
-        <!-- Close Button -->
-        <button onclick="closeImageGallery()"
-                class="absolute top-4 right-4 z-10 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full transition-all">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+<div id="imageGallery" class="fixed inset-0 z-50 hidden" style="background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);">
+    <!-- Close Button - Fixed to viewport -->
+    <button onclick="closeImageGallery()"
+            class="fixed top-4 right-4 z-50 bg-black bg-opacity-70 hover:bg-opacity-90 text-white p-3 rounded-full transition-all border-2 border-white border-opacity-50 shadow-lg">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+
+    <!-- Image Title - Fixed to center top -->
+    <div class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-black bg-opacity-70 text-white px-6 py-2 rounded-full text-lg font-medium border-2 border-white border-opacity-50 shadow-lg">
+        <span id="imageTitle">Cover Image</span>
+    </div>
+
+
+    <!-- Main Image Container -->
+    <div class="flex items-center justify-center w-full h-full p-16">
+        <img id="galleryMainImage"
+             src=""
+             alt=""
+             class="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+             style="background: transparent; opacity: 1;">
+    </div>
+
+
+    <!-- Loading Indicator -->
+    <div id="imageLoading" class="fixed inset-0 flex items-center justify-center z-40" style="display: none;">
+        <div class="bg-black bg-opacity-70 text-white p-6 rounded-lg flex items-center border-2 border-white border-opacity-50 shadow-lg">
+            <svg class="animate-spin -ml-1 mr-3 h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-        </button>
-
-        <!-- Image Counter -->
-        <div class="absolute top-4 left-4 z-10 bg-white bg-opacity-20 text-white px-3 py-1 rounded-full text-sm font-medium">
-            <span id="imageCounter">1 of 1</span>
-        </div>
-
-        <!-- Cover Badge -->
-        <div id="coverBadge" class="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 bg-yellow-500 text-white px-3 py-1 rounded-full text-sm font-medium hidden">
-            📸 Cover Image
-        </div>
-
-        <!-- Main Image Container -->
-        <div class="relative w-full h-full flex items-center justify-center p-8">
-            <!-- Previous Button -->
-            <button onclick="previousImage()"
-                    class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all z-10">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                </svg>
-            </button>
-
-            <!-- Main Image -->
-            <img id="galleryMainImage"
-                 src=""
-                 alt=""
-                 class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
-
-            <!-- Next Button -->
-            <button onclick="nextImage()"
-                    class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all z-10">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </button>
-        </div>
-
-        <!-- Thumbnail Navigation (Bottom) -->
-        <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 max-w-full">
-            <div id="thumbnailContainer" class="flex space-x-2 overflow-x-auto px-4 py-2 bg-white bg-opacity-20 rounded-full max-w-screen-md">
-                <!-- Thumbnails will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Loading Indicator -->
-        <div id="imageLoading" class="absolute inset-0 flex items-center justify-center">
-            <div class="bg-white bg-opacity-20 text-white p-4 rounded-lg flex items-center">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Loading image...
-            </div>
+            <span class="text-lg">Loading image...</span>
         </div>
     </div>
 </div>

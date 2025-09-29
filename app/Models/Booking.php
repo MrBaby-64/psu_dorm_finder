@@ -303,4 +303,27 @@ class Booking extends Model
     {
         return $query->where('property_id', $propertyId);
     }
+
+    // Static method to check if tenant has active bookings (pending or approved)
+    public static function tenantHasActiveBooking($tenantId): bool
+    {
+        return self::where('user_id', $tenantId)
+                   ->whereIn('status', [self::STATUS_PENDING, self::STATUS_APPROVED, self::STATUS_ACTIVE])
+                   ->exists();
+    }
+
+    // Static method to get tenant's active booking
+    public static function getTenantActiveBooking($tenantId)
+    {
+        return self::where('user_id', $tenantId)
+                   ->whereIn('status', [self::STATUS_PENDING, self::STATUS_APPROVED, self::STATUS_ACTIVE])
+                   ->with(['property', 'room'])
+                   ->first();
+    }
+
+    // Check if this booking prevents new bookings
+    public function preventsNewBookings(): bool
+    {
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_APPROVED, self::STATUS_ACTIVE]);
+    }
 }

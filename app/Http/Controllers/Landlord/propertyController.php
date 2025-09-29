@@ -22,44 +22,78 @@ class PropertyController extends Controller
             abort(403, 'Only landlords can access this area');
         }
 
-        $query = Property::where('user_id', auth()->id())
-            ->with(['images', 'deletionRequest' => function($q) {
-                $q->where('status', 'pending');
-            }]);
+        try {
+            $query = Property::where('user_id', auth()->id())
+                ->with([
+                    'images' => function($query) {
+                        $query->select('id', 'property_id', 'image_path', 'alt_text', 'is_cover')
+                              ->orderBy('sort_order');
+                    },
+                    'deletionRequest' => function($q) {
+                        $q->where('status', 'pending')
+                          ->select('id', 'property_id', 'status', 'reason', 'created_at');
+                    }
+                ]);
 
-        // Apply search filter
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('title', 'like', "%{$searchTerm}%")
-                  ->orWhere('description', 'like', "%{$searchTerm}%")
-                  ->orWhere('location_text', 'like', "%{$searchTerm}%")
-                  ->orWhere('address_line', 'like', "%{$searchTerm}%")
-                  ->orWhere('city', 'like', "%{$searchTerm}%");
-            });
-        }
-
-        // Apply status filter
-        if ($request->filled('status')) {
-            $status = $request->status;
-            if (in_array($status, ['approved', 'pending', 'rejected'])) {
-                $query->where('approval_status', $status);
+            // Apply search filter
+            if ($request->filled('search')) {
+                $searchTerm = $request->search;
+                $query->where(function($q) use ($searchTerm) {
+                    $q->where('title', 'like', "%{$searchTerm}%")
+                      ->orWhere('description', 'like', "%{$searchTerm}%")
+                      ->orWhere('location_text', 'like', "%{$searchTerm}%")
+                      ->orWhere('address_line', 'like', "%{$searchTerm}%")
+                      ->orWhere('city', 'like', "%{$searchTerm}%");
+                });
             }
+
+            // Apply status filter
+            if ($request->filled('status')) {
+                $status = $request->status;
+                if (in_array($status, ['approved', 'pending', 'rejected'])) {
+                    $query->where('approval_status', $status);
+                }
+            }
+
+            // Apply sorting (most recent first by default)
+            $query->latest();
+
+            // Paginate results
+            $properties = $query->paginate(10)->withQueryString();
+
+            $statuses = [
+                'approved' => 'Approved',
+                'pending' => 'Pending Approval',
+                'rejected' => 'Rejected',
+            ];
+
+            return view('landlord.properties.index', compact('properties', 'statuses'));
+
+        } catch (\Exception $e) {
+            Log::error('Landlord Properties Index Error: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Fallback with empty collection
+            $properties = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect([]),
+                0,
+                10,
+                1,
+                ['path' => request()->url(), 'pageName' => 'page']
+            );
+
+            $statuses = [
+                'approved' => 'Approved',
+                'pending' => 'Pending Approval',
+                'rejected' => 'Rejected',
+            ];
+
+            session()->flash('error', 'Unable to load properties. Please try again or contact support.');
+
+            return view('landlord.properties.index', compact('properties', 'statuses'));
         }
-
-        // Apply sorting (most recent first by default)
-        $query->latest();
-
-        // Paginate results
-        $properties = $query->paginate(10)->withQueryString();
-
-        $statuses = [
-            'approved' => 'Approved',
-            'pending' => 'Pending Approval',
-            'rejected' => 'Rejected',
-        ];
-
-        return view('landlord.properties.index', compact('properties', 'statuses'));
     }
 
     public function create()
@@ -158,6 +192,28 @@ class PropertyController extends Controller
                 'rooms.*.name' => 'nullable|string|max:255',
                 'rooms.*.capacity' => 'nullable|integer|min:1|max:10',
                 'rooms.*.description' => 'nullable|string|max:500',
+                'room_details' => 'nullable|array',
+                'room_details.*' => 'nullable|array',
+                'room_details.*.description' => 'nullable|string|max:1000',
+                'room_details.*.size_sqm' => 'nullable|numeric|min:0',
+                'room_details.*.price' => 'nullable|numeric|min:0',
+                'room_details.*.furnished_status' => 'nullable|string|in:furnished,semi_furnished,unfurnished',
+                'room_details.*.bathroom_type' => 'nullable|string|in:private,shared,communal',
+                'room_details.*.flooring_type' => 'nullable|string|in:tile,wood,concrete,carpet,vinyl',
+                'room_details.*.ac_type' => 'nullable|string|in:central,split,window,ceiling_fan,none',
+                'room_details.*.internet_speed_mbps' => 'nullable|integer|min:0',
+                'room_details.*.storage_space' => 'nullable|string|in:closet,wardrobe,built_in,none',
+                'room_details.*.has_kitchenette' => 'nullable|boolean',
+                'room_details.*.has_refrigerator' => 'nullable|boolean',
+                'room_details.*.has_study_desk' => 'nullable|boolean',
+                'room_details.*.has_balcony' => 'nullable|boolean',
+                'room_details.*.security_deposit' => 'nullable|numeric|min:0',
+                'room_details.*.advance_payment_months' => 'nullable|integer|min:1|max:12',
+                'room_details.*.minimum_stay_months' => 'nullable|integer|min:1|max:24',
+                'room_details.*.pets_allowed' => 'nullable|boolean',
+                'room_details.*.smoking_allowed' => 'nullable|boolean',
+                'room_details.*.house_rules' => 'nullable|string|max:1000',
+                'room_details.*.included_utilities' => 'nullable|string',
                 'room_images' => 'nullable|array',
                 'room_images.*' => 'nullable|array|max:5',
                 'room_images.*.*' => 'image|mimes:jpeg,jpg,png,webp|max:5120',
@@ -303,7 +359,8 @@ class PropertyController extends Controller
                 if (!empty($validated['rooms'])) {
                     // Create rooms from user input
                     foreach ($validated['rooms'] as $index => $roomData) {
-                        $room = Room::create([
+                        // Prepare room data with enhanced details if available
+                        $roomCreateData = [
                             'property_id' => $property->id,
                             'room_number' => trim($roomData['name']),
                             'room_type' => 'shared', // Default room type
@@ -311,7 +368,54 @@ class PropertyController extends Controller
                             'description' => !empty($roomData['description']) ? trim($roomData['description']) : null,
                             'capacity' => (int) $roomData['capacity'], // Ensure integer conversion
                             'status' => 'available',
-                        ]);
+                        ];
+
+                        // Add enhanced room details if provided
+                        $roomDetails = $validated['room_details'][$index] ?? null;
+                        if ($roomDetails) {
+                            // Override description with detailed description if provided
+                            if (!empty($roomDetails['description'])) {
+                                $roomCreateData['description'] = trim($roomDetails['description']);
+                            }
+
+                            // Override price with room-specific price if provided
+                            if (!empty($roomDetails['price'])) {
+                                $roomCreateData['price'] = $roomDetails['price'];
+                            }
+
+                            // Add all enhanced fields
+                            $enhancedFields = [
+                                'size_sqm', 'furnished_status', 'bathroom_type', 'flooring_type',
+                                'ac_type', 'internet_speed_mbps', 'storage_space', 'security_deposit',
+                                'advance_payment_months', 'minimum_stay_months', 'house_rules'
+                            ];
+
+                            foreach ($enhancedFields as $field) {
+                                if (isset($roomDetails[$field]) && $roomDetails[$field] !== '') {
+                                    $roomCreateData[$field] = $roomDetails[$field];
+                                }
+                            }
+
+                            // Handle boolean fields
+                            $booleanFields = [
+                                'has_kitchenette', 'has_refrigerator', 'has_study_desk',
+                                'has_balcony', 'pets_allowed', 'smoking_allowed'
+                            ];
+
+                            foreach ($booleanFields as $field) {
+                                if (isset($roomDetails[$field])) {
+                                    $roomCreateData[$field] = (bool) $roomDetails[$field];
+                                }
+                            }
+
+                            // Handle included utilities JSON
+                            if (isset($roomDetails['included_utilities']) && $roomDetails['included_utilities'] !== '') {
+                                $utilities = json_decode($roomDetails['included_utilities'], true);
+                                $roomCreateData['included_utilities'] = $utilities ?: null;
+                            }
+                        }
+
+                        $room = Room::create($roomCreateData);
 
                         // Handle room images if provided
                         if ($request->hasFile("room_images.{$index}")) {
