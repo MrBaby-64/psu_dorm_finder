@@ -263,7 +263,7 @@
                         <input type="password" name="password_confirmation" required class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
                     </div>
 
-                    <!-- reCAPTCHA - Simple "I'm not a robot" checkbox -->
+                    <!-- reCAPTCHA - Simple "I'm not a robot" checkbox (shown for both tenant and landlord) -->
                     <div class="flex justify-center">
                         <div class="w-full">
                             <div class="flex justify-center mb-4">
