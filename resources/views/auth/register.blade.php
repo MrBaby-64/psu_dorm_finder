@@ -263,12 +263,17 @@
                         <input type="password" name="password_confirmation" required class="w-full px-4 py-3 border-2 rounded-xl focus:border-green-500 focus:outline-none">
                     </div>
 
-                    <!-- reCAPTCHA - Simple "I'm not a robot" checkbox (shown for both tenant and landlord) -->
-                    <div class="flex justify-center">
+                    <!-- DEBUG: Test if this section renders at all -->
+                    <div class="flex justify-center" style="background-color: red; padding: 10px; margin: 10px 0;">
                         <div class="w-full">
+                            <h3 style="color: white; text-align: center;">🔧 DEBUG: This section should be visible!</h3>
+
+                            <!-- reCAPTCHA - Simple "I'm not a robot" checkbox (shown for both tenant and landlord) -->
                             <div class="flex justify-center mb-4">
                                 <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                                     <p class="text-blue-800 text-center font-medium mb-3">🔒 Security Verification Required</p>
+                                    <p style="color: purple; text-align: center;">Config sitekey: {{ config('captcha.sitekey') ?: 'MISSING' }}</p>
+
                                     @if(config('captcha.sitekey'))
                                         <div id="recaptcha-container" class="flex justify-center">
                                             <div class="g-recaptcha" data-sitekey="{{ config('captcha.sitekey') }}"></div>
