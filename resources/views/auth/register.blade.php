@@ -295,7 +295,7 @@
                     <button type="button" onclick="goBack()" class="flex-1 bg-gray-200 py-3 rounded-xl font-semibold hover:bg-gray-300">
                         Back
                     </button>
-                    <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 shadow-lg">
+                    <button type="submit" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 shadow-lg" onclick="console.log('🔧 DEBUG: Submit button clicked!');">
                         Sign Up
                     </button>
                 </div>
@@ -362,6 +362,21 @@
 
 @push('scripts')
 <script src="https://www.google.com/recaptcha/api.js?onload=initMainRecaptcha&render=explicit" async defer></script>
+<script>
+    // Test if JavaScript is working
+    console.log('🔧 DEBUG: JavaScript is loading...');
+
+    // Test form submission handler immediately
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔧 DEBUG: DOM loaded, checking form...');
+        const form = document.querySelector('form[action*="register"]');
+        console.log('🔧 DEBUG: Form found:', !!form);
+        if (form) {
+            console.log('🔧 DEBUG: Form onsubmit:', form.onsubmit);
+            console.log('🔧 DEBUG: Form action:', form.action);
+        }
+    });
+</script>
 <script>
     let mainRecaptchaWidgetId = null;
     let mainPendingFormData = null;
