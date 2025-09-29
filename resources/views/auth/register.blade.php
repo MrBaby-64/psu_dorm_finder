@@ -266,8 +266,15 @@
                     <!-- reCAPTCHA - Simple "I'm not a robot" checkbox -->
                     <div class="flex justify-center">
                         <div class="w-full">
-                            <div class="flex justify-center">
-                                <div class="g-recaptcha" data-sitekey="{{ config('captcha.sitekey') }}"></div>
+                            <div class="flex justify-center mb-4">
+                                @if(config('captcha.sitekey'))
+                                    <div class="g-recaptcha" data-sitekey="{{ config('captcha.sitekey') }}"></div>
+                                @else
+                                    <div class="p-4 bg-yellow-50 border border-yellow-300 rounded-lg text-center">
+                                        <p class="text-yellow-800">⚠️ reCAPTCHA not configured. Please check your .env file.</p>
+                                        <p class="text-sm text-yellow-600 mt-1">NOCAPTCHA_SITEKEY is missing</p>
+                                    </div>
+                                @endif
                             </div>
                             @error('g-recaptcha-response')
                                 <div class="mt-3 p-3 bg-red-50 border border-red-300 rounded-lg text-center">
@@ -301,6 +308,27 @@
 @push('scripts')
 <!-- Simple reCAPTCHA v2 - "I'm not a robot" checkbox -->
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script>
+    // Debug reCAPTCHA loading
+    console.log('reCAPTCHA: Script loaded');
+    console.log('reCAPTCHA: Site key = {{ config('captcha.sitekey') }}');
+
+    // Check if reCAPTCHA loaded after page is ready
+    window.addEventListener('load', function() {
+        setTimeout(function() {
+            if (typeof grecaptcha !== 'undefined') {
+                console.log('reCAPTCHA: Google reCAPTCHA API loaded successfully');
+            } else {
+                console.error('reCAPTCHA: Failed to load Google reCAPTCHA API');
+                // Show fallback message
+                const recaptchaDiv = document.querySelector('.g-recaptcha');
+                if (recaptchaDiv) {
+                    recaptchaDiv.innerHTML = '<div class="p-4 bg-red-50 border border-red-300 rounded-lg text-center"><p class="text-red-800">❌ reCAPTCHA failed to load. Please refresh the page.</p></div>';
+                }
+            }
+        }, 3000);
+    });
+</script>
 <script>
     function selectRole(role) {
         console.log('=== selectRole function called with role:', role, '===');
