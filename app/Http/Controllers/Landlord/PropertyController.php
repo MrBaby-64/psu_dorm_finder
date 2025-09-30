@@ -54,9 +54,14 @@ class PropertyController extends Controller
             $totalResult = DB::select($countSql, $bindings);
             $total = $totalResult[0]->total ?? 0;
 
-            // Get properties - cast city to TEXT for PostgreSQL compatibility
-            $sql = "SELECT id, title, description, price, room_count, approval_status,
-                           location_text, CAST(city AS TEXT) as city, is_featured,
+            // Get properties - PostgreSQL compatible query
+            $sql = "SELECT id, title, description,
+                           CAST(price AS DECIMAL(10,2)) as price,
+                           room_count,
+                           CAST(approval_status AS TEXT) as approval_status,
+                           location_text,
+                           CAST(city AS TEXT) as city,
+                           COALESCE(is_featured, false) as is_featured,
                            created_at, updated_at
                     FROM properties
                     WHERE {$whereClause}
@@ -67,7 +72,8 @@ class PropertyController extends Controller
 
             // Load related data for each property
             foreach ($propertiesData as $property) {
-                // Load images - same as localhost
+                // Load images - always safe
+                $property->images = collect([]);
                 try {
                     $imagesSql = "SELECT id, property_id, image_path, alt_text as description,
                                          is_cover, sort_order
@@ -76,19 +82,21 @@ class PropertyController extends Controller
                                   ORDER BY sort_order, id";
                     $property->images = collect(DB::select($imagesSql, [$property->id]));
                 } catch (\Exception $e) {
-                    Log::error('Image load error for property ' . $property->id . ': ' . $e->getMessage());
-                    $property->images = collect([]);
+                    // Silent fail - images optional
                 }
 
-                // Load deletion request - same as localhost
+                // Deletion request - always safe
+                $property->deletionRequest = null;
                 try {
-                    $deletionSql = "SELECT * FROM property_deletion_requests
-                                   WHERE property_id = ? AND status = 'pending'
-                                   LIMIT 1";
-                    $deletionResults = DB::select($deletionSql, [$property->id]);
-                    $property->deletionRequest = !empty($deletionResults) ? $deletionResults[0] : null;
+                    if (Schema::hasTable('property_deletion_requests')) {
+                        $deletionSql = "SELECT * FROM property_deletion_requests
+                                       WHERE property_id = ? AND status = 'pending'
+                                       LIMIT 1";
+                        $deletionResults = DB::select($deletionSql, [$property->id]);
+                        $property->deletionRequest = !empty($deletionResults) ? $deletionResults[0] : null;
+                    }
                 } catch (\Exception $e) {
-                    $property->deletionRequest = null;
+                    // Silent fail - deletion request optional
                 }
 
                 // Convert is_featured to boolean
@@ -123,8 +131,13 @@ class PropertyController extends Controller
 
             // Fallback - still show something to user
             try {
-                $fallbackSql = "SELECT id, title, description, price, room_count, approval_status,
-                                       location_text, CAST(city AS TEXT) as city, is_featured,
+                $fallbackSql = "SELECT id, title, description,
+                                       CAST(price AS DECIMAL(10,2)) as price,
+                                       room_count,
+                                       CAST(approval_status AS TEXT) as approval_status,
+                                       location_text,
+                                       CAST(city AS TEXT) as city,
+                                       COALESCE(is_featured, false) as is_featured,
                                        created_at, updated_at
                                 FROM properties
                                 WHERE user_id = ?
@@ -133,10 +146,11 @@ class PropertyController extends Controller
 
                 $fallbackData = DB::select($fallbackSql, [auth()->id()]);
 
+                // Add safe defaults
                 foreach ($fallbackData as $property) {
                     $property->images = collect([]);
                     $property->deletionRequest = null;
-                    $property->is_featured = (bool)($property->is_featured ?? false);
+                    $property->is_featured = isset($property->is_featured) ? (bool)$property->is_featured : false;
                 }
 
                 $properties = new \Illuminate\Pagination\LengthAwarePaginator(
