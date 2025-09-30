@@ -26,41 +26,59 @@ class PropertyController extends Controller
         try {
             $userId = auth()->id();
 
-            // Ultra-simple raw SQL query
-            $sql = "SELECT * FROM properties WHERE user_id = ? ORDER BY created_at DESC LIMIT 50";
-            $propertiesData = DB::select($sql, [$userId]);
+            // Use Laravel Query Builder for reliability
+            $query = DB::table('properties')
+                ->where('user_id', $userId)
+                ->select('id', 'title', 'description', 'price', 'room_count',
+                        'approval_status', 'location_text', 'city', 'created_at', 'updated_at')
+                ->orderBy('created_at', 'DESC');
 
-            // Add required properties to each item
-            foreach ($propertiesData as $property) {
+            // Apply search filter
+            if ($request->filled('search')) {
+                $searchTerm = '%' . strtolower($request->search) . '%';
+                $query->where(function($q) use ($searchTerm) {
+                    $q->whereRaw('LOWER(title) LIKE ?', [$searchTerm])
+                      ->orWhereRaw('LOWER(description) LIKE ?', [$searchTerm])
+                      ->orWhereRaw('LOWER(location_text) LIKE ?', [$searchTerm]);
+                });
+            }
+
+            // Apply status filter
+            if ($request->filled('status') && in_array($request->status, ['approved', 'pending', 'rejected'])) {
+                $query->where('approval_status', $request->status);
+            }
+
+            $properties = $query->paginate(10)->withQueryString();
+
+            // Load images for each property - silent fail if error
+            foreach ($properties as $property) {
                 $property->images = collect([]);
                 $property->deletionRequest = null;
                 $property->is_featured = false;
 
-                // Try to load images but don't fail if it doesn't work
                 try {
-                    $imgs = DB::select("SELECT * FROM property_images WHERE property_id = ? ORDER BY sort_order", [$property->id]);
-                    if ($imgs) {
-                        $property->images = collect($imgs);
-                    }
+                    $imgs = DB::table('property_images')
+                        ->where('property_id', $property->id)
+                        ->select('id', 'property_id', 'image_path', 'alt_text', 'is_cover', 'sort_order')
+                        ->orderBy('sort_order')
+                        ->get();
+
+                    $property->images = $imgs;
                 } catch (\Exception $e) {
-                    // Continue without images
+                    // Continue - images are optional
+                }
+
+                try {
+                    $delReq = DB::table('property_deletion_requests')
+                        ->where('property_id', $property->id)
+                        ->where('status', 'pending')
+                        ->first();
+
+                    $property->deletionRequest = $delReq;
+                } catch (\Exception $e) {
+                    // Continue - deletion request is optional
                 }
             }
-
-            // Simple pagination
-            $perPage = 10;
-            $page = $request->get('page', 1);
-            $offset = ($page - 1) * $perPage;
-
-            $paginatedData = array_slice($propertiesData, $offset, $perPage);
-
-            $properties = new \Illuminate\Pagination\LengthAwarePaginator(
-                $paginatedData,
-                count($propertiesData),
-                $perPage,
-                $page,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
 
             $statuses = [
                 'approved' => 'Approved',
@@ -71,12 +89,15 @@ class PropertyController extends Controller
             return view('landlord.properties.index', compact('properties', 'statuses'));
 
         } catch (\Exception $e) {
-            // Log error
-            Log::error('Properties index failed: ' . $e->getMessage());
+            Log::error('Landlord Properties Index Error', [
+                'user' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
-            // Return empty view rather than crash
+            // Fallback to empty list
             $properties = new \Illuminate\Pagination\LengthAwarePaginator(
-                [],
+                collect([]),
                 0,
                 10,
                 1,
@@ -89,7 +110,7 @@ class PropertyController extends Controller
                 'rejected' => 'Rejected',
             ];
 
-            session()->flash('error', 'Unable to load properties. Please try again or contact support.');
+            session()->flash('error', 'Unable to load properties. Please try again.');
 
             return view('landlord.properties.index', compact('properties', 'statuses'));
         }
