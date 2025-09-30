@@ -128,22 +128,32 @@ Route::delete('/scheduled-visits/{visit}', [App\Http\Controllers\ScheduledVisitC
 Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(function () {
     Route::get('/account', [\App\Http\Controllers\Landlord\AccountController::class, 'index'])->name('account');
     
-    // Property management - Enhanced with fallback system
+    // Property management - Triple fallback system
     Route::get('/properties', function() {
         try {
-            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->index();
+            return app(\App\Http\Controllers\Landlord\PropertyController::class)->index(request());
         } catch (\Exception $e) {
-            \Log::error('Enhanced PropertyController failed, using simplified: ' . $e->getMessage());
-            return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->index();
+            \Log::error('Primary PropertyController failed: ' . $e->getMessage());
+            try {
+                return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->index();
+            } catch (\Exception $e2) {
+                \Log::error('Simplified PropertyController failed, using minimal: ' . $e2->getMessage());
+                return app(\App\Http\Controllers\Landlord\PropertyControllerMinimal::class)->index(request());
+            }
         }
     })->name('properties.index');
 
     Route::get('/properties/create', function() {
         try {
-            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->create();
+            return app(\App\Http\Controllers\Landlord\PropertyController::class)->create();
         } catch (\Exception $e) {
-            \Log::error('Enhanced PropertyController create failed, using simplified: ' . $e->getMessage());
-            return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->create();
+            \Log::error('Primary PropertyController create failed: ' . $e->getMessage());
+            try {
+                return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->create();
+            } catch (\Exception $e2) {
+                \Log::error('Simplified create failed, using minimal: ' . $e2->getMessage());
+                return app(\App\Http\Controllers\Landlord\PropertyControllerMinimal::class)->create();
+            }
         }
     })->name('properties.create');
 
@@ -235,13 +245,18 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         }
     })->name('account');
     
-    // Dashboard - Simplified fallback
+    // Dashboard - Triple fallback system
     Route::get('/', function() {
         try {
             return app(\App\Http\Controllers\Admin\DashboardController::class)->index();
         } catch (\Exception $e) {
-            \Log::error('Primary Admin Dashboard failed, using simplified: ' . $e->getMessage());
-            return app(\App\Http\Controllers\Admin\DashboardControllerSimplified::class)->index();
+            \Log::error('Primary Admin Dashboard failed: ' . $e->getMessage());
+            try {
+                return app(\App\Http\Controllers\Admin\DashboardControllerSimplified::class)->index();
+            } catch (\Exception $e2) {
+                \Log::error('Simplified Dashboard failed, using minimal: ' . $e2->getMessage());
+                return app(\App\Http\Controllers\Admin\DashboardControllerMinimal::class)->index();
+            }
         }
     })->name('dashboard');
     
