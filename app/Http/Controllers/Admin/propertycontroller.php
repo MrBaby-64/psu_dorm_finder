@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\PropertyDeletionRequest;
 use App\Models\AuditLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -25,27 +26,33 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // ULTRA SIMPLE - just get properties without relationships
-            $properties = Property::where('approval_status', 'pending')
+            // Simplified query - just load properties with user relationship
+            $properties = Property::with(['landlord' => function($query) {
+                    $query->select('id', 'name', 'email', 'role');
+                }])
+                ->where('approval_status', 'pending')
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);
 
             return view('admin.properties.pending', ['properties' => $properties]);
 
         } catch (\Exception $e) {
-            Log::error('Admin pending properties FAILED', [
+            Log::error('Admin pending properties error', [
                 'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // Show error to help debug
-            return response()->json([
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
+            // Fallback: try without relationships
+            try {
+                $properties = Property::where('approval_status', 'pending')
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(10);
+
+                return view('admin.properties.pending', ['properties' => $properties]);
+            } catch (\Exception $e2) {
+                Log::error('Fallback also failed: ' . $e2->getMessage());
+                return redirect()->route('admin.dashboard')->with('error', 'Unable to load pending properties: ' . $e->getMessage());
+            }
         }
     }
 
@@ -56,11 +63,13 @@ class PropertyController extends Controller
         try {
             DB::beginTransaction();
 
-            // Use Eloquent like localhost
-            $property->update([
-                'approval_status' => 'approved',
-                'rejection_reason' => null,
-            ]);
+            // Store title before update for logging
+            $propertyTitle = $property->title;
+
+            // Update property status
+            $property->approval_status = 'approved';
+            $property->rejection_reason = null;
+            $property->save();
 
             // Log the action
             try {
@@ -69,7 +78,7 @@ class PropertyController extends Controller
                     'action' => 'approve_property',
                     'subject_type' => 'App\Models\Property',
                     'subject_id' => $property->id,
-                    'meta_json' => json_encode(['property_title' => $property->title])
+                    'meta_json' => json_encode(['property_title' => $propertyTitle])
                 ]);
             } catch (\Exception $e) {
                 Log::warning('Audit log failed: ' . $e->getMessage());
@@ -81,8 +90,12 @@ class PropertyController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Property approval error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to approve property.');
+            Log::error('Property approval error', [
+                'error' => $e->getMessage(),
+                'property_id' => $property->id ?? 'unknown',
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Failed to approve property: ' . $e->getMessage());
         }
     }
 
@@ -97,11 +110,13 @@ class PropertyController extends Controller
         try {
             DB::beginTransaction();
 
-            // Use Eloquent like localhost
-            $property->update([
-                'approval_status' => 'rejected',
-                'rejection_reason' => $request->rejection_reason,
-            ]);
+            // Store title before update for logging
+            $propertyTitle = $property->title;
+
+            // Update property status
+            $property->approval_status = 'rejected';
+            $property->rejection_reason = $request->rejection_reason;
+            $property->save();
 
             // Log the action
             try {
@@ -111,7 +126,7 @@ class PropertyController extends Controller
                     'subject_type' => 'App\Models\Property',
                     'subject_id' => $property->id,
                     'meta_json' => json_encode([
-                        'property_title' => $property->title,
+                        'property_title' => $propertyTitle,
                         'reason' => $request->rejection_reason
                     ])
                 ]);
@@ -125,8 +140,12 @@ class PropertyController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Property rejection error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to reject property.');
+            Log::error('Property rejection error', [
+                'error' => $e->getMessage(),
+                'property_id' => $property->id ?? 'unknown',
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->back()->with('error', 'Failed to reject property: ' . $e->getMessage());
         }
     }
 
@@ -174,8 +193,22 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // Simple - just get deletion requests without complex filtering
-            $deletionRequests = PropertyDeletionRequest::orderBy('created_at', 'desc')
+            // Simplified query - load only essential relationships
+            $deletionRequests = PropertyDeletionRequest::with([
+                    'property' => function($query) {
+                        $query->select('id', 'title', 'user_id', 'location_text', 'price');
+                    },
+                    'property.images' => function($query) {
+                        $query->select('id', 'property_id', 'url', 'is_cover', 'sort_order')->where('is_cover', true);
+                    },
+                    'landlord' => function($query) {
+                        $query->select('id', 'name', 'email');
+                    },
+                    'reviewer' => function($query) {
+                        $query->select('id', 'name', 'email');
+                    }
+                ])
+                ->orderBy('created_at', 'desc')
                 ->paginate(15);
 
             $statuses = [
@@ -187,18 +220,38 @@ class PropertyController extends Controller
             return view('admin.properties.deletion-requests', compact('deletionRequests', 'statuses'));
 
         } catch (\Exception $e) {
-            Log::error('Admin deletion requests FAILED', [
+            Log::error('Admin deletion requests error', [
                 'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
+                'trace' => $e->getTraceAsString()
             ]);
 
-            // Show error for debugging
-            return response()->json([
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
+            // Fallback: try without images relationship
+            try {
+                $deletionRequests = PropertyDeletionRequest::with([
+                        'property' => function($query) {
+                            $query->select('id', 'title', 'user_id', 'location_text', 'price');
+                        },
+                        'landlord' => function($query) {
+                            $query->select('id', 'name', 'email');
+                        },
+                        'reviewer' => function($query) {
+                            $query->select('id', 'name', 'email');
+                        }
+                    ])
+                    ->orderBy('created_at', 'desc')
+                    ->paginate(15);
+
+                $statuses = [
+                    'pending' => 'Pending Review',
+                    'approved' => 'Approved',
+                    'rejected' => 'Rejected',
+                ];
+
+                return view('admin.properties.deletion-requests', compact('deletionRequests', 'statuses'));
+            } catch (\Exception $e2) {
+                Log::error('Fallback deletion requests also failed: ' . $e2->getMessage());
+                return redirect()->route('admin.dashboard')->with('error', 'Unable to load deletion requests: ' . $e->getMessage());
+            }
         }
     }
 
@@ -214,29 +267,45 @@ class PropertyController extends Controller
         ]);
 
         try {
-            DB::transaction(function () use ($deletionRequest, $request) {
-                // Update deletion request status
-                $deletionRequest->update([
-                    'status' => 'approved',
-                    'admin_notes' => $request->admin_notes,
-                    'reviewed_by' => auth()->id(),
-                    'reviewed_at' => now()
-                ]);
+            DB::beginTransaction();
 
-                // Get property for logging before deletion
-                $property = $deletionRequest->property;
-                $propertyData = [
-                    'id' => $property->id,
-                    'title' => $property->title,
-                    'landlord_id' => $property->user_id,
-                    'location_text' => $property->location_text,
-                    'price' => $property->price
-                ];
+            // Load property first
+            $property = $deletionRequest->property;
 
-                // Delete property and all related data (cascade should handle most)
-                $property->delete();
+            if (!$property) {
+                throw new \Exception('Property not found for this deletion request');
+            }
 
-                // Log the deletion approval
+            // Store property data before deletion
+            $propertyData = [
+                'id' => $property->id,
+                'title' => $property->title,
+                'landlord_id' => $property->user_id,
+                'location_text' => $property->location_text,
+                'price' => $property->price
+            ];
+
+            // Load landlord name separately to avoid relationship issues
+            $landlordName = 'Unknown';
+            try {
+                $landlord = User::find($deletionRequest->landlord_id);
+                $landlordName = $landlord ? $landlord->name : 'Unknown';
+            } catch (\Exception $e) {
+                Log::warning('Could not load landlord: ' . $e->getMessage());
+            }
+
+            // Update deletion request status
+            $deletionRequest->status = 'approved';
+            $deletionRequest->admin_notes = $request->admin_notes;
+            $deletionRequest->reviewed_by = auth()->id();
+            $deletionRequest->reviewed_at = now();
+            $deletionRequest->save();
+
+            // Delete property and all related data (cascade should handle most)
+            $property->delete();
+
+            // Log the deletion approval
+            try {
                 AuditLog::create([
                     'user_id' => auth()->id(),
                     'action' => 'approve_property_deletion',
@@ -246,33 +315,40 @@ class PropertyController extends Controller
                         'property_data' => $propertyData,
                         'deletion_reason' => $deletionRequest->reason,
                         'admin_notes' => $request->admin_notes,
-                        'requested_by' => $deletionRequest->landlord->name ?? 'Unknown'
+                        'requested_by' => $landlordName
                     ])
                 ]);
+            } catch (\Exception $e) {
+                Log::warning('Audit log failed: ' . $e->getMessage());
+            }
 
-                Log::info('Property deletion approved by admin', [
-                    'admin_id' => auth()->id(),
-                    'admin_name' => auth()->user()->name,
-                    'deletion_request_id' => $deletionRequest->id,
-                    'property_data' => $propertyData,
-                    'landlord_id' => $deletionRequest->landlord_id,
-                    'reason' => $deletionRequest->reason,
-                    'admin_notes' => $request->admin_notes,
-                    'approved_at' => now()
-                ]);
-            });
+            Log::info('Property deletion approved by admin', [
+                'admin_id' => auth()->id(),
+                'admin_name' => auth()->user()->name,
+                'deletion_request_id' => $deletionRequest->id,
+                'property_data' => $propertyData,
+                'landlord_id' => $deletionRequest->landlord_id,
+                'reason' => $deletionRequest->reason,
+                'admin_notes' => $request->admin_notes,
+                'approved_at' => now()
+            ]);
+
+            DB::commit();
 
             return redirect()->route('admin.properties.deletion-requests')
                 ->with('success', 'Property deletion request approved successfully! The property has been permanently deleted.');
 
         } catch (\Exception $e) {
+            DB::rollBack();
+
             Log::error('Failed to approve property deletion', [
-                'deletion_request_id' => $deletionRequest->id,
+                'deletion_request_id' => $deletionRequest->id ?? 'unknown',
                 'admin_id' => auth()->id(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
-            return back()->withErrors(['general' => 'Failed to approve deletion request. Please try again.']);
+            return back()->with('error', 'Failed to approve deletion request: ' . $e->getMessage());
         }
     }
 
@@ -290,51 +366,81 @@ class PropertyController extends Controller
         ]);
 
         try {
-            $deletionRequest->update([
-                'status' => 'rejected',
-                'admin_notes' => $request->admin_notes,
-                'reviewed_by' => auth()->id(),
-                'reviewed_at' => now()
-            ]);
+            DB::beginTransaction();
+
+            // Get property title and landlord name separately
+            $propertyTitle = 'Unknown';
+            $landlordName = 'Unknown';
+
+            try {
+                if ($deletionRequest->property) {
+                    $propertyTitle = $deletionRequest->property->title;
+                }
+            } catch (\Exception $e) {
+                Log::warning('Could not load property: ' . $e->getMessage());
+            }
+
+            try {
+                $landlord = User::find($deletionRequest->landlord_id);
+                $landlordName = $landlord ? $landlord->name : 'Unknown';
+            } catch (\Exception $e) {
+                Log::warning('Could not load landlord: ' . $e->getMessage());
+            }
+
+            // Update deletion request
+            $deletionRequest->status = 'rejected';
+            $deletionRequest->admin_notes = $request->admin_notes;
+            $deletionRequest->reviewed_by = auth()->id();
+            $deletionRequest->reviewed_at = now();
+            $deletionRequest->save();
 
             // Log the rejection
-            AuditLog::create([
-                'user_id' => auth()->id(),
-                'action' => 'reject_property_deletion',
-                'subject_type' => 'App\Models\PropertyDeletionRequest',
-                'subject_id' => $deletionRequest->id,
-                'meta_json' => json_encode([
-                    'property_title' => $deletionRequest->property->title ?? 'Unknown',
-                    'property_id' => $deletionRequest->property_id,
-                    'deletion_reason' => $deletionRequest->reason,
-                    'rejection_reason' => $request->admin_notes,
-                    'requested_by' => $deletionRequest->landlord->name ?? 'Unknown'
-                ])
-            ]);
+            try {
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'action' => 'reject_property_deletion',
+                    'subject_type' => 'App\Models\PropertyDeletionRequest',
+                    'subject_id' => $deletionRequest->id,
+                    'meta_json' => json_encode([
+                        'property_title' => $propertyTitle,
+                        'property_id' => $deletionRequest->property_id,
+                        'deletion_reason' => $deletionRequest->reason,
+                        'rejection_reason' => $request->admin_notes,
+                        'requested_by' => $landlordName
+                    ])
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Audit log failed: ' . $e->getMessage());
+            }
 
             Log::info('Property deletion rejected by admin', [
                 'admin_id' => auth()->id(),
                 'admin_name' => auth()->user()->name,
                 'deletion_request_id' => $deletionRequest->id,
                 'property_id' => $deletionRequest->property_id,
-                'property_title' => $deletionRequest->property->title ?? 'Unknown',
+                'property_title' => $propertyTitle,
                 'landlord_id' => $deletionRequest->landlord_id,
                 'landlord_reason' => $deletionRequest->reason,
                 'admin_notes' => $request->admin_notes,
                 'rejected_at' => now()
             ]);
 
+            DB::commit();
+
             return redirect()->route('admin.properties.deletion-requests')
                 ->with('success', 'Property deletion request rejected. The landlord will be notified with your feedback.');
 
         } catch (\Exception $e) {
+            DB::rollBack();
+
             Log::error('Failed to reject property deletion', [
-                'deletion_request_id' => $deletionRequest->id,
+                'deletion_request_id' => $deletionRequest->id ?? 'unknown',
                 'admin_id' => auth()->id(),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
 
-            return back()->withErrors(['general' => 'Failed to reject deletion request. Please try again.']);
+            return back()->with('error', 'Failed to reject deletion request: ' . $e->getMessage());
         }
     }
 
