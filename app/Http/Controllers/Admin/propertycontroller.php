@@ -25,8 +25,8 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // Use Eloquent like localhost
-            $properties = Property::with('landlord:id,name,email')
+            // Use Eloquent like localhost - load full landlord relationship
+            $properties = Property::with('landlord')
                 ->where('approval_status', 'pending')
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);

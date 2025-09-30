@@ -22,8 +22,8 @@ class MessageController extends Controller
         $this->checkAdmin();
 
         try {
-            // Use Eloquent like localhost
-            $query = AdminMessage::with('sender:id,name,email');
+            // Use Eloquent like localhost - load full sender relationship
+            $query = AdminMessage::with('sender');
 
             // Apply status filter
             if ($request->filled('status') && in_array($request->status, ['unread', 'read', 'resolved'])) {
