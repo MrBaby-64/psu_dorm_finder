@@ -56,11 +56,13 @@ class PropertyController extends Controller
         }
     }
 
-    public function approve(Property $property)
+    public function approve($id)
     {
         $this->checkAdmin();
 
         try {
+            $property = Property::findOrFail($id);
+
             DB::beginTransaction();
 
             // Store title before update for logging
@@ -92,14 +94,14 @@ class PropertyController extends Controller
             DB::rollBack();
             Log::error('Property approval error', [
                 'error' => $e->getMessage(),
-                'property_id' => $property->id ?? 'unknown',
+                'property_id' => $id ?? 'unknown',
                 'trace' => $e->getTraceAsString()
             ]);
             return redirect()->back()->with('error', 'Failed to approve property: ' . $e->getMessage());
         }
     }
 
-    public function reject(Request $request, Property $property)
+    public function reject(Request $request, $id)
     {
         $this->checkAdmin();
 
@@ -108,6 +110,8 @@ class PropertyController extends Controller
         ]);
 
         try {
+            $property = Property::findOrFail($id);
+
             DB::beginTransaction();
 
             // Store title before update for logging
@@ -142,47 +146,69 @@ class PropertyController extends Controller
             DB::rollBack();
             Log::error('Property rejection error', [
                 'error' => $e->getMessage(),
-                'property_id' => $property->id ?? 'unknown',
+                'property_id' => $id ?? 'unknown',
                 'trace' => $e->getTraceAsString()
             ]);
             return redirect()->back()->with('error', 'Failed to reject property: ' . $e->getMessage());
         }
     }
 
-    public function verify(Property $property)
+    public function verify($id)
     {
         $this->checkAdmin();
 
-        $property->update(['is_verified' => !$property->is_verified]);
+        try {
+            $property = Property::findOrFail($id);
+            $property->is_verified = !$property->is_verified;
+            $property->save();
 
-        // Log the action
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => $property->is_verified ? 'verify_property' : 'unverify_property',
-            'subject_type' => 'App\Models\Property',
-            'subject_id' => $property->id,
-            'meta_json' => json_encode(['property_title' => $property->title])
-        ]);
+            // Log the action
+            try {
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'action' => $property->is_verified ? 'verify_property' : 'unverify_property',
+                    'subject_type' => 'App\Models\Property',
+                    'subject_id' => $property->id,
+                    'meta_json' => json_encode(['property_title' => $property->title])
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Audit log failed: ' . $e->getMessage());
+            }
 
-        return redirect()->back()->with('success', 'Property verification updated!');
+            return redirect()->back()->with('success', 'Property verification updated!');
+        } catch (\Exception $e) {
+            Log::error('Property verify error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update verification.');
+        }
     }
 
-    public function feature(Property $property)
+    public function feature($id)
     {
         $this->checkAdmin();
 
-        $property->update(['is_featured' => !$property->is_featured]);
+        try {
+            $property = Property::findOrFail($id);
+            $property->is_featured = !$property->is_featured;
+            $property->save();
 
-        // Log the action
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => $property->is_featured ? 'feature_property' : 'unfeature_property',
-            'subject_type' => 'App\Models\Property',
-            'subject_id' => $property->id,
-            'meta_json' => json_encode(['property_title' => $property->title])
-        ]);
+            // Log the action
+            try {
+                AuditLog::create([
+                    'user_id' => auth()->id(),
+                    'action' => $property->is_featured ? 'feature_property' : 'unfeature_property',
+                    'subject_type' => 'App\Models\Property',
+                    'subject_id' => $property->id,
+                    'meta_json' => json_encode(['property_title' => $property->title])
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Audit log failed: ' . $e->getMessage());
+            }
 
-        return redirect()->back()->with('success', 'Featured status updated!');
+            return redirect()->back()->with('success', 'Featured status updated!');
+        } catch (\Exception $e) {
+            Log::error('Property feature error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to update featured status.');
+        }
     }
 
     /**
@@ -258,7 +284,7 @@ class PropertyController extends Controller
     /**
      * Approve property deletion request
      */
-    public function approveDeletion(Request $request, PropertyDeletionRequest $deletionRequest)
+    public function approveDeletion(Request $request, $id)
     {
         $this->checkAdmin();
 
@@ -267,6 +293,8 @@ class PropertyController extends Controller
         ]);
 
         try {
+            $deletionRequest = PropertyDeletionRequest::findOrFail($id);
+
             DB::beginTransaction();
 
             // Load property first
@@ -342,7 +370,7 @@ class PropertyController extends Controller
             DB::rollBack();
 
             Log::error('Failed to approve property deletion', [
-                'deletion_request_id' => $deletionRequest->id ?? 'unknown',
+                'deletion_request_id' => $id ?? 'unknown',
                 'admin_id' => auth()->id(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -355,7 +383,7 @@ class PropertyController extends Controller
     /**
      * Reject property deletion request
      */
-    public function rejectDeletion(Request $request, PropertyDeletionRequest $deletionRequest)
+    public function rejectDeletion(Request $request, $id)
     {
         $this->checkAdmin();
 
@@ -366,6 +394,8 @@ class PropertyController extends Controller
         ]);
 
         try {
+            $deletionRequest = PropertyDeletionRequest::findOrFail($id);
+
             DB::beginTransaction();
 
             // Get property title and landlord name separately
@@ -434,7 +464,7 @@ class PropertyController extends Controller
             DB::rollBack();
 
             Log::error('Failed to reject property deletion', [
-                'deletion_request_id' => $deletionRequest->id ?? 'unknown',
+                'deletion_request_id' => $id ?? 'unknown',
                 'admin_id' => auth()->id(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -447,12 +477,19 @@ class PropertyController extends Controller
     /**
      * View detailed information about a specific deletion request
      */
-    public function viewDeletionRequest(PropertyDeletionRequest $deletionRequest)
+    public function viewDeletionRequest($id)
     {
         $this->checkAdmin();
 
-        $deletionRequest->load(['property.images', 'property.rooms', 'landlord', 'reviewer']);
+        try {
+            $deletionRequest = PropertyDeletionRequest::findOrFail($id);
+            $deletionRequest->load(['property.images', 'property.rooms', 'landlord', 'reviewer']);
 
-        return view('admin.properties.deletion-request-details', compact('deletionRequest'));
+            return view('admin.properties.deletion-request-details', compact('deletionRequest'));
+        } catch (\Exception $e) {
+            Log::error('View deletion request error: ' . $e->getMessage());
+            return redirect()->route('admin.properties.deletion-requests')
+                ->with('error', 'Unable to load deletion request details.');
+        }
     }
 }

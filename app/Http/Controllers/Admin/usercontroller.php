@@ -47,7 +47,7 @@ class UserController extends Controller
         }
     }
 
-    public function updateRole(Request $request, User $user)
+    public function updateRole(Request $request, $id)
     {
         $this->checkAdmin();
 
@@ -56,6 +56,8 @@ class UserController extends Controller
         ]);
 
         try {
+            $user = User::findOrFail($id);
+
             $oldRole = $user->role;
             $userEmail = $user->email;
 
@@ -85,18 +87,20 @@ class UserController extends Controller
         } catch (\Exception $e) {
             \Log::error('User role update error', [
                 'error' => $e->getMessage(),
-                'user_id' => $user->id ?? 'unknown',
+                'user_id' => $id ?? 'unknown',
                 'trace' => $e->getTraceAsString()
             ]);
             return redirect()->back()->with('error', 'Failed to update user role: ' . $e->getMessage());
         }
     }
 
-    public function verify(User $user)
+    public function verify($id)
     {
         $this->checkAdmin();
 
         try {
+            $user = User::findOrFail($id);
+
             $userEmail = $user->email;
 
             // Toggle verification
@@ -123,18 +127,20 @@ class UserController extends Controller
         } catch (\Exception $e) {
             \Log::error('User verification error', [
                 'error' => $e->getMessage(),
-                'user_id' => $user->id ?? 'unknown',
+                'user_id' => $id ?? 'unknown',
                 'trace' => $e->getTraceAsString()
             ]);
             return redirect()->back()->with('error', 'Failed to update user verification: ' . $e->getMessage());
         }
     }
 
-    public function show(User $user)
+    public function show($id)
     {
         $this->checkAdmin();
 
         try {
+            $user = User::findOrFail($id);
+
             // Get user statistics using direct queries for better PostgreSQL compatibility
             $stats = [
                 'total_properties' => 0,
@@ -238,7 +244,7 @@ class UserController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Error loading user details', [
-                'user_id' => $user->id ?? 'unknown',
+                'user_id' => $id ?? 'unknown',
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
