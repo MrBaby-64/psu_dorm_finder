@@ -24,50 +24,34 @@ class PropertyController extends Controller
         }
 
         try {
-            // Start with basic query
-            $query = Property::where('user_id', auth()->id());
+            // PostgreSQL-compatible query using DB facade for reliability
+            $userId = auth()->id();
 
-            // Add relationships that are guaranteed to exist
-            $relationships = [];
+            // Build base query
+            $query = DB::table('properties')
+                ->where('user_id', $userId)
+                ->select([
+                    'properties.id',
+                    'properties.title',
+                    'properties.description',
+                    'properties.price',
+                    'properties.room_count',
+                    'properties.approval_status',
+                    'properties.location_text',
+                    'properties.city',
+                    'properties.created_at',
+                    'properties.updated_at'
+                ]);
 
-            // Check if images table/relationship exists
-            try {
-                if (\Schema::hasTable('property_images')) {
-                    $relationships['images'] = function($query) {
-                        $query->select('id', 'property_id', 'image_path', 'alt_text', 'is_cover')
-                              ->orderBy('sort_order');
-                    };
-                }
-            } catch (\Exception $e) {
-                Log::warning('Property images relationship not available: ' . $e->getMessage());
-            }
-
-            // Check if deletion requests table exists
-            try {
-                if (\Schema::hasTable('property_deletion_requests')) {
-                    $relationships['deletionRequest'] = function($q) {
-                        $q->where('status', 'pending')
-                          ->select('id', 'property_id', 'status', 'reason', 'created_at');
-                    };
-                }
-            } catch (\Exception $e) {
-                Log::warning('Property deletion requests relationship not available: ' . $e->getMessage());
-            }
-
-            // Only add relationships that are available
-            if (!empty($relationships)) {
-                $query->with($relationships);
-            }
-
-            // Apply search filter
+            // Apply search filter (use LIKE for both MySQL and PostgreSQL compatibility)
             if ($request->filled('search')) {
                 $searchTerm = $request->search;
+                // Use DB::raw for case-insensitive search that works on both databases
                 $query->where(function($q) use ($searchTerm) {
-                    $q->where('title', 'like', "%{$searchTerm}%")
-                      ->orWhere('description', 'like', "%{$searchTerm}%")
-                      ->orWhere('location_text', 'like', "%{$searchTerm}%")
-                      ->orWhere('address_line', 'like', "%{$searchTerm}%")
-                      ->orWhere('city', 'like', "%{$searchTerm}%");
+                    $q->whereRaw('LOWER(title) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+                      ->orWhereRaw('LOWER(description) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+                      ->orWhereRaw('LOWER(location_text) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+                      ->orWhereRaw('LOWER(city) LIKE ?', ['%' . strtolower($searchTerm) . '%']);
                 });
             }
 
@@ -80,10 +64,33 @@ class PropertyController extends Controller
             }
 
             // Apply sorting (most recent first by default)
-            $query->latest();
+            $query->orderBy('created_at', 'DESC');
 
             // Paginate results
             $properties = $query->paginate(10)->withQueryString();
+
+            // Load images and deletion requests separately for each property (more reliable)
+            foreach ($properties as $property) {
+                // Load images
+                try {
+                    $property->images = DB::table('property_images')
+                        ->where('property_id', $property->id)
+                        ->orderBy('sort_order')
+                        ->get();
+                } catch (\Exception $e) {
+                    $property->images = collect([]);
+                }
+
+                // Load deletion request if exists
+                try {
+                    $property->deletionRequest = DB::table('property_deletion_requests')
+                        ->where('property_id', $property->id)
+                        ->where('status', 'pending')
+                        ->first();
+                } catch (\Exception $e) {
+                    $property->deletionRequest = null;
+                }
+            }
 
             $statuses = [
                 'approved' => 'Approved',
@@ -104,13 +111,19 @@ class PropertyController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // Try to get basic properties without relationships as fallback
+            // Simplified fallback using direct DB query
             try {
-                $basicProperties = Property::where('user_id', auth()->id())
-                    ->select('id', 'title', 'description', 'price', 'approval_status', 'created_at', 'updated_at')
-                    ->latest()
-                    ->paginate(10)
-                    ->withQueryString();
+                $basicProperties = DB::table('properties')
+                    ->where('user_id', auth()->id())
+                    ->select('id', 'title', 'description', 'price', 'approval_status', 'room_count', 'created_at', 'updated_at')
+                    ->orderBy('created_at', 'DESC')
+                    ->paginate(10);
+
+                // Add empty collections for images
+                foreach ($basicProperties as $property) {
+                    $property->images = collect([]);
+                    $property->deletionRequest = null;
+                }
 
                 $statuses = [
                     'approved' => 'Approved',
@@ -156,13 +169,27 @@ class PropertyController extends Controller
             abort(403);
         }
 
-        $amenities = Amenity::orderBy('name')->get();
+        try {
+            // Use direct DB query for PostgreSQL compatibility
+            $amenities = DB::table('amenities')
+                ->orderBy('name')
+                ->get();
 
-        // Get temp images from session if any
-        $formToken = session('property_form_token');
-        $tempImages = $formToken ? session("temp_images_{$formToken}", []) : [];
+            // Get temp images from session if any
+            $formToken = session('property_form_token');
+            $tempImages = $formToken ? session("temp_images_{$formToken}", []) : [];
 
-        return view('landlord.properties.create', compact('amenities', 'tempImages'));
+            return view('landlord.properties.create', compact('amenities', 'tempImages'));
+
+        } catch (\Exception $e) {
+            Log::error('Property create page error: ' . $e->getMessage());
+
+            // Return with empty amenities on error
+            $amenities = collect([]);
+            $tempImages = [];
+
+            return view('landlord.properties.create', compact('amenities', 'tempImages'));
+        }
     }
 
     public function removeTempImage(Request $request)
