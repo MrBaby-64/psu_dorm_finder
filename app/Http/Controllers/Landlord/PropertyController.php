@@ -26,11 +26,14 @@ class PropertyController extends Controller
         try {
             $userId = auth()->id();
 
-            // Use Laravel Query Builder for reliability
+            // Use Laravel Query Builder with PostgreSQL-safe column selection
             $query = DB::table('properties')
                 ->where('user_id', $userId)
                 ->select('id', 'title', 'description', 'price', 'room_count',
-                        'approval_status', 'location_text', 'city', 'created_at', 'updated_at')
+                        DB::raw('CAST(approval_status AS TEXT) as approval_status'),
+                        'location_text',
+                        DB::raw('CAST(city AS TEXT) as city'),
+                        'created_at', 'updated_at')
                 ->orderBy('created_at', 'DESC');
 
             // Apply search filter
@@ -39,7 +42,8 @@ class PropertyController extends Controller
                 $query->where(function($q) use ($searchTerm) {
                     $q->whereRaw('LOWER(title) LIKE ?', [$searchTerm])
                       ->orWhereRaw('LOWER(description) LIKE ?', [$searchTerm])
-                      ->orWhereRaw('LOWER(location_text) LIKE ?', [$searchTerm]);
+                      ->orWhereRaw('LOWER(location_text) LIKE ?', [$searchTerm])
+                      ->orWhereRaw('LOWER(CAST(city AS TEXT)) LIKE ?', [$searchTerm]);
                 });
             }
 
@@ -59,7 +63,9 @@ class PropertyController extends Controller
                 try {
                     $imgs = DB::table('property_images')
                         ->where('property_id', $property->id)
-                        ->select('id', 'property_id', 'image_path', 'alt_text', 'is_cover', 'sort_order')
+                        ->select('id', 'property_id', 'image_path',
+                                DB::raw('alt_text as description'),
+                                'is_cover', 'sort_order')
                         ->orderBy('sort_order')
                         ->get();
 
