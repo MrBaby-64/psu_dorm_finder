@@ -22,46 +22,15 @@ class MessageController extends Controller
         $this->checkAdmin();
 
         try {
-            // Raw SQL for PostgreSQL compatibility
-            $page = $request->get('page', 1);
-            $perPage = 15;
-            $offset = ($page - 1) * $perPage;
-
-            // Base query with only essential columns
-            $sql = "SELECT am.id, am.subject, am.message, am.status, am.created_at, am.updated_at,
-                           u.name as sender_name, u.email as sender_email
-                    FROM admin_messages am
-                    LEFT JOIN users u ON am.sender_id = u.id
-                    WHERE 1=1";
-
-            $countSql = "SELECT COUNT(*) as count FROM admin_messages WHERE 1=1";
-            $params = [];
+            // Use Eloquent like localhost
+            $query = AdminMessage::with('sender:id,name,email');
 
             // Apply status filter
             if ($request->filled('status') && in_array($request->status, ['unread', 'read', 'resolved'])) {
-                $sql .= " AND am.status = ?";
-                $countSql .= " AND status = ?";
-                $params[] = $request->status;
+                $query->where('status', $request->status);
             }
 
-            $sql .= " ORDER BY am.created_at DESC LIMIT ? OFFSET ?";
-            $params[] = $perPage;
-            $params[] = $offset;
-
-            $messages = \DB::select($sql, $params);
-
-            // Get total count
-            $countParams = array_slice($params, 0, -2); // Remove LIMIT and OFFSET params
-            $total = \DB::select($countSql, $countParams)[0]->count ?? 0;
-
-            // Create paginator
-            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect($messages),
-                $total,
-                $perPage,
-                $page,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
+            $messages = $query->orderBy('created_at', 'desc')->paginate(15);
 
             $statuses = [
                 'unread' => 'Unread',
@@ -69,20 +38,12 @@ class MessageController extends Controller
                 'resolved' => 'Resolved',
             ];
 
-            return view('admin.messages.index', ['messages' => $paginator, 'statuses' => $statuses]);
+            return view('admin.messages.index', ['messages' => $messages, 'statuses' => $statuses]);
 
         } catch (\Exception $e) {
-            Log::error('Admin messages index error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('Admin messages index error: ' . $e->getMessage());
 
-            $messages = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect([]),
-                0,
-                15,
-                1,
-                ['path' => request()->url()]
-            );
+            $messages = AdminMessage::where('id', 0)->paginate(15);
 
             $statuses = [
                 'unread' => 'Unread',
@@ -91,7 +52,7 @@ class MessageController extends Controller
             ];
 
             return view('admin.messages.index', ['messages' => $messages, 'statuses' => $statuses])
-                ->with('error', 'Unable to load messages. Please try again.');
+                ->with('error', 'Unable to load messages.');
         }
     }
 
