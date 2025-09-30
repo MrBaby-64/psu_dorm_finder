@@ -24,89 +24,39 @@ class PropertyController extends Controller
         }
 
         try {
-            // 100% raw SQL for bulletproof PostgreSQL compatibility
             $userId = auth()->id();
+
+            // Ultra-simple raw SQL query
+            $sql = "SELECT * FROM properties WHERE user_id = ? ORDER BY created_at DESC LIMIT 50";
+            $propertiesData = DB::select($sql, [$userId]);
+
+            // Add required properties to each item
+            foreach ($propertiesData as $property) {
+                $property->images = collect([]);
+                $property->deletionRequest = null;
+                $property->is_featured = false;
+
+                // Try to load images but don't fail if it doesn't work
+                try {
+                    $imgs = DB::select("SELECT * FROM property_images WHERE property_id = ? ORDER BY sort_order", [$property->id]);
+                    if ($imgs) {
+                        $property->images = collect($imgs);
+                    }
+                } catch (\Exception $e) {
+                    // Continue without images
+                }
+            }
+
+            // Simple pagination
             $perPage = 10;
             $page = $request->get('page', 1);
             $offset = ($page - 1) * $perPage;
 
-            // Build WHERE conditions
-            $whereConditions = ['user_id = ?'];
-            $bindings = [$userId];
+            $paginatedData = array_slice($propertiesData, $offset, $perPage);
 
-            // Apply search filter
-            if ($request->filled('search')) {
-                $searchTerm = '%' . strtolower($request->search) . '%';
-                $whereConditions[] = '(LOWER(title) LIKE ? OR LOWER(description) LIKE ? OR LOWER(location_text) LIKE ? OR LOWER(CAST(city AS TEXT)) LIKE ?)';
-                $bindings = array_merge($bindings, [$searchTerm, $searchTerm, $searchTerm, $searchTerm]);
-            }
-
-            // Apply status filter
-            if ($request->filled('status') && in_array($request->status, ['approved', 'pending', 'rejected'])) {
-                $whereConditions[] = 'approval_status = ?';
-                $bindings[] = $request->status;
-            }
-
-            $whereClause = implode(' AND ', $whereConditions);
-
-            // Count total for pagination
-            $countSql = "SELECT COUNT(*) as total FROM properties WHERE {$whereClause}";
-            $totalResult = DB::select($countSql, $bindings);
-            $total = $totalResult[0]->total ?? 0;
-
-            // Get properties - PostgreSQL compatible query
-            $sql = "SELECT id, title, description,
-                           CAST(price AS DECIMAL(10,2)) as price,
-                           room_count,
-                           CAST(approval_status AS TEXT) as approval_status,
-                           location_text,
-                           CAST(city AS TEXT) as city,
-                           COALESCE(is_featured, false) as is_featured,
-                           created_at, updated_at
-                    FROM properties
-                    WHERE {$whereClause}
-                    ORDER BY created_at DESC
-                    LIMIT ? OFFSET ?";
-
-            $propertiesData = DB::select($sql, array_merge($bindings, [$perPage, $offset]));
-
-            // Load related data for each property
-            foreach ($propertiesData as $property) {
-                // Load images - always safe
-                $property->images = collect([]);
-                try {
-                    $imagesSql = "SELECT id, property_id, image_path, alt_text as description,
-                                         is_cover, sort_order
-                                  FROM property_images
-                                  WHERE property_id = ?
-                                  ORDER BY sort_order, id";
-                    $property->images = collect(DB::select($imagesSql, [$property->id]));
-                } catch (\Exception $e) {
-                    // Silent fail - images optional
-                }
-
-                // Deletion request - always safe
-                $property->deletionRequest = null;
-                try {
-                    if (Schema::hasTable('property_deletion_requests')) {
-                        $deletionSql = "SELECT * FROM property_deletion_requests
-                                       WHERE property_id = ? AND status = 'pending'
-                                       LIMIT 1";
-                        $deletionResults = DB::select($deletionSql, [$property->id]);
-                        $property->deletionRequest = !empty($deletionResults) ? $deletionResults[0] : null;
-                    }
-                } catch (\Exception $e) {
-                    // Silent fail - deletion request optional
-                }
-
-                // Convert is_featured to boolean
-                $property->is_featured = (bool)($property->is_featured ?? false);
-            }
-
-            // Manual pagination - same behavior as localhost
             $properties = new \Illuminate\Pagination\LengthAwarePaginator(
-                $propertiesData,
-                $total,
+                $paginatedData,
+                count($propertiesData),
                 $perPage,
                 $page,
                 ['path' => $request->url(), 'query' => $request->query()]
@@ -121,58 +71,27 @@ class PropertyController extends Controller
             return view('landlord.properties.index', compact('properties', 'statuses'));
 
         } catch (\Exception $e) {
-            Log::error('Landlord Properties Index Error', [
-                'user_id' => auth()->id(),
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            // Log error
+            Log::error('Properties index failed: ' . $e->getMessage());
 
-            // Fallback - still show something to user
-            try {
-                $fallbackSql = "SELECT id, title, description,
-                                       CAST(price AS DECIMAL(10,2)) as price,
-                                       room_count,
-                                       CAST(approval_status AS TEXT) as approval_status,
-                                       location_text,
-                                       CAST(city AS TEXT) as city,
-                                       COALESCE(is_featured, false) as is_featured,
-                                       created_at, updated_at
-                                FROM properties
-                                WHERE user_id = ?
-                                ORDER BY created_at DESC
-                                LIMIT 10";
+            // Return empty view rather than crash
+            $properties = new \Illuminate\Pagination\LengthAwarePaginator(
+                [],
+                0,
+                10,
+                1,
+                ['path' => $request->url()]
+            );
 
-                $fallbackData = DB::select($fallbackSql, [auth()->id()]);
+            $statuses = [
+                'approved' => 'Approved',
+                'pending' => 'Pending Approval',
+                'rejected' => 'Rejected',
+            ];
 
-                // Add safe defaults
-                foreach ($fallbackData as $property) {
-                    $property->images = collect([]);
-                    $property->deletionRequest = null;
-                    $property->is_featured = isset($property->is_featured) ? (bool)$property->is_featured : false;
-                }
+            session()->flash('error', 'Unable to load properties. Please try again or contact support.');
 
-                $properties = new \Illuminate\Pagination\LengthAwarePaginator(
-                    $fallbackData,
-                    count($fallbackData),
-                    10,
-                    1,
-                    ['path' => $request->url()]
-                );
-
-                $statuses = [
-                    'approved' => 'Approved',
-                    'pending' => 'Pending Approval',
-                    'rejected' => 'Rejected',
-                ];
-
-                return view('landlord.properties.index', compact('properties', 'statuses'));
-
-            } catch (\Exception $fallbackError) {
-                Log::error('Fallback failed: ' . $fallbackError->getMessage());
-                abort(500, 'Unable to load properties. Please try again.');
-            }
+            return view('landlord.properties.index', compact('properties', 'statuses'));
         }
     }
 
