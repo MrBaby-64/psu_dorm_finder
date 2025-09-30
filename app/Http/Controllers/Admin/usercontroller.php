@@ -23,18 +23,24 @@ class UserController extends Controller
         $this->checkAdmin();
 
         try {
-            // Use Eloquent like localhost - simple and clean
+            // Simple - just get users
             $users = User::orderBy('created_at', 'desc')->paginate(20);
 
             return view('admin.users.index', ['users' => $users]);
 
         } catch (\Exception $e) {
-            \Log::error('Admin users index error: ' . $e->getMessage());
+            \Log::error('Admin users FAILED', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
 
-            $users = User::where('id', 0)->paginate(20);
-
-            return view('admin.users.index', ['users' => $users])
-                ->with('error', 'Unable to load users.');
+            // Show error for debugging
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
     }
 
