@@ -23,36 +23,41 @@ class PropertyController extends Controller
 
     public function pending()
     {
-        $this->checkAdmin();
+        try {
+            $this->checkAdmin();
+        } catch (\Exception $e) {
+            return response()->json([
+                'step' => 'admin_check',
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
+        }
 
         try {
-            // Simplified query - just load properties with user relationship
-            $properties = Property::with(['landlord' => function($query) {
-                    $query->select('id', 'name', 'email', 'role');
-                }])
-                ->where('approval_status', 'pending')
+            // Step 1: Try simple query without relationships
+            $properties = Property::where('approval_status', 'pending')
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);
 
+            // Step 2: Try to load the view
             return view('admin.properties.pending', ['properties' => $properties]);
 
         } catch (\Exception $e) {
             Log::error('Admin pending properties error', [
                 'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // Fallback: try without relationships
-            try {
-                $properties = Property::where('approval_status', 'pending')
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(10);
-
-                return view('admin.properties.pending', ['properties' => $properties]);
-            } catch (\Exception $e2) {
-                Log::error('Fallback also failed: ' . $e2->getMessage());
-                return redirect()->route('admin.dashboard')->with('error', 'Unable to load pending properties: ' . $e->getMessage());
-            }
+            return response()->json([
+                'step' => 'load_properties',
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'db_connection' => config('database.default')
+            ], 500);
         }
     }
 
@@ -216,25 +221,20 @@ class PropertyController extends Controller
      */
     public function deletionRequests(Request $request)
     {
-        $this->checkAdmin();
+        try {
+            $this->checkAdmin();
+        } catch (\Exception $e) {
+            return response()->json([
+                'step' => 'admin_check',
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
+        }
 
         try {
-            // Simplified query - load only essential relationships
-            $deletionRequests = PropertyDeletionRequest::with([
-                    'property' => function($query) {
-                        $query->select('id', 'title', 'user_id', 'location_text', 'price');
-                    },
-                    'property.images' => function($query) {
-                        $query->select('id', 'property_id', 'url', 'is_cover', 'sort_order')->where('is_cover', true);
-                    },
-                    'landlord' => function($query) {
-                        $query->select('id', 'name', 'email');
-                    },
-                    'reviewer' => function($query) {
-                        $query->select('id', 'name', 'email');
-                    }
-                ])
-                ->orderBy('created_at', 'desc')
+            // Simple query without relationships first
+            $deletionRequests = PropertyDeletionRequest::orderBy('created_at', 'desc')
                 ->paginate(15);
 
             $statuses = [
@@ -248,36 +248,18 @@ class PropertyController extends Controller
         } catch (\Exception $e) {
             Log::error('Admin deletion requests error', [
                 'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // Fallback: try without images relationship
-            try {
-                $deletionRequests = PropertyDeletionRequest::with([
-                        'property' => function($query) {
-                            $query->select('id', 'title', 'user_id', 'location_text', 'price');
-                        },
-                        'landlord' => function($query) {
-                            $query->select('id', 'name', 'email');
-                        },
-                        'reviewer' => function($query) {
-                            $query->select('id', 'name', 'email');
-                        }
-                    ])
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(15);
-
-                $statuses = [
-                    'pending' => 'Pending Review',
-                    'approved' => 'Approved',
-                    'rejected' => 'Rejected',
-                ];
-
-                return view('admin.properties.deletion-requests', compact('deletionRequests', 'statuses'));
-            } catch (\Exception $e2) {
-                Log::error('Fallback deletion requests also failed: ' . $e2->getMessage());
-                return redirect()->route('admin.dashboard')->with('error', 'Unable to load deletion requests: ' . $e->getMessage());
-            }
+            return response()->json([
+                'step' => 'load_deletion_requests',
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'db_connection' => config('database.default')
+            ], 500);
         }
     }
 

@@ -20,30 +20,38 @@ class UserController extends Controller
 
     public function index()
     {
-        $this->checkAdmin();
+        try {
+            $this->checkAdmin();
+        } catch (\Exception $e) {
+            return response()->json([
+                'step' => 'admin_check',
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
+            ], 500);
+        }
 
         try {
-            // Simple query without relationships for better compatibility
-            $users = User::select('id', 'name', 'email', 'role', 'is_verified', 'created_at')
-                ->orderBy('created_at', 'desc')
-                ->paginate(20);
+            // Simple query without select for better compatibility
+            $users = User::orderBy('created_at', 'desc')->paginate(20);
 
             return view('admin.users.index', ['users' => $users]);
 
         } catch (\Exception $e) {
             \Log::error('Admin users error', [
                 'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // Fallback: try without select
-            try {
-                $users = User::orderBy('created_at', 'desc')->paginate(20);
-                return view('admin.users.index', ['users' => $users]);
-            } catch (\Exception $e2) {
-                \Log::error('Fallback users query also failed: ' . $e2->getMessage());
-                return redirect()->route('admin.dashboard')->with('error', 'Unable to load users: ' . $e->getMessage());
-            }
+            return response()->json([
+                'step' => 'load_users',
+                'error' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'db_connection' => config('database.default')
+            ], 500);
         }
     }
 
