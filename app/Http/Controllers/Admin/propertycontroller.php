@@ -51,25 +51,20 @@ class PropertyController extends Controller
         try {
             DB::beginTransaction();
 
-            // Use DB update for PostgreSQL compatibility
-            DB::table('properties')
-                ->where('id', $property->id)
-                ->update([
-                    'approval_status' => 'approved',
-                    'rejection_reason' => null,
-                    'updated_at' => now()
-                ]);
+            // Use Eloquent like localhost
+            $property->update([
+                'approval_status' => 'approved',
+                'rejection_reason' => null,
+            ]);
 
             // Log the action
             try {
-                DB::table('audit_logs')->insert([
+                AuditLog::create([
                     'user_id' => auth()->id(),
                     'action' => 'approve_property',
                     'subject_type' => 'App\Models\Property',
                     'subject_id' => $property->id,
-                    'meta_json' => json_encode(['property_title' => $property->title]),
-                    'created_at' => now(),
-                    'updated_at' => now()
+                    'meta_json' => json_encode(['property_title' => $property->title])
                 ]);
             } catch (\Exception $e) {
                 Log::warning('Audit log failed: ' . $e->getMessage());
@@ -82,7 +77,7 @@ class PropertyController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Property approval error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to approve property. Please try again.');
+            return redirect()->back()->with('error', 'Failed to approve property.');
         }
     }
 
@@ -97,17 +92,15 @@ class PropertyController extends Controller
         try {
             DB::beginTransaction();
 
-            DB::table('properties')
-                ->where('id', $property->id)
-                ->update([
-                    'approval_status' => 'rejected',
-                    'rejection_reason' => $request->rejection_reason,
-                    'updated_at' => now()
-                ]);
+            // Use Eloquent like localhost
+            $property->update([
+                'approval_status' => 'rejected',
+                'rejection_reason' => $request->rejection_reason,
+            ]);
 
             // Log the action
             try {
-                DB::table('audit_logs')->insert([
+                AuditLog::create([
                     'user_id' => auth()->id(),
                     'action' => 'reject_property',
                     'subject_type' => 'App\Models\Property',
@@ -115,9 +108,7 @@ class PropertyController extends Controller
                     'meta_json' => json_encode([
                         'property_title' => $property->title,
                         'reason' => $request->rejection_reason
-                    ]),
-                    'created_at' => now(),
-                    'updated_at' => now()
+                    ])
                 ]);
             } catch (\Exception $e) {
                 Log::warning('Audit log failed: ' . $e->getMessage());
@@ -130,7 +121,7 @@ class PropertyController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Property rejection error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to reject property. Please try again.');
+            return redirect()->back()->with('error', 'Failed to reject property.');
         }
     }
 
