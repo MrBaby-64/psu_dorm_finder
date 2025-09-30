@@ -63,11 +63,9 @@ RUN echo '<VirtualHost *:80>\n\
 </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
 # Build assets and optimize for production
+# Note: Cache operations are skipped here and done at runtime after DB is ready
 RUN npm run build \
-    && composer install --no-dev --optimize-autoloader \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+    && composer install --no-dev --optimize-autoloader
 
 # Create supervisor configuration for queue workers
 RUN mkdir -p /etc/supervisor/conf.d
@@ -104,17 +102,20 @@ fi\n\
 \n\
 # Clear any cached config that might conflict\n\
 echo "Clearing application caches..."\n\
-php artisan config:clear\n\
-php artisan cache:clear\n\
-php artisan view:clear\n\
+php artisan config:clear || echo "Config clear skipped"\n\
+php artisan view:clear || echo "View clear skipped"\n\
 \n\
 # Test basic Laravel boot\n\
 echo "Testing Laravel application boot..."\n\
 php artisan --version || { echo "Laravel boot failed - check APP_KEY and configuration"; exit 1; }\n\
 \n\
-# Run migrations\n\
+# Run migrations (this will create cache and sessions tables)\n\
 echo "Running database migrations..."\n\
-php artisan migrate --force\n\
+php artisan migrate --force || { echo "Migration failed - check database connection"; exit 1; }\n\
+\n\
+# Now safe to clear cache after tables exist\n\
+echo "Clearing cache after migration..."\n\
+php artisan cache:clear || echo "Cache clear skipped"\n\
 \n\
 # Create storage link\n\
 echo "Creating storage link..."\n\
