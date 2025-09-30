@@ -22,38 +22,46 @@ class MessageController extends Controller
         $this->checkAdmin();
 
         try {
-            // Use DB query for PostgreSQL compatibility
-            $query = \DB::table('admin_messages')
-                ->leftJoin('users', 'admin_messages.sender_id', '=', 'users.id')
-                ->leftJoin('properties', 'admin_messages.property_id', '=', 'properties.id')
-                ->select(
-                    'admin_messages.*',
-                    'users.name as sender_name',
-                    'users.email as sender_email',
-                    'properties.title as property_title'
-                );
+            // Raw SQL for PostgreSQL compatibility
+            $page = $request->get('page', 1);
+            $perPage = 15;
+            $offset = ($page - 1) * $perPage;
+
+            // Base query with only essential columns
+            $sql = "SELECT am.id, am.subject, am.message, am.status, am.created_at, am.updated_at,
+                           u.name as sender_name, u.email as sender_email
+                    FROM admin_messages am
+                    LEFT JOIN users u ON am.sender_id = u.id
+                    WHERE 1=1";
+
+            $countSql = "SELECT COUNT(*) as count FROM admin_messages WHERE 1=1";
+            $params = [];
 
             // Apply status filter
-            if ($request->filled('status')) {
-                $status = $request->status;
-                if (in_array($status, ['unread', 'read', 'resolved'])) {
-                    $query->where('admin_messages.status', $status);
-                }
+            if ($request->filled('status') && in_array($request->status, ['unread', 'read', 'resolved'])) {
+                $sql .= " AND am.status = ?";
+                $countSql .= " AND status = ?";
+                $params[] = $request->status;
             }
 
-            // Apply search filter (PostgreSQL case-insensitive)
-            if ($request->filled('search')) {
-                $searchTerm = $request->search;
-                $query->where(function($q) use ($searchTerm) {
-                    $q->whereRaw('LOWER(admin_messages.subject) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
-                      ->orWhereRaw('LOWER(admin_messages.message) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
-                      ->orWhereRaw('LOWER(users.name) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
-                      ->orWhereRaw('LOWER(users.email) LIKE ?', ['%' . strtolower($searchTerm) . '%']);
-                });
-            }
+            $sql .= " ORDER BY am.created_at DESC LIMIT ? OFFSET ?";
+            $params[] = $perPage;
+            $params[] = $offset;
 
-            $query->orderBy('admin_messages.created_at', 'DESC');
-            $messages = $query->paginate(15)->withQueryString();
+            $messages = \DB::select($sql, $params);
+
+            // Get total count
+            $countParams = array_slice($params, 0, -2); // Remove LIMIT and OFFSET params
+            $total = \DB::select($countSql, $countParams)[0]->count ?? 0;
+
+            // Create paginator
+            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect($messages),
+                $total,
+                $perPage,
+                $page,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
 
             $statuses = [
                 'unread' => 'Unread',
@@ -61,10 +69,12 @@ class MessageController extends Controller
                 'resolved' => 'Resolved',
             ];
 
-            return view('admin.messages.index', compact('messages', 'statuses'));
+            return view('admin.messages.index', ['messages' => $paginator, 'statuses' => $statuses]);
 
         } catch (\Exception $e) {
-            Log::error('Admin messages index error: ' . $e->getMessage());
+            Log::error('Admin messages index error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
             $messages = new \Illuminate\Pagination\LengthAwarePaginator(
                 collect([]),
@@ -80,7 +90,7 @@ class MessageController extends Controller
                 'resolved' => 'Resolved',
             ];
 
-            return view('admin.messages.index', compact('messages', 'statuses'))
+            return view('admin.messages.index', ['messages' => $messages, 'statuses' => $statuses])
                 ->with('error', 'Unable to load messages. Please try again.');
         }
     }
