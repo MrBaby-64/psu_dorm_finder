@@ -25,22 +25,27 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // Use Eloquent like localhost - load full landlord relationship
-            $properties = Property::with('landlord')
-                ->where('approval_status', 'pending')
+            // ULTRA SIMPLE - just get properties without relationships
+            $properties = Property::where('approval_status', 'pending')
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);
 
             return view('admin.properties.pending', ['properties' => $properties]);
 
         } catch (\Exception $e) {
-            Log::error('Admin pending properties error: ' . $e->getMessage());
+            Log::error('Admin pending properties FAILED', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
 
-            // Fallback
-            $properties = Property::where('id', 0)->paginate(10);
-
-            return view('admin.properties.pending', ['properties' => $properties])
-                ->with('error', 'Unable to load pending properties.');
+            // Show error to help debug
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
     }
 
@@ -168,38 +173,33 @@ class PropertyController extends Controller
     {
         $this->checkAdmin();
 
-        $query = PropertyDeletionRequest::with(['property', 'landlord'])
-            ->latest();
+        try {
+            // Simple - just get deletion requests without complex filtering
+            $deletionRequests = PropertyDeletionRequest::orderBy('created_at', 'desc')
+                ->paginate(15);
 
-        // Apply status filter
-        if ($request->filled('status')) {
-            $status = $request->status;
-            if (in_array($status, ['pending', 'approved', 'rejected'])) {
-                $query->where('status', $status);
-            }
+            $statuses = [
+                'pending' => 'Pending Review',
+                'approved' => 'Approved',
+                'rejected' => 'Rejected',
+            ];
+
+            return view('admin.properties.deletion-requests', compact('deletionRequests', 'statuses'));
+
+        } catch (\Exception $e) {
+            Log::error('Admin deletion requests FAILED', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
+            // Show error for debugging
+            return response()->json([
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
-
-        // Apply search filter
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->whereHas('property', function($q) use ($searchTerm) {
-                $q->where('title', 'like', "%{$searchTerm}%")
-                  ->orWhere('location_text', 'like', "%{$searchTerm}%");
-            })->orWhereHas('landlord', function($q) use ($searchTerm) {
-                $q->where('name', 'like', "%{$searchTerm}%")
-                  ->orWhere('email', 'like', "%{$searchTerm}%");
-            });
-        }
-
-        $deletionRequests = $query->paginate(15)->withQueryString();
-
-        $statuses = [
-            'pending' => 'Pending Review',
-            'approved' => 'Approved',
-            'rejected' => 'Rejected',
-        ];
-
-        return view('admin.properties.deletion-requests', compact('deletionRequests', 'statuses'));
     }
 
     /**
