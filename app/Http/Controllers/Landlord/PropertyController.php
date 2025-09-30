@@ -69,12 +69,13 @@ class PropertyController extends Controller
             // Paginate results
             $properties = $query->paginate(10)->withQueryString();
 
-            // Load images and deletion requests separately for each property (more reliable)
+            // Load images, deletion requests, and is_featured for each property
             foreach ($properties as $property) {
-                // Load images
+                // Load images with all necessary columns
                 try {
                     $property->images = DB::table('property_images')
                         ->where('property_id', $property->id)
+                        ->select('id', 'property_id', 'url as image_path', 'alt as description', 'is_cover', 'sort_order')
                         ->orderBy('sort_order')
                         ->get();
                 } catch (\Exception $e) {
@@ -89,6 +90,17 @@ class PropertyController extends Controller
                         ->first();
                 } catch (\Exception $e) {
                     $property->deletionRequest = null;
+                }
+
+                // Add is_featured flag (check if property has is_featured column)
+                try {
+                    $featured = DB::table('properties')
+                        ->where('id', $property->id)
+                        ->select('is_featured')
+                        ->first();
+                    $property->is_featured = $featured->is_featured ?? false;
+                } catch (\Exception $e) {
+                    $property->is_featured = false;
                 }
             }
 
@@ -115,14 +127,15 @@ class PropertyController extends Controller
             try {
                 $basicProperties = DB::table('properties')
                     ->where('user_id', auth()->id())
-                    ->select('id', 'title', 'description', 'price', 'approval_status', 'room_count', 'created_at', 'updated_at')
+                    ->select('id', 'title', 'description', 'price', 'approval_status', 'room_count', 'location_text', 'city', 'created_at', 'updated_at')
                     ->orderBy('created_at', 'DESC')
                     ->paginate(10);
 
-                // Add empty collections for images
+                // Add empty collections for images and other properties
                 foreach ($basicProperties as $property) {
                     $property->images = collect([]);
                     $property->deletionRequest = null;
+                    $property->is_featured = false;
                 }
 
                 $statuses = [
