@@ -22,9 +22,29 @@ class UserController extends Controller
     {
         $this->checkAdmin();
 
-        $users = User::latest()->paginate(20);
+        try {
+            // Use DB query for PostgreSQL compatibility
+            $users = \DB::table('users')
+                ->select('id', 'name', 'email', 'role', 'is_verified', 'created_at', 'updated_at')
+                ->orderBy('created_at', 'DESC')
+                ->paginate(20);
 
-        return view('admin.users.index', compact('users'));
+            return view('admin.users.index', compact('users'));
+
+        } catch (\Exception $e) {
+            \Log::error('Admin users index error: ' . $e->getMessage());
+
+            $users = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect([]),
+                0,
+                20,
+                1,
+                ['path' => request()->url()]
+            );
+
+            return view('admin.users.index', compact('users'))
+                ->with('error', 'Unable to load users. Please try again.');
+        }
     }
 
     public function updateRole(Request $request, User $user)

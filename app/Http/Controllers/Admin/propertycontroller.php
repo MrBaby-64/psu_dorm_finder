@@ -24,33 +24,79 @@ class PropertyController extends Controller
     {
         $this->checkAdmin();
 
-        $properties = Property::where('approval_status', 'pending')
-            ->with(['landlord'])
-            ->latest()
-            ->paginate(10);
+        try {
+            // Use DB query for PostgreSQL compatibility
+            $properties = DB::table('properties')
+                ->join('users', 'properties.user_id', '=', 'users.id')
+                ->where('properties.approval_status', 'pending')
+                ->select(
+                    'properties.*',
+                    'users.name as landlord_name',
+                    'users.email as landlord_email',
+                    'users.phone as landlord_phone'
+                )
+                ->orderBy('properties.created_at', 'DESC')
+                ->paginate(10);
 
-        return view('admin.properties.pending', compact('properties'));
+            return view('admin.properties.pending', compact('properties'));
+
+        } catch (\Exception $e) {
+            Log::error('Admin pending properties error: ' . $e->getMessage());
+
+            // Fallback with empty collection
+            $properties = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect([]),
+                0,
+                10,
+                1,
+                ['path' => request()->url()]
+            );
+
+            return view('admin.properties.pending', compact('properties'))
+                ->with('error', 'Unable to load pending properties. Please try again.');
+        }
     }
 
     public function approve(Property $property)
     {
         $this->checkAdmin();
 
-        $property->update([
-            'approval_status' => 'approved',
-            'rejection_reason' => null
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Log the action
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'approve_property',
-            'subject_type' => 'App\Models\Property',
-            'subject_id' => $property->id,
-            'meta_json' => json_encode(['property_title' => $property->title])
-        ]);
+            // Use DB update for PostgreSQL compatibility
+            DB::table('properties')
+                ->where('id', $property->id)
+                ->update([
+                    'approval_status' => 'approved',
+                    'rejection_reason' => null,
+                    'updated_at' => now()
+                ]);
 
-        return redirect()->back()->with('success', 'Property approved successfully!');
+            // Log the action
+            try {
+                DB::table('audit_logs')->insert([
+                    'user_id' => auth()->id(),
+                    'action' => 'approve_property',
+                    'subject_type' => 'App\Models\Property',
+                    'subject_id' => $property->id,
+                    'meta_json' => json_encode(['property_title' => $property->title]),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Audit log failed: ' . $e->getMessage());
+            }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Property approved successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Property approval error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to approve property. Please try again.');
+        }
     }
 
     public function reject(Request $request, Property $property)
@@ -61,24 +107,44 @@ class PropertyController extends Controller
             'rejection_reason' => 'nullable|string|max:500'
         ]);
 
-        $property->update([
-            'approval_status' => 'rejected',
-            'rejection_reason' => $request->rejection_reason
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Log the action
-        AuditLog::create([
-            'user_id' => auth()->id(),
-            'action' => 'reject_property',
-            'subject_type' => 'App\Models\Property',
-            'subject_id' => $property->id,
-            'meta_json' => json_encode([
-                'property_title' => $property->title,
-                'reason' => $request->rejection_reason
-            ])
-        ]);
+            DB::table('properties')
+                ->where('id', $property->id)
+                ->update([
+                    'approval_status' => 'rejected',
+                    'rejection_reason' => $request->rejection_reason,
+                    'updated_at' => now()
+                ]);
 
-        return redirect()->back()->with('success', 'Property rejected.');
+            // Log the action
+            try {
+                DB::table('audit_logs')->insert([
+                    'user_id' => auth()->id(),
+                    'action' => 'reject_property',
+                    'subject_type' => 'App\Models\Property',
+                    'subject_id' => $property->id,
+                    'meta_json' => json_encode([
+                        'property_title' => $property->title,
+                        'reason' => $request->rejection_reason
+                    ]),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('Audit log failed: ' . $e->getMessage());
+            }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Property rejected.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Property rejection error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to reject property. Please try again.');
+        }
     }
 
     public function verify(Property $property)

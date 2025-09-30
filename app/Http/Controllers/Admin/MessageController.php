@@ -21,39 +21,68 @@ class MessageController extends Controller
     {
         $this->checkAdmin();
 
-        $query = AdminMessage::with(['sender', 'property'])
-            ->latest();
+        try {
+            // Use DB query for PostgreSQL compatibility
+            $query = \DB::table('admin_messages')
+                ->leftJoin('users', 'admin_messages.sender_id', '=', 'users.id')
+                ->leftJoin('properties', 'admin_messages.property_id', '=', 'properties.id')
+                ->select(
+                    'admin_messages.*',
+                    'users.name as sender_name',
+                    'users.email as sender_email',
+                    'properties.title as property_title'
+                );
 
-        // Apply status filter
-        if ($request->filled('status')) {
-            $status = $request->status;
-            if (in_array($status, ['unread', 'read', 'resolved'])) {
-                $query->where('status', $status);
+            // Apply status filter
+            if ($request->filled('status')) {
+                $status = $request->status;
+                if (in_array($status, ['unread', 'read', 'resolved'])) {
+                    $query->where('admin_messages.status', $status);
+                }
             }
+
+            // Apply search filter (PostgreSQL case-insensitive)
+            if ($request->filled('search')) {
+                $searchTerm = $request->search;
+                $query->where(function($q) use ($searchTerm) {
+                    $q->whereRaw('LOWER(admin_messages.subject) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+                      ->orWhereRaw('LOWER(admin_messages.message) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+                      ->orWhereRaw('LOWER(users.name) LIKE ?', ['%' . strtolower($searchTerm) . '%'])
+                      ->orWhereRaw('LOWER(users.email) LIKE ?', ['%' . strtolower($searchTerm) . '%']);
+                });
+            }
+
+            $query->orderBy('admin_messages.created_at', 'DESC');
+            $messages = $query->paginate(15)->withQueryString();
+
+            $statuses = [
+                'unread' => 'Unread',
+                'read' => 'Read',
+                'resolved' => 'Resolved',
+            ];
+
+            return view('admin.messages.index', compact('messages', 'statuses'));
+
+        } catch (\Exception $e) {
+            Log::error('Admin messages index error: ' . $e->getMessage());
+
+            $messages = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect([]),
+                0,
+                15,
+                1,
+                ['path' => request()->url()]
+            );
+
+            $statuses = [
+                'unread' => 'Unread',
+                'read' => 'Read',
+                'resolved' => 'Resolved',
+            ];
+
+            return view('admin.messages.index', compact('messages', 'statuses'))
+                ->with('error', 'Unable to load messages. Please try again.');
         }
-
-        // Apply search filter
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('subject', 'like', "%{$searchTerm}%")
-                  ->orWhere('message', 'like', "%{$searchTerm}%")
-                  ->orWhereHas('sender', function($sq) use ($searchTerm) {
-                      $sq->where('name', 'like', "%{$searchTerm}%")
-                        ->orWhere('email', 'like', "%{$searchTerm}%");
-                  });
-            });
-        }
-
-        $messages = $query->paginate(15)->withQueryString();
-
-        $statuses = [
-            'unread' => 'Unread',
-            'read' => 'Read',
-            'resolved' => 'Resolved',
-        ];
-
-        return view('admin.messages.index', compact('messages', 'statuses'));
     }
 
     public function show(AdminMessage $message)
