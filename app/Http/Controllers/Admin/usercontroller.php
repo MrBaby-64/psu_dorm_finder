@@ -23,48 +23,20 @@ class UserController extends Controller
         $this->checkAdmin();
 
         try {
-            // Raw SQL for PostgreSQL compatibility
-            $page = request()->get('page', 1);
-            $perPage = 20;
-            $offset = ($page - 1) * $perPage;
+            // Use Eloquent like localhost
+            $users = User::select('id', 'name', 'email', 'role', 'created_at', 'updated_at')
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
 
-            $sql = "SELECT id, name, email, role, created_at, updated_at
-                    FROM users
-                    ORDER BY created_at DESC
-                    LIMIT ? OFFSET ?";
-
-            $users = \DB::select($sql, [$perPage, $offset]);
-
-            // Get total count
-            $totalSql = "SELECT COUNT(*) as count FROM users";
-            $total = \DB::select($totalSql)[0]->count ?? 0;
-
-            // Create paginator
-            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect($users),
-                $total,
-                $perPage,
-                $page,
-                ['path' => request()->url(), 'query' => request()->query()]
-            );
-
-            return view('admin.users.index', ['users' => $paginator]);
+            return view('admin.users.index', ['users' => $users]);
 
         } catch (\Exception $e) {
-            \Log::error('Admin users index error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
+            \Log::error('Admin users index error: ' . $e->getMessage());
 
-            $users = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect([]),
-                0,
-                20,
-                1,
-                ['path' => request()->url()]
-            );
+            $users = User::where('id', 0)->paginate(20);
 
             return view('admin.users.index', ['users' => $users])
-                ->with('error', 'Unable to load users. Please try again.');
+                ->with('error', 'Unable to load users.');
         }
     }
 

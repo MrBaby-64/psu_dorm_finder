@@ -25,50 +25,22 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // Raw SQL for maximum PostgreSQL compatibility
-            $sql = "SELECT p.*, u.name as landlord_name, u.email as landlord_email
-                    FROM properties p
-                    INNER JOIN users u ON p.user_id = u.id
-                    WHERE p.approval_status = 'pending'
-                    ORDER BY p.created_at DESC
-                    LIMIT 10 OFFSET ?";
+            // Use Eloquent like localhost
+            $properties = Property::with('landlord:id,name,email')
+                ->where('approval_status', 'pending')
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
 
-            $page = request()->get('page', 1);
-            $offset = ($page - 1) * 10;
-
-            $properties = DB::select($sql, [$offset]);
-
-            // Get total count for pagination
-            $totalSql = "SELECT COUNT(*) as count FROM properties WHERE approval_status = 'pending'";
-            $total = DB::select($totalSql)[0]->count ?? 0;
-
-            // Create paginator
-            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect($properties),
-                $total,
-                10,
-                $page,
-                ['path' => request()->url(), 'query' => request()->query()]
-            );
-
-            return view('admin.properties.pending', ['properties' => $paginator]);
+            return view('admin.properties.pending', ['properties' => $properties]);
 
         } catch (\Exception $e) {
-            Log::error('Admin pending properties error: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('Admin pending properties error: ' . $e->getMessage());
 
-            // Fallback with empty collection
-            $properties = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect([]),
-                0,
-                10,
-                1,
-                ['path' => request()->url()]
-            );
+            // Fallback
+            $properties = Property::where('id', 0)->paginate(10);
 
             return view('admin.properties.pending', ['properties' => $properties])
-                ->with('error', 'Unable to load pending properties. Please try again.');
+                ->with('error', 'Unable to load pending properties.');
         }
     }
 
