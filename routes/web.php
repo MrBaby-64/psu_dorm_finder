@@ -266,6 +266,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         }
     })->name('dashboard');
     
+    // Debug route
+    Route::get('/debug/test-connection', [\App\Http\Controllers\Admin\PropertyControllerDebug::class, 'testConnection'])->name('debug.test');
+
     // Property approval
     Route::get('/properties/pending', [\App\Http\Controllers\Admin\PropertyController::class, 'pending'])->name('properties.pending');
     Route::post('/properties/{property}/approve', [\App\Http\Controllers\Admin\PropertyController::class, 'approve'])->name('properties.approve');
