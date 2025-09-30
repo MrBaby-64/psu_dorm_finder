@@ -39,6 +39,7 @@ class PropertyController extends Controller
                     'properties.approval_status',
                     'properties.location_text',
                     'properties.city',
+                    'properties.is_featured',
                     'properties.created_at',
                     'properties.updated_at'
                 ]);
@@ -71,14 +72,15 @@ class PropertyController extends Controller
 
             // Load images, deletion requests, and is_featured for each property
             foreach ($properties as $property) {
-                // Load images with all necessary columns
+                // Load images with correct column names from database
                 try {
                     $property->images = DB::table('property_images')
                         ->where('property_id', $property->id)
-                        ->select('id', 'property_id', 'url as image_path', 'alt as description', 'is_cover', 'sort_order')
+                        ->select('id', 'property_id', 'image_path', 'alt_text as description', 'is_cover', 'sort_order')
                         ->orderBy('sort_order')
                         ->get();
                 } catch (\Exception $e) {
+                    Log::error('Error loading images for property ' . $property->id . ': ' . $e->getMessage());
                     $property->images = collect([]);
                 }
 
@@ -92,16 +94,8 @@ class PropertyController extends Controller
                     $property->deletionRequest = null;
                 }
 
-                // Add is_featured flag (check if property has is_featured column)
-                try {
-                    $featured = DB::table('properties')
-                        ->where('id', $property->id)
-                        ->select('is_featured')
-                        ->first();
-                    $property->is_featured = $featured->is_featured ?? false;
-                } catch (\Exception $e) {
-                    $property->is_featured = false;
-                }
+                // Ensure is_featured is boolean
+                $property->is_featured = (bool)($property->is_featured ?? false);
             }
 
             $statuses = [
@@ -127,7 +121,7 @@ class PropertyController extends Controller
             try {
                 $basicProperties = DB::table('properties')
                     ->where('user_id', auth()->id())
-                    ->select('id', 'title', 'description', 'price', 'approval_status', 'room_count', 'location_text', 'city', 'created_at', 'updated_at')
+                    ->select('id', 'title', 'description', 'price', 'approval_status', 'room_count', 'location_text', 'city', 'is_featured', 'created_at', 'updated_at')
                     ->orderBy('created_at', 'DESC')
                     ->paginate(10);
 
@@ -135,7 +129,7 @@ class PropertyController extends Controller
                 foreach ($basicProperties as $property) {
                     $property->images = collect([]);
                     $property->deletionRequest = null;
-                    $property->is_featured = false;
+                    $property->is_featured = (bool)($property->is_featured ?? false);
                 }
 
                 $statuses = [
