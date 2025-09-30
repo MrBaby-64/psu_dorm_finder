@@ -34,85 +34,83 @@ class DashboardController extends Controller
                 'pending_bookings' => 0,
             ];
 
-            // Safely get property stats
+            // Safely get property stats using DB facade for PostgreSQL compatibility
             try {
-                $stats['pending_properties'] = Property::where('approval_status', 'pending')->count();
-                $stats['approved_properties'] = Property::where('approval_status', 'approved')->count();
-                $stats['rejected_properties'] = Property::where('approval_status', 'rejected')->count();
+                $stats['pending_properties'] = \DB::table('properties')->where('approval_status', 'pending')->count();
+                $stats['approved_properties'] = \DB::table('properties')->where('approval_status', 'approved')->count();
+                $stats['rejected_properties'] = \DB::table('properties')->where('approval_status', 'rejected')->count();
             } catch (\Exception $e) {
                 \Log::warning('Property stats unavailable: ' . $e->getMessage());
             }
 
-            // Safely get deletion request stats if table exists
+            // Safely get deletion request stats
             try {
-                if (\Schema::hasTable('property_deletion_requests')) {
-                    $stats['pending_deletion_requests'] = PropertyDeletionRequest::where('status', 'pending')->count();
-                    $stats['total_deletion_requests'] = PropertyDeletionRequest::count();
-                }
+                $stats['pending_deletion_requests'] = \DB::table('property_deletion_requests')->where('status', 'pending')->count();
+                $stats['total_deletion_requests'] = \DB::table('property_deletion_requests')->count();
             } catch (\Exception $e) {
                 \Log::warning('Deletion request stats unavailable: ' . $e->getMessage());
             }
 
             // Safely get user stats
             try {
-                $stats['total_users'] = User::count();
-                $stats['landlords'] = User::where('role', 'landlord')->count();
-                $stats['tenants'] = User::where('role', 'tenant')->count();
+                $stats['total_users'] = \DB::table('users')->count();
+                $stats['landlords'] = \DB::table('users')->where('role', 'landlord')->count();
+                $stats['tenants'] = \DB::table('users')->where('role', 'tenant')->count();
             } catch (\Exception $e) {
                 \Log::warning('User stats unavailable: ' . $e->getMessage());
             }
 
-            // Safely get booking stats if table exists
+            // Safely get booking stats
             try {
-                if (\Schema::hasTable('bookings')) {
-                    $stats['total_bookings'] = Booking::count();
-                    $stats['pending_bookings'] = Booking::where('status', 'pending')->count();
-                }
+                $stats['total_bookings'] = \DB::table('bookings')->count();
+                $stats['pending_bookings'] = \DB::table('bookings')->where('status', 'pending')->count();
             } catch (\Exception $e) {
                 \Log::warning('Booking stats unavailable: ' . $e->getMessage());
             }
 
-            // Safely get recent properties
+            // Safely get recent properties using DB facade for PostgreSQL
             $recentProperties = collect();
             try {
-                $recentProperties = Property::with(['landlord' => function($query) {
-                        $query->select('id', 'name', 'email');
-                    }])
-                    ->latest()
-                    ->take(5)
+                $properties = \DB::table('properties')
+                    ->join('users', 'properties.user_id', '=', 'users.id')
+                    ->select('properties.*', 'users.name as landlord_name', 'users.email as landlord_email')
+                    ->orderBy('properties.created_at', 'DESC')
+                    ->limit(5)
                     ->get();
+                $recentProperties = $properties;
             } catch (\Exception $e) {
                 \Log::warning('Recent properties unavailable: ' . $e->getMessage());
             }
 
-            // Safely get recent users
+            // Safely get recent users using DB facade
             $recentUsers = collect();
             try {
-                $recentUsers = User::select('id', 'name', 'email', 'role', 'created_at')
-                    ->latest()
-                    ->take(5)
+                $recentUsers = \DB::table('users')
+                    ->select('id', 'name', 'email', 'role', 'created_at')
+                    ->orderBy('created_at', 'DESC')
+                    ->limit(5)
                     ->get();
             } catch (\Exception $e) {
                 \Log::warning('Recent users unavailable: ' . $e->getMessage());
             }
 
-            // Safely get recent deletion requests
+            // Safely get recent deletion requests using DB facade
             $recentDeletionRequests = collect();
             try {
-                if (\Schema::hasTable('property_deletion_requests')) {
-                    $recentDeletionRequests = PropertyDeletionRequest::with([
-                            'property' => function($query) {
-                                $query->select('id', 'title', 'user_id');
-                            },
-                            'landlord' => function($query) {
-                                $query->select('id', 'name', 'email');
-                            }
-                        ])
-                        ->where('status', 'pending')
-                        ->latest()
-                        ->take(5)
-                        ->get();
-                }
+                $requests = \DB::table('property_deletion_requests')
+                    ->join('properties', 'property_deletion_requests.property_id', '=', 'properties.id')
+                    ->join('users', 'property_deletion_requests.landlord_id', '=', 'users.id')
+                    ->select(
+                        'property_deletion_requests.*',
+                        'properties.title as property_title',
+                        'users.name as landlord_name',
+                        'users.email as landlord_email'
+                    )
+                    ->where('property_deletion_requests.status', 'pending')
+                    ->orderBy('property_deletion_requests.created_at', 'DESC')
+                    ->limit(5)
+                    ->get();
+                $recentDeletionRequests = $requests;
             } catch (\Exception $e) {
                 \Log::warning('Recent deletion requests unavailable: ' . $e->getMessage());
             }
