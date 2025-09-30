@@ -24,6 +24,12 @@ class PropertyImage extends Model
         'sort_order' => 'integer'
     ];
 
+    // Add accessor for description (alias for alt_text)
+    public function getDescriptionAttribute(): ?string
+    {
+        return $this->alt_text;
+    }
+
     // Relationships
     public function property(): BelongsTo
     {

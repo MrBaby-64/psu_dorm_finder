@@ -23,68 +23,27 @@ class PropertyController extends Controller
             abort(403, 'Only landlords can access this area');
         }
 
+        // SIMPLEST APPROACH: Use Eloquent like localhost
         try {
-            $userId = auth()->id();
+            $query = Property::where('user_id', auth()->id())
+                ->orderBy('created_at', 'desc');
 
-            // Use Laravel Query Builder with PostgreSQL-safe column selection
-            $query = DB::table('properties')
-                ->where('user_id', $userId)
-                ->select('id', 'title', 'description', 'price', 'room_count',
-                        DB::raw('CAST(approval_status AS TEXT) as approval_status'),
-                        'location_text',
-                        DB::raw('CAST(city AS TEXT) as city'),
-                        'created_at', 'updated_at')
-                ->orderBy('created_at', 'DESC');
-
-            // Apply search filter
+            // Apply search
             if ($request->filled('search')) {
-                $searchTerm = '%' . strtolower($request->search) . '%';
-                $query->where(function($q) use ($searchTerm) {
-                    $q->whereRaw('LOWER(title) LIKE ?', [$searchTerm])
-                      ->orWhereRaw('LOWER(description) LIKE ?', [$searchTerm])
-                      ->orWhereRaw('LOWER(location_text) LIKE ?', [$searchTerm])
-                      ->orWhereRaw('LOWER(CAST(city AS TEXT)) LIKE ?', [$searchTerm]);
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%")
+                      ->orWhere('location_text', 'like', "%{$search}%");
                 });
             }
 
             // Apply status filter
-            if ($request->filled('status') && in_array($request->status, ['approved', 'pending', 'rejected'])) {
+            if ($request->filled('status')) {
                 $query->where('approval_status', $request->status);
             }
 
             $properties = $query->paginate(10)->withQueryString();
-
-            // Load images for each property - silent fail if error
-            foreach ($properties as $property) {
-                $property->images = collect([]);
-                $property->deletionRequest = null;
-                $property->is_featured = false;
-
-                try {
-                    $imgs = DB::table('property_images')
-                        ->where('property_id', $property->id)
-                        ->select('id', 'property_id', 'image_path',
-                                DB::raw('alt_text as description'),
-                                'is_cover', 'sort_order')
-                        ->orderBy('sort_order')
-                        ->get();
-
-                    $property->images = $imgs;
-                } catch (\Exception $e) {
-                    // Continue - images are optional
-                }
-
-                try {
-                    $delReq = DB::table('property_deletion_requests')
-                        ->where('property_id', $property->id)
-                        ->where('status', 'pending')
-                        ->first();
-
-                    $property->deletionRequest = $delReq;
-                } catch (\Exception $e) {
-                    // Continue - deletion request is optional
-                }
-            }
 
             $statuses = [
                 'approved' => 'Approved',
@@ -95,28 +54,15 @@ class PropertyController extends Controller
             return view('landlord.properties.index', compact('properties', 'statuses'));
 
         } catch (\Exception $e) {
-            Log::error('Landlord Properties Index Error', [
-                'user' => auth()->id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            Log::error('Properties error: ' . $e->getMessage());
 
-            // Fallback to empty list
-            $properties = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect([]),
-                0,
-                10,
-                1,
-                ['path' => $request->url()]
-            );
-
+            // Return empty
+            $properties = Property::where('id', 0)->paginate(10);
             $statuses = [
                 'approved' => 'Approved',
                 'pending' => 'Pending Approval',
                 'rejected' => 'Rejected',
             ];
-
-            session()->flash('error', 'Unable to load properties. Please try again.');
 
             return view('landlord.properties.index', compact('properties', 'statuses'));
         }
