@@ -34,20 +34,19 @@ class DashboardController extends Controller
                 'pending_bookings' => Booking::where('status', 'pending')->count(),
             ];
 
-            // Get recent properties with landlord relationship - like localhost
-            $recentProperties = Property::with('landlord:id,name,email')
+            // Get recent properties with landlord - simpler
+            $recentProperties = Property::with('landlord')
                 ->orderBy('created_at', 'DESC')
                 ->limit(5)
                 ->get();
 
-            // Get recent users - like localhost
-            $recentUsers = User::select('id', 'name', 'email', 'role', 'created_at')
-                ->orderBy('created_at', 'DESC')
+            // Get recent users
+            $recentUsers = User::orderBy('created_at', 'DESC')
                 ->limit(5)
                 ->get();
 
-            // Get recent deletion requests with relationships - like localhost
-            $recentDeletionRequests = PropertyDeletionRequest::with(['property:id,title', 'landlord:id,name,email'])
+            // Get recent deletion requests with relationships
+            $recentDeletionRequests = PropertyDeletionRequest::with(['property', 'landlord'])
                 ->where('status', 'pending')
                 ->orderBy('created_at', 'DESC')
                 ->limit(5)
