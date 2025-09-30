@@ -159,10 +159,16 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
 
     Route::post('/properties', function(\Illuminate\Http\Request $request) {
         try {
-            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->store($request);
+            // Use the main PropertyController with full features
+            return app(\App\Http\Controllers\Landlord\PropertyController::class)->store($request);
         } catch (\Exception $e) {
-            \Log::error('Enhanced PropertyController store failed, using simplified: ' . $e->getMessage());
-            return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->store($request);
+            \Log::error('PropertyController store failed: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->except(['images', 'room_images'])
+            ]);
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to create property. Please check all fields and try again. Error: ' . $e->getMessage()]);
         }
     })->name('properties.store');
     Route::post('/properties/remove-temp-image', function(\Illuminate\Http\Request $request) {

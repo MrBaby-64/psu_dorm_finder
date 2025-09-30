@@ -25,23 +25,38 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // Use DB query for PostgreSQL compatibility
-            $properties = DB::table('properties')
-                ->join('users', 'properties.user_id', '=', 'users.id')
-                ->where('properties.approval_status', 'pending')
-                ->select(
-                    'properties.*',
-                    'users.name as landlord_name',
-                    'users.email as landlord_email',
-                    'users.phone as landlord_phone'
-                )
-                ->orderBy('properties.created_at', 'DESC')
-                ->paginate(10);
+            // Raw SQL for maximum PostgreSQL compatibility
+            $sql = "SELECT p.*, u.name as landlord_name, u.email as landlord_email
+                    FROM properties p
+                    INNER JOIN users u ON p.user_id = u.id
+                    WHERE p.approval_status = 'pending'
+                    ORDER BY p.created_at DESC
+                    LIMIT 10 OFFSET ?";
 
-            return view('admin.properties.pending', compact('properties'));
+            $page = request()->get('page', 1);
+            $offset = ($page - 1) * 10;
+
+            $properties = DB::select($sql, [$offset]);
+
+            // Get total count for pagination
+            $totalSql = "SELECT COUNT(*) as count FROM properties WHERE approval_status = 'pending'";
+            $total = DB::select($totalSql)[0]->count ?? 0;
+
+            // Create paginator
+            $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+                collect($properties),
+                $total,
+                10,
+                $page,
+                ['path' => request()->url(), 'query' => request()->query()]
+            );
+
+            return view('admin.properties.pending', ['properties' => $paginator]);
 
         } catch (\Exception $e) {
-            Log::error('Admin pending properties error: ' . $e->getMessage());
+            Log::error('Admin pending properties error: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
             // Fallback with empty collection
             $properties = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -52,7 +67,7 @@ class PropertyController extends Controller
                 ['path' => request()->url()]
             );
 
-            return view('admin.properties.pending', compact('properties'))
+            return view('admin.properties.pending', ['properties' => $properties])
                 ->with('error', 'Unable to load pending properties. Please try again.');
         }
     }
