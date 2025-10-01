@@ -77,6 +77,9 @@
         {{ $slot }}
     </main>
 
+    {{-- Footer --}}
+    @include('layouts.partials.footer')
+
     <script>
         // Smart back navigation function
         function goBack() {
