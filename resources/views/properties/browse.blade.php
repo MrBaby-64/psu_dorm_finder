@@ -21,7 +21,7 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Page Header -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Browse Dormitories</h1>
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">Browse Dormitories</h1>
         <p class="text-gray-600 mt-2">Find your perfect student accommodation near PSU</p>
 
         @auth
@@ -269,7 +269,7 @@
 
                             <!-- Price -->
                             <div class="mb-3">
-                                <span class="text-2xl font-bold text-green-600">
+                                <span class="text-xl sm:text-2xl font-bold text-green-600 break-words">
                                     ₱{{ number_format($property->price) }}
                                 </span>
                                 <span class="text-gray-500 text-sm">/month</span>
