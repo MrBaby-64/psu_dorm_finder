@@ -46,7 +46,7 @@ services:
       - key: CACHE_DRIVER
         value: file
       - key: QUEUE_CONNECTION
-        value: database
+        value: sync
       - key: NOCAPTCHA_SITEKEY
         value: 6LdontgrAAAAADF6Wl923X1kXTDVBZdBU5oFHImD
       - key: NOCAPTCHA_SECRET

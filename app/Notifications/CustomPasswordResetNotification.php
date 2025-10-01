@@ -7,9 +7,24 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class CustomPasswordResetNotification extends Notification
+class CustomPasswordResetNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+
+    /**
+     * The number of seconds before the job should timeout.
+     *
+     * @var int
+     */
+    public $timeout = 30;
+
+    /**
+     * Determine the time at which the job should timeout.
+     */
+    public function retryUntil()
+    {
+        return now()->addMinutes(5);
+    }
 
     public $token;
 
