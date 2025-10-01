@@ -20,62 +20,37 @@ class DashboardController extends Controller
         }
 
         try {
-            // Use raw DB queries for PostgreSQL compatibility
+            // PostgreSQL compatible - use Eloquent
             $stats = [
-                'pending_properties' => \DB::table('properties')->where('approval_status', 'pending')->count(),
-                'approved_properties' => \DB::table('properties')->where('approval_status', 'approved')->count(),
-                'rejected_properties' => \DB::table('properties')->where('approval_status', 'rejected')->count(),
-                'pending_deletion_requests' => \DB::table('property_deletion_requests')->where('status', 'pending')->count(),
-                'total_deletion_requests' => \DB::table('property_deletion_requests')->count(),
-                'total_users' => \DB::table('users')->count(),
-                'landlords' => \DB::table('users')->where('role', 'landlord')->count(),
-                'tenants' => \DB::table('users')->where('role', 'tenant')->count(),
-                'total_bookings' => \DB::table('bookings')->count(),
-                'pending_bookings' => \DB::table('bookings')->where('status', 'pending')->count(),
+                'pending_properties' => Property::where('approval_status', 'pending')->count(),
+                'approved_properties' => Property::where('approval_status', 'approved')->count(),
+                'rejected_properties' => Property::where('approval_status', 'rejected')->count(),
+                'pending_deletion_requests' => PropertyDeletionRequest::where('status', 'pending')->count(),
+                'total_deletion_requests' => PropertyDeletionRequest::count(),
+                'total_users' => User::count(),
+                'landlords' => User::where('role', 'landlord')->count(),
+                'tenants' => User::where('role', 'tenant')->count(),
+                'total_bookings' => Booking::count(),
+                'pending_bookings' => Booking::where('status', 'pending')->count(),
             ];
 
-            // Get recent properties with landlord using JOIN
-            $recentProperties = \DB::table('properties')
-                ->join('users', 'properties.user_id', '=', 'users.id')
-                ->select(
-                    'properties.*',
-                    'users.name as landlord_name'
-                )
-                ->orderBy('properties.created_at', 'DESC')
-                ->limit(5)
-                ->get();
-
-            // Get recent users
-            $recentUsers = \DB::table('users')
+            // Get recent properties with landlord
+            $recentProperties = Property::with('landlord:id,name')
                 ->orderBy('created_at', 'DESC')
                 ->limit(5)
                 ->get();
 
-            // Get recent deletion requests with relationships using JOINs
-            $recentDeletionRequests = \DB::table('property_deletion_requests')
-                ->leftJoin('properties', 'property_deletion_requests.property_id', '=', 'properties.id')
-                ->leftJoin('users', 'property_deletion_requests.landlord_id', '=', 'users.id')
-                ->select(
-                    'property_deletion_requests.*',
-                    'properties.title as property_title',
-                    'users.name as landlord_name'
-                )
-                ->where('property_deletion_requests.status', 'pending')
-                ->orderBy('property_deletion_requests.created_at', 'DESC')
+            // Get recent users
+            $recentUsers = User::orderBy('created_at', 'DESC')
                 ->limit(5)
                 ->get();
 
-            // Add computed attributes for deletion requests
-            $recentDeletionRequests = $recentDeletionRequests->map(function ($request) {
-                $request->status_color = match($request->status) {
-                    'pending' => 'bg-yellow-100 text-yellow-800',
-                    'approved' => 'bg-green-100 text-green-800',
-                    'rejected' => 'bg-red-100 text-red-800',
-                    default => 'bg-gray-100 text-gray-800'
-                };
-                $request->status_name = ucfirst($request->status);
-                return $request;
-            });
+            // Get recent deletion requests with relationships
+            $recentDeletionRequests = PropertyDeletionRequest::with(['property:id,title', 'landlord:id,name'])
+                ->where('status', 'pending')
+                ->orderBy('created_at', 'DESC')
+                ->limit(5)
+                ->get();
 
             return view('admin.dashboard.index', compact('stats', 'recentProperties', 'recentUsers', 'recentDeletionRequests'));
 

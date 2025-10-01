@@ -22,30 +22,10 @@ class UserController extends Controller
     {
         $this->checkAdmin();
 
-        try {
-            // Simplest possible query for PostgreSQL
-            $users = \DB::table('users')
-                ->select('*')
-                ->orderBy('created_at', 'desc')
-                ->paginate(20);
+        // PostgreSQL compatible - simple Eloquent query
+        $users = User::orderBy('created_at', 'desc')->paginate(20);
 
-            return view('admin.users.index', compact('users'));
-
-        } catch (\Exception $e) {
-            \Log::error('Admin users error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            // Show detailed error in production to debug
-            return response()->json([
-                'error' => 'Users index failed',
-                'message' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-                'database' => config('database.default')
-            ], 500);
-        }
+        return view('admin.users.index', compact('users'));
     }
 
     public function updateRole(Request $request, $id)
