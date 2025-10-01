@@ -48,9 +48,9 @@
                 </div>
 
                 <div class="mt-6 flex gap-3">
-                    <form action="{{ route('admin.properties.approve', $property) }}" method="POST" class="inline">
+                    <form action="{{ route('admin.properties.approve', $property->id) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" 
+                        <button type="submit"
                                 class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
                             ✓ Approve
                         </button>
@@ -61,9 +61,9 @@
                         ✗ Reject
                     </button>
 
-                    <form action="{{ route('admin.properties.verify', $property) }}" method="POST" class="inline">
+                    <form action="{{ route('admin.properties.verify', $property->id) }}" method="POST" class="inline">
                         @csrf
-                        <button type="submit" 
+                        <button type="submit"
                                 class="border border-blue-600 text-blue-600 px-6 py-2 rounded-lg hover:bg-blue-50">
                             {{ $property->is_verified ? 'Unverify' : 'Mark as PSU Verified' }}
                         </button>
@@ -74,7 +74,7 @@
                 <div id="rejectModal{{ $property->id }}" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                         <h3 class="text-xl font-bold mb-4">Reject Property</h3>
-                        <form action="{{ route('admin.properties.reject', $property) }}" method="POST">
+                        <form action="{{ route('admin.properties.reject', $property->id) }}" method="POST">
                             @csrf
                             <textarea name="rejection_reason" rows="3" 
                                       class="w-full px-3 py-2 border border-gray-300 rounded-md mb-4"
