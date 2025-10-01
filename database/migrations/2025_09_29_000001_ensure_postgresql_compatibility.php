@@ -47,66 +47,72 @@ return new class extends Migration
 
         // Update any tables that might have MySQL-specific issues
         if (Schema::hasTable('users')) {
-            Schema::table('users', function (Blueprint $table) {
-                // Ensure proper constraints for PostgreSQL
+            // Check and add indexes only if they don't exist
+            if (!$this->indexExists('users', 'users_email_index')) {
                 try {
-                    if (!$this->indexExists('users', 'users_email_index')) {
+                    Schema::table('users', function (Blueprint $table) {
                         $table->index('email');
-                    }
+                    });
                 } catch (\Exception $e) {
-                    // Index might already exist, continue
+                    \Log::warning('Could not add users_email_index: ' . $e->getMessage());
                 }
+            }
 
+            if (!$this->indexExists('users', 'users_role_index')) {
                 try {
-                    if (!$this->indexExists('users', 'users_role_index')) {
+                    Schema::table('users', function (Blueprint $table) {
                         $table->index('role');
-                    }
+                    });
                 } catch (\Exception $e) {
-                    // Index might already exist, continue
+                    \Log::warning('Could not add users_role_index: ' . $e->getMessage());
                 }
-            });
+            }
         }
 
         if (Schema::hasTable('properties')) {
-            Schema::table('properties', function (Blueprint $table) {
-                // Ensure proper indexes
+            // Check and add indexes only if they don't exist
+            if (!$this->indexExists('properties', 'properties_approval_status_index')) {
                 try {
-                    if (!$this->indexExists('properties', 'properties_approval_status_index')) {
+                    Schema::table('properties', function (Blueprint $table) {
                         $table->index('approval_status');
-                    }
+                    });
                 } catch (\Exception $e) {
-                    // Index might already exist, continue
+                    \Log::warning('Could not add properties_approval_status_index: ' . $e->getMessage());
                 }
+            }
 
+            if (!$this->indexExists('properties', 'properties_city_index')) {
                 try {
-                    if (!$this->indexExists('properties', 'properties_city_index')) {
+                    Schema::table('properties', function (Blueprint $table) {
                         $table->index('city');
-                    }
+                    });
                 } catch (\Exception $e) {
-                    // Index might already exist, continue
+                    \Log::warning('Could not add properties_city_index: ' . $e->getMessage());
                 }
+            }
 
+            if (!$this->indexExists('properties', 'properties_latitude_longitude_index')) {
                 try {
-                    if (!$this->indexExists('properties', 'properties_latitude_longitude_index')) {
+                    Schema::table('properties', function (Blueprint $table) {
                         $table->index(['latitude', 'longitude']);
-                    }
+                    });
                 } catch (\Exception $e) {
-                    // Index might already exist, continue
+                    \Log::warning('Could not add properties_latitude_longitude_index: ' . $e->getMessage());
                 }
-            });
+            }
         }
 
         if (Schema::hasTable('rooms')) {
-            Schema::table('rooms', function (Blueprint $table) {
-                // Ensure proper indexes for performance
+            // Check and add indexes only if they don't exist
+            if (!$this->indexExists('rooms', 'rooms_property_id_status_index')) {
                 try {
-                    if (!$this->indexExists('rooms', 'rooms_property_id_status_index')) {
+                    Schema::table('rooms', function (Blueprint $table) {
                         $table->index(['property_id', 'status']);
-                    }
+                    });
                 } catch (\Exception $e) {
-                    // Index might already exist, continue
+                    \Log::warning('Could not add rooms_property_id_status_index: ' . $e->getMessage());
                 }
-            });
+            }
         }
     }
 
