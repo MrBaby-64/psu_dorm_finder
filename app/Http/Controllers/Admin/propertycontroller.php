@@ -26,10 +26,15 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // PostgreSQL-compatible query with explicit column selection
-            $properties = Property::select('properties.*')
-                ->with('landlord:id,name,email')
-                ->where('properties.approval_status', '=', 'pending')
+            // Simplest possible query for PostgreSQL
+            $properties = DB::table('properties')
+                ->join('users', 'properties.user_id', '=', 'users.id')
+                ->select(
+                    'properties.*',
+                    'users.name as landlord_name',
+                    'users.email as landlord_email'
+                )
+                ->where('properties.approval_status', 'pending')
                 ->orderBy('properties.created_at', 'desc')
                 ->paginate(10);
 
@@ -209,15 +214,37 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // PostgreSQL-compatible query with explicit column selection
-            $deletionRequests = PropertyDeletionRequest::select('property_deletion_requests.*')
-                ->with([
-                    'property:id,title,location_text,city,barangay,price,room_count',
-                    'landlord:id,name,email',
-                    'reviewer:id,name'
-                ])
+            // Simplest possible query for PostgreSQL - using raw DB queries
+            $deletionRequests = DB::table('property_deletion_requests')
+                ->leftJoin('properties', 'property_deletion_requests.property_id', '=', 'properties.id')
+                ->leftJoin('users as landlords', 'property_deletion_requests.landlord_id', '=', 'landlords.id')
+                ->leftJoin('users as reviewers', 'property_deletion_requests.reviewed_by', '=', 'reviewers.id')
+                ->select(
+                    'property_deletion_requests.*',
+                    'properties.title as property_title',
+                    'properties.location_text as property_location',
+                    'properties.city as property_city',
+                    'properties.barangay as property_barangay',
+                    'properties.price as property_price',
+                    'properties.room_count as property_rooms',
+                    'landlords.name as landlord_name',
+                    'landlords.email as landlord_email',
+                    'reviewers.name as reviewer_name'
+                )
                 ->orderBy('property_deletion_requests.created_at', 'desc')
                 ->paginate(15);
+
+            // Add computed attributes for each request
+            $deletionRequests->getCollection()->transform(function ($request) {
+                $request->status_color = match($request->status) {
+                    'pending' => 'bg-yellow-100 text-yellow-800',
+                    'approved' => 'bg-green-100 text-green-800',
+                    'rejected' => 'bg-red-100 text-red-800',
+                    default => 'bg-gray-100 text-gray-800'
+                };
+                $request->status_name = ucfirst($request->status);
+                return $request;
+            });
 
             $statuses = [
                 'pending' => 'Pending Review',

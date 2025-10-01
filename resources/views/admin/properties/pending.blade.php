@@ -30,7 +30,7 @@
                         <p class="mt-3 text-gray-700">{{ Str::limit($property->description, 200) }}</p>
 
                         <div class="mt-3 text-sm text-gray-500">
-                            <strong>Landlord:</strong> {{ $property->landlord->name }} ({{ $property->landlord->email }})
+                            <strong>Landlord:</strong> {{ $property->landlord_name }} ({{ $property->landlord_email }})
                         </div>
 
                         <div class="mt-2 text-sm text-gray-500">
