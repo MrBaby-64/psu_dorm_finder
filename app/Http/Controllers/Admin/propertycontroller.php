@@ -23,41 +23,25 @@ class PropertyController extends Controller
 
     public function pending()
     {
-        try {
-            $this->checkAdmin();
-        } catch (\Exception $e) {
-            return response()->json([
-                'step' => 'admin_check',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile()
-            ], 500);
-        }
+        $this->checkAdmin();
 
         try {
-            // Step 1: Try simple query without relationships
-            $properties = Property::where('approval_status', 'pending')
+            // Load properties with landlord relationship
+            $properties = Property::with('landlord')
+                ->where('approval_status', 'pending')
                 ->orderBy('created_at', 'desc')
                 ->paginate(10);
 
-            // Step 2: Try to load the view
-            return view('admin.properties.pending', ['properties' => $properties]);
+            return view('admin.properties.pending', compact('properties'));
 
         } catch (\Exception $e) {
             Log::error('Admin pending properties error', [
                 'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'step' => 'load_properties',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-                'db_connection' => config('database.default')
-            ], 500);
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'Unable to load pending properties.');
         }
     }
 
@@ -221,20 +205,12 @@ class PropertyController extends Controller
      */
     public function deletionRequests(Request $request)
     {
-        try {
-            $this->checkAdmin();
-        } catch (\Exception $e) {
-            return response()->json([
-                'step' => 'admin_check',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile()
-            ], 500);
-        }
+        $this->checkAdmin();
 
         try {
-            // Simple query without relationships first
-            $deletionRequests = PropertyDeletionRequest::orderBy('created_at', 'desc')
+            // Load with necessary relationships
+            $deletionRequests = PropertyDeletionRequest::with(['property', 'landlord', 'reviewer'])
+                ->orderBy('created_at', 'desc')
                 ->paginate(15);
 
             $statuses = [
@@ -248,18 +224,11 @@ class PropertyController extends Controller
         } catch (\Exception $e) {
             Log::error('Admin deletion requests error', [
                 'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'step' => 'load_deletion_requests',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-                'db_connection' => config('database.default')
-            ], 500);
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'Unable to load deletion requests.');
         }
     }
 
