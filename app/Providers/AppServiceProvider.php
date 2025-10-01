@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Mail\Events\MessageSent;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,5 +28,8 @@ class AppServiceProvider extends ServiceProvider
                 URL::forceRootUrl($appUrl);
             }
         }
+
+        // Log when emails are sent
+        Event::listen(MessageSent::class, \App\Listeners\LogSentMessage::class);
     }
 }
