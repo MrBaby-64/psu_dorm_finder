@@ -85,7 +85,7 @@
                     </span>
                     @if($request->status !== 'pending')
                         <span class="text-xs text-gray-500">
-                            by {{ $request->reviewer_name ?? 'Unknown' }}
+                            by {{ $request->reviewer->name ?? 'Unknown' }}
                         </span>
                     @endif
                 </div>
@@ -96,17 +96,17 @@
                     {{-- Property Information --}}
                     <div>
                         <h4 class="font-semibold text-gray-900 mb-3">Property Details</h4>
-                        @if($request->property_title)
+                        @if($request->property)
                             <div class="space-y-2">
-                                <p class="font-medium">{{ $request->property_title }}</p>
-                                <p class="text-gray-600">{{ $request->property_location }}</p>
+                                <p class="font-medium">{{ $request->property->title }}</p>
+                                <p class="text-gray-600">{{ $request->property->location_text }}</p>
                                 <p class="text-sm text-gray-500">
-                                    {{ $request->property_city }}, {{ $request->property_barangay }}
+                                    {{ $request->property->city }}, {{ $request->property->barangay }}
                                 </p>
                                 <p class="text-green-600 font-medium">
-                                    ₱{{ number_format($request->property_price, 0) }}/month
+                                    ₱{{ number_format($request->property->price, 0) }}/month
                                 </p>
-                                <p class="text-gray-600">{{ $request->property_rooms }} rooms</p>
+                                <p class="text-gray-600">{{ $request->property->room_count }} rooms</p>
                             </div>
                         @else
                             <p class="text-red-600 text-sm">Property no longer exists</p>
@@ -119,9 +119,9 @@
                         <div class="space-y-3">
                             <div>
                                 <label class="text-sm font-medium text-gray-700">Landlord:</label>
-                                <p class="text-gray-900">{{ $request->landlord_name ?? 'Unknown' }}</p>
-                                @if($request->landlord_email)
-                                    <p class="text-sm text-gray-600">{{ $request->landlord_email }}</p>
+                                <p class="text-gray-900">{{ $request->landlord->name ?? 'Unknown' }}</p>
+                                @if($request->landlord)
+                                    <p class="text-sm text-gray-600">{{ $request->landlord->email }}</p>
                                 @endif
                             </div>
 
@@ -151,7 +151,7 @@
                 </div>
 
                 {{-- Action Buttons (only for pending requests) --}}
-                @if($request->status === 'pending' && $request->property_title)
+                @if($request->status === 'pending' && $request->property)
                 <div class="mt-6 pt-4 border-t border-gray-200 flex gap-3">
                     <button onclick="document.getElementById('approveModal{{ $request->id }}').classList.remove('hidden')"
                             class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 flex items-center gap-2">
@@ -200,7 +200,7 @@
                     <div class="bg-yellow-50 border border-yellow-200 rounded-md p-4 mb-4">
                         <p class="text-sm text-yellow-800">
                             <strong>Warning:</strong> Approving this request will permanently delete the property
-                            "{{ $request->property_title }}" and all associated data (images, rooms, bookings, etc.).
+                            "{{ $request->property->title ?? 'Unknown' }}" and all associated data (images, rooms, bookings, etc.).
                         </p>
                     </div>
 

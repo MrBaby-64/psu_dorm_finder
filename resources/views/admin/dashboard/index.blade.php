@@ -151,7 +151,7 @@
                     <div class="p-6 flex justify-between items-center">
                         <div>
                             <h3 class="font-semibold">{{ $property->title }}</h3>
-                            <p class="text-sm text-gray-600">by {{ $property->landlord_name }}</p>
+                            <p class="text-sm text-gray-600">by {{ $property->landlord->name }}</p>
                         </div>
                         <span class="px-3 py-1
                             {{ $property->approval_status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -182,18 +182,18 @@
             <div class="divide-y">
                 @if($recentDeletionRequests->count() > 0)
                     @foreach($recentDeletionRequests as $request)
-                    <a href="{{ route('admin.properties.deletion-requests.view', $request->id) }}" class="block p-6 hover:bg-gray-50 transition-colors">
+                    <a href="{{ route('admin.properties.deletion-requests.view', $request) }}" class="block p-6 hover:bg-gray-50 transition-colors">
                         <div class="flex justify-between items-start">
                             <div class="flex-1 min-w-0">
                                 <h3 class="font-semibold truncate">
-                                    @if($request->property_title)
-                                        {{ $request->property_title }}
+                                    @if($request->property)
+                                        {{ $request->property->title }}
                                     @else
                                         <span class="text-gray-400">Property Deleted</span>
                                     @endif
                                 </h3>
-                                <p class="text-sm text-gray-600 truncate">by {{ $request->landlord_name ?? 'Unknown' }}</p>
-                                <p class="text-xs text-gray-400 mt-1">{{ \Carbon\Carbon::parse($request->created_at)->diffForHumans() }}</p>
+                                <p class="text-sm text-gray-600 truncate">by {{ $request->landlord->name ?? 'Unknown' }}</p>
+                                <p class="text-xs text-gray-400 mt-1">{{ $request->created_at->diffForHumans() }}</p>
                             </div>
                             <div class="ml-2">
                                 <span class="px-2 py-1 text-xs rounded font-medium {{ $request->status_color }}">

@@ -25,37 +25,13 @@ class PropertyController extends Controller
     {
         $this->checkAdmin();
 
-        try {
-            // Simplest possible query for PostgreSQL
-            $properties = DB::table('properties')
-                ->join('users', 'properties.user_id', '=', 'users.id')
-                ->select(
-                    'properties.*',
-                    'users.name as landlord_name',
-                    'users.email as landlord_email'
-                )
-                ->where('properties.approval_status', 'pending')
-                ->orderBy('properties.created_at', 'desc')
-                ->paginate(10);
+        // PostgreSQL compatible - use Eloquent with eager loading
+        $properties = Property::with('landlord:id,name,email')
+            ->where('approval_status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
 
-            return view('admin.properties.pending', compact('properties'));
-
-        } catch (\Exception $e) {
-            Log::error('Admin pending properties error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            // Show detailed error in production to debug
-            return response()->json([
-                'error' => 'Pending properties failed',
-                'message' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-                'database' => config('database.default'),
-                'query_attempted' => 'SELECT properties.*, users.name, users.email FROM properties JOIN users WHERE approval_status = pending'
-            ], 500);
-        }
+        return view('admin.properties.pending', compact('properties'));
     }
 
     public function approve($id)
@@ -220,62 +196,18 @@ class PropertyController extends Controller
     {
         $this->checkAdmin();
 
-        try {
-            // Simplest possible query for PostgreSQL - using raw DB queries
-            $deletionRequests = DB::table('property_deletion_requests')
-                ->leftJoin('properties', 'property_deletion_requests.property_id', '=', 'properties.id')
-                ->leftJoin('users as landlords', 'property_deletion_requests.landlord_id', '=', 'landlords.id')
-                ->leftJoin('users as reviewers', 'property_deletion_requests.reviewed_by', '=', 'reviewers.id')
-                ->select(
-                    'property_deletion_requests.*',
-                    'properties.title as property_title',
-                    'properties.location_text as property_location',
-                    'properties.city as property_city',
-                    'properties.barangay as property_barangay',
-                    'properties.price as property_price',
-                    'properties.room_count as property_rooms',
-                    'landlords.name as landlord_name',
-                    'landlords.email as landlord_email',
-                    'reviewers.name as reviewer_name'
-                )
-                ->orderBy('property_deletion_requests.created_at', 'desc')
-                ->paginate(15);
+        // PostgreSQL compatible - use Eloquent with eager loading
+        $deletionRequests = PropertyDeletionRequest::with(['property:id,title,location_text,city,barangay,price,room_count', 'landlord:id,name,email', 'reviewer:id,name'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
-            // Add computed attributes for each request
-            $deletionRequests->getCollection()->transform(function ($request) {
-                $request->status_color = match($request->status) {
-                    'pending' => 'bg-yellow-100 text-yellow-800',
-                    'approved' => 'bg-green-100 text-green-800',
-                    'rejected' => 'bg-red-100 text-red-800',
-                    default => 'bg-gray-100 text-gray-800'
-                };
-                $request->status_name = ucfirst($request->status);
-                return $request;
-            });
+        $statuses = [
+            'pending' => 'Pending Review',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+        ];
 
-            $statuses = [
-                'pending' => 'Pending Review',
-                'approved' => 'Approved',
-                'rejected' => 'Rejected',
-            ];
-
-            return view('admin.properties.deletion-requests', compact('deletionRequests', 'statuses'));
-
-        } catch (\Exception $e) {
-            Log::error('Admin deletion requests error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            // Show detailed error in production to debug
-            return response()->json([
-                'error' => 'Deletion requests failed',
-                'message' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-                'database' => config('database.default')
-            ], 500);
-        }
+        return view('admin.properties.deletion-requests', compact('deletionRequests', 'statuses'));
     }
 
     /**
