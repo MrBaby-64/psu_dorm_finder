@@ -97,3 +97,101 @@ Route::get('/test-landlord-properties', function () {
         ], 500, [], JSON_PRETTY_PRINT);
     }
 });
+
+// Mail configuration debug
+Route::get('/debug-mail-config', function () {
+    return response()->json([
+        'environment' => config('app.env'),
+        'mail' => [
+            'default' => config('mail.default'),
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+            'encryption' => config('mail.mailers.smtp.encryption'),
+            'username' => config('mail.mailers.smtp.username'),
+            'password_set' => config('mail.mailers.smtp.password') ? 'YES' : 'NO',
+            'from_address' => config('mail.from.address'),
+            'from_name' => config('mail.from.name'),
+        ],
+        'queue' => [
+            'default' => config('queue.default'),
+        ],
+    ], 200, [], JSON_PRETTY_PRINT);
+});
+
+// Send test email
+Route::get('/debug-send-test-email', function () {
+    try {
+        \Mail::raw('This is a test email sent at ' . now(), function ($message) {
+            $message->to(config('mail.mailers.smtp.username'))
+                    ->subject('Debug Test Email - ' . now());
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Test email sent successfully',
+            'to' => config('mail.mailers.smtp.username'),
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ], 500);
+    }
+});
+
+// Test password reset
+Route::get('/debug-password-reset/{email}', function ($email) {
+    try {
+        $user = \App\Models\User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found with email: ' . $email,
+            ], 404);
+        }
+
+        $status = \Illuminate\Support\Facades\Password::sendResetLink(['email' => $email]);
+
+        return response()->json([
+            'success' => $status === \Illuminate\Support\Facades\Password::RESET_LINK_SENT,
+            'status' => $status,
+            'message' => __($status),
+            'user' => [
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ], 500);
+    }
+});
+
+// View recent logs
+Route::get('/debug-logs', function () {
+    $logFile = storage_path('logs/laravel.log');
+
+    if (!file_exists($logFile)) {
+        return response('<pre>Log file not found</pre>');
+    }
+
+    $lines = [];
+    $file = new SplFileObject($logFile);
+    $file->seek(PHP_INT_MAX);
+    $lastLine = $file->key();
+    $startLine = max(0, $lastLine - 200);
+
+    $file->seek($startLine);
+    while (!$file->eof()) {
+        $lines[] = $file->fgets();
+    }
+
+    return response('<pre>' . htmlspecialchars(implode('', $lines)) . '</pre>');
+});
