@@ -26,10 +26,11 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // Load properties with landlord relationship
-            $properties = Property::with('landlord')
-                ->where('approval_status', 'pending')
-                ->orderBy('created_at', 'desc')
+            // PostgreSQL-compatible query with explicit column selection
+            $properties = Property::select('properties.*')
+                ->with('landlord:id,name,email')
+                ->where('properties.approval_status', '=', 'pending')
+                ->orderBy('properties.created_at', 'desc')
                 ->paginate(10);
 
             return view('admin.properties.pending', compact('properties'));
@@ -208,9 +209,14 @@ class PropertyController extends Controller
         $this->checkAdmin();
 
         try {
-            // Load with necessary relationships
-            $deletionRequests = PropertyDeletionRequest::with(['property', 'landlord', 'reviewer'])
-                ->orderBy('created_at', 'desc')
+            // PostgreSQL-compatible query with explicit column selection
+            $deletionRequests = PropertyDeletionRequest::select('property_deletion_requests.*')
+                ->with([
+                    'property:id,title,location_text,city,barangay,price,room_count',
+                    'landlord:id,name,email',
+                    'reviewer:id,name'
+                ])
+                ->orderBy('property_deletion_requests.created_at', 'desc')
                 ->paginate(15);
 
             $statuses = [
