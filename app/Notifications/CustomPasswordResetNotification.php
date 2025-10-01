@@ -41,6 +41,16 @@ class CustomPasswordResetNotification extends Notification
             'email' => $notifiable->getEmailForPasswordReset(),
         ], false));
 
+        \Log::info('Preparing password reset email', [
+            'email' => $notifiable->getEmailForPasswordReset(),
+            'action_url' => $actionUrl,
+            'mail_config' => [
+                'mailer' => config('mail.default'),
+                'host' => config('mail.mailers.smtp.host'),
+                'from' => config('mail.from.address'),
+            ]
+        ]);
+
         return (new MailMessage)
             ->subject('Reset Your PSU Dorm Finder Password')
             ->view('emails.password-reset', [

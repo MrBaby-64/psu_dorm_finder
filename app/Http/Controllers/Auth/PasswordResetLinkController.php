@@ -30,15 +30,26 @@ class PasswordResetLinkController extends Controller
                 'email' => ['required', 'email'],
             ]);
 
+            // Enhanced logging before sending
+            \Log::info('Password reset initiated', [
+                'email' => $request->email,
+                'environment' => config('app.env'),
+                'mail_driver' => config('mail.default'),
+                'mail_host' => config('mail.mailers.smtp.host'),
+                'mail_port' => config('mail.mailers.smtp.port'),
+                'mail_encryption' => config('mail.mailers.smtp.encryption'),
+                'mail_from' => config('mail.from.address'),
+            ]);
+
             $status = Password::sendResetLink(
                 $request->only('email')
             );
 
-            // Log for debugging
-            \Log::info('Password reset requested', [
+            // Enhanced logging after attempt
+            \Log::info('Password reset link attempt completed', [
                 'email' => $request->email,
                 'status' => $status,
-                'mail_driver' => config('mail.default')
+                'status_message' => __($status),
             ]);
 
             if ($request->wantsJson() || $request->expectsJson()) {
@@ -63,6 +74,11 @@ class PasswordResetLinkController extends Controller
             }
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Password reset validation failed', [
+                'email' => $request->email ?? 'N/A',
+                'errors' => $e->errors()
+            ]);
+
             if ($request->wantsJson() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
@@ -72,6 +88,12 @@ class PasswordResetLinkController extends Controller
             }
             throw $e;
         } catch (\Exception $e) {
+            \Log::error('Password reset failed with exception', [
+                'email' => $request->email ?? 'N/A',
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             if ($request->wantsJson() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
