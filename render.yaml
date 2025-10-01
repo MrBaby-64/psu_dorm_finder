@@ -52,9 +52,19 @@ services:
       - key: NOCAPTCHA_SECRET
         value: 6LdontgrAAAAACkN0f77aL7bOsGo1PfcAFFHxs3N
       - key: MAIL_MAILER
-        value: log
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USERNAME
+        value: tohkayatogam@gmail.com
+      - key: MAIL_PASSWORD
+        value: iitgzylpzdwliknq
+      - key: MAIL_ENCRYPTION
+        value: tls
       - key: MAIL_FROM_ADDRESS
-        value: noreply@psu-dorm-finder.onrender.com
+        value: tohkayatogam@gmail.com
       - key: MAIL_FROM_NAME
         value: PSU Dorm Finder
 
