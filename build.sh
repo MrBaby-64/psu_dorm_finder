@@ -14,6 +14,13 @@ echo "🎨 Installing NPM dependencies and building assets..."
 npm install
 npm run build
 
+# Clear all caches first
+echo "🧹 Clearing all caches..."
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+php artisan cache:clear
+
 # Cache Laravel configuration for better performance
 echo "⚡ Caching Laravel configuration..."
 php artisan config:cache
