@@ -51,7 +51,7 @@
                     @elseif(auth()->user()->role === 'admin')
                         {{-- Admin Menu --}}
                         <a href="{{ route('admin.dashboard') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg text-gray-700 hover:text-green-600 hover:bg-gray-100 transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Dashboard</a>
-                        <a href="{{ route('admin.account') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg {{ request()->routeIs('admin.account') ? 'text-green-600 bg-green-50' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100' }} transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Admin</a>
+                        <a href="{{ route('admin.account') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg {{ request()->routeIs('admin.account') ? 'text-green-600 bg-green-50' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100' }} transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Profile</a>
 
                     @else
                         {{-- Landlord Menu --}}
@@ -257,8 +257,8 @@
                                 </a>
                                 <a href="{{ route('admin.account') }}" class="mobile-nav-link block px-4 py-3 rounded-lg {{ request()->routeIs('admin.account') ? 'text-green-600 bg-green-50' : 'text-gray-700 hover:text-green-600 hover:bg-green-50' }} transition-all duration-200 font-medium">
                                     <div class="flex items-center space-x-3">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v0H8v0z"></path></svg>
-                                        <span>Admin</span>
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        <span>Profile</span>
                                     </div>
                                 </a>
 

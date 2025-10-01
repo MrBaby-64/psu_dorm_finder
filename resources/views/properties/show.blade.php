@@ -1635,7 +1635,7 @@
                     <div class="lg:col-span-2 space-y-6">
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                            <h1 class="text-3xl font-bold">{{ $property->title }}</h1>
+                            <h1 class="text-2xl sm:text-3xl font-bold break-words">{{ $property->title }}</h1>
                                 @auth
                                     @if(auth()->user()->role === 'tenant')
                                         <button onclick="toggleFavorite({{ $property->id }})"
@@ -1658,17 +1658,17 @@
                                 @endauth
                         </div>
 
-                            <div class="flex items-center text-gray-600 mb-4">
-                                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <div class="flex items-start text-gray-600 mb-4">
+                                <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M10 2a6 6 0 00-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 00-6-6z"/>
                                 </svg>
-                                <span>{{ $property->address_line }}, {{ $property->barangay }}, {{ $property->city }}</span>
+                                <span class="break-words">{{ $property->address_line }}, {{ $property->barangay }}, {{ $property->city }}</span>
                             </div>
 
                             <!-- Price -->
                             <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
                                 <p class="text-gray-600">Monthly Rate</p>
-                                <p class="text-3xl font-bold text-green-600">₱{{ number_format($property->price) }}</p>
+                                <p class="text-2xl sm:text-3xl font-bold text-green-600 break-words">₱{{ number_format($property->price) }}</p>
                                 <p class="text-sm text-gray-500">per month</p>
                             </div>
                         </div>
@@ -1717,7 +1717,7 @@
                                         <div class="flex justify-between items-start mb-4">
                                             <div class="flex-1">
                                                 <div class="flex items-center space-x-3 mb-2">
-                                                    <h3 class="text-lg font-bold text-gray-900">{{ $room->room_number }}</h3>
+                                                    <h3 class="text-base sm:text-lg font-bold text-gray-900 break-words">{{ $room->room_number }}</h3>
                                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                         {{ $room->type_name }}
                                                     </span>
@@ -1738,7 +1738,7 @@
                                                 </div>
 
                                                 @if($room->description)
-                                                    <p class="text-sm text-gray-700 mb-3">{{ $room->description }}</p>
+                                                    <p class="text-sm text-gray-700 mb-3 break-words">{{ $room->description }}</p>
                                                 @endif
 
                                                 {{-- Edit Room Details Button (for property owner) --}}
@@ -1798,8 +1798,8 @@
 
                                             <!-- Price Section -->
                                             <div class="text-right">
-                                                <p class="text-2xl font-bold text-green-600">₱{{ number_format($room->price) }}</p>
-                                                <p class="text-sm text-gray-500">per month</p>
+                                                <p class="text-xl sm:text-2xl font-bold text-green-600 break-words">₱{{ number_format($room->price) }}</p>
+                                                <p class="text-xs sm:text-sm text-gray-500">per month</p>
                                                 @if($room->available_spaces < $room->capacity && $room->status === 'available')
                                                     <p class="text-xs text-orange-600 mt-1">{{ $room->available_spaces }} space{{ $room->available_spaces > 1 ? 's' : '' }} left</p>
                                                 @endif
@@ -1824,16 +1824,16 @@
                                                     </h4>
                                                     <div class="space-y-2 text-sm bg-gray-50 rounded-lg p-3">
                                                         @if($room->advance_payment_months && $room->advance_payment_months > 1)
-                                                            <div class="flex justify-between">
-                                                                <span class="text-gray-600">Advance Payments:</span>
-                                                                <span class="font-medium">₱{{ number_format($room->price * $room->advance_payment_months) }} ({{ $room->advance_payment_months }} month{{ $room->advance_payment_months > 1 ? 's' : '' }})</span>
+                                                            <div class="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                                                <span class="text-gray-600 text-sm">Advance Payments:</span>
+                                                                <span class="font-medium text-sm break-words">₱{{ number_format($room->price * $room->advance_payment_months) }} ({{ $room->advance_payment_months }} month{{ $room->advance_payment_months > 1 ? 's' : '' }})</span>
                                                             </div>
                                                         @endif
 
                                                         @if($room->security_deposit && $room->security_deposit > 0)
-                                                            <div class="flex justify-between">
-                                                                <span class="text-gray-600">Security Deposit:</span>
-                                                                <span class="font-medium">₱{{ number_format($room->security_deposit) }} ({{ number_format($room->security_deposit / $room->price, 1) }} month{{ $room->security_deposit >= ($room->price * 2) ? 's' : '' }})</span>
+                                                            <div class="flex flex-col sm:flex-row sm:justify-between gap-1">
+                                                                <span class="text-gray-600 text-sm">Security Deposit:</span>
+                                                                <span class="font-medium text-sm break-words">₱{{ number_format($room->security_deposit) }} ({{ number_format($room->security_deposit / $room->price, 1) }} month{{ $room->security_deposit >= ($room->price * 2) ? 's' : '' }})</span>
                                                             </div>
                                                         @endif
 
@@ -2830,7 +2830,7 @@
                 <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-700 font-medium">Monthly Rate:</span>
-                        <span class="text-2xl font-bold text-orange-600">₱{{ number_format($property->price) }}</span>
+                        <span class="text-xl sm:text-2xl font-bold text-orange-600 break-words">₱{{ number_format($property->price) }}</span>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">
                         * Final amount will be calculated based on your stay duration
@@ -3032,7 +3032,7 @@
                                         @if($room->description)
                                             <p class="text-sm text-gray-600 mt-1">{{ $room->description }}</p>
                                         @endif
-                                        <p class="text-sm text-orange-600 font-semibold mt-1">₱{{ number_format($room->price ?? $property->price) }}/month</p>
+                                        <p class="text-sm text-orange-600 font-semibold mt-1 break-words">₱{{ number_format($room->price ?? $property->price) }}/month</p>
                                     </div>
                                     <div class="text-right ml-4">
                                         <div class="text-sm font-medium text-green-600">
