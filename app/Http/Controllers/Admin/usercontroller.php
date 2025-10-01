@@ -23,9 +23,10 @@ class UserController extends Controller
         $this->checkAdmin();
 
         try {
-            // PostgreSQL-compatible query with explicit column selection
-            $users = User::select('users.*')
-                ->orderBy('users.created_at', 'desc')
+            // Simplest possible query for PostgreSQL
+            $users = \DB::table('users')
+                ->select('*')
+                ->orderBy('created_at', 'desc')
                 ->paginate(20);
 
             return view('admin.users.index', compact('users'));
