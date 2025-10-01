@@ -82,6 +82,15 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             \Log::error('Admin Dashboard Error: ' . $e->getMessage());
 
+            // Show detailed error in production to debug
+            return response()->json([
+                'error' => 'Dashboard failed',
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'database' => config('database.default')
+            ], 500);
+
             // Fallback with empty data
             $stats = [
                 'pending_properties' => 0,

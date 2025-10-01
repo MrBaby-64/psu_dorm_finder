@@ -37,8 +37,14 @@ class UserController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->route('admin.dashboard')
-                ->with('error', 'Unable to load users.');
+            // Show detailed error in production to debug
+            return response()->json([
+                'error' => 'Users index failed',
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'database' => config('database.default')
+            ], 500);
         }
     }
 
