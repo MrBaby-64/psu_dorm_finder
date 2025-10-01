@@ -2,29 +2,11 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class CustomPasswordResetNotification extends Notification implements ShouldQueue
+class CustomPasswordResetNotification extends Notification
 {
-    use Queueable;
-
-    /**
-     * The number of seconds before the job should timeout.
-     *
-     * @var int
-     */
-    public $timeout = 30;
-
-    /**
-     * Determine the time at which the job should timeout.
-     */
-    public function retryUntil()
-    {
-        return now()->addMinutes(5);
-    }
 
     public $token;
 
@@ -51,27 +33,43 @@ class CustomPasswordResetNotification extends Notification implements ShouldQueu
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $actionUrl = url(route('password.reset', [
-            'token' => $this->token,
-            'email' => $notifiable->getEmailForPasswordReset(),
-        ], false));
+        try {
+            $actionUrl = url(route('password.reset', [
+                'token' => $this->token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
 
-        \Log::info('Preparing password reset email', [
-            'email' => $notifiable->getEmailForPasswordReset(),
-            'action_url' => $actionUrl,
-            'mail_config' => [
-                'mailer' => config('mail.default'),
-                'host' => config('mail.mailers.smtp.host'),
-                'from' => config('mail.from.address'),
-            ]
-        ]);
-
-        return (new MailMessage)
-            ->subject('Reset Your PSU Dorm Finder Password')
-            ->view('emails.password-reset', [
-                'actionUrl' => $actionUrl,
-                'user' => $notifiable,
+            \Log::info('CustomPasswordResetNotification: Preparing email', [
+                'email' => $notifiable->getEmailForPasswordReset(),
+                'action_url' => $actionUrl,
+                'token_length' => strlen($this->token),
+                'mail_config' => [
+                    'mailer' => config('mail.default'),
+                    'host' => config('mail.mailers.smtp.host'),
+                    'port' => config('mail.mailers.smtp.port'),
+                    'encryption' => config('mail.mailers.smtp.encryption'),
+                    'from' => config('mail.from.address'),
+                    'username' => config('mail.mailers.smtp.username'),
+                ]
             ]);
+
+            $mailMessage = (new MailMessage)
+                ->subject('Reset Your PSU Dorm Finder Password')
+                ->view('emails.password-reset', [
+                    'actionUrl' => $actionUrl,
+                    'user' => $notifiable,
+                ]);
+
+            \Log::info('CustomPasswordResetNotification: Mail message created successfully');
+
+            return $mailMessage;
+        } catch (\Exception $e) {
+            \Log::error('CustomPasswordResetNotification: Error creating mail message', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     /**
