@@ -20,38 +20,21 @@ class UserController extends Controller
 
     public function index()
     {
-        try {
-            $this->checkAdmin();
-        } catch (\Exception $e) {
-            return response()->json([
-                'step' => 'admin_check',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile()
-            ], 500);
-        }
+        $this->checkAdmin();
 
         try {
-            // Simple query without select for better compatibility
             $users = User::orderBy('created_at', 'desc')->paginate(20);
 
-            return view('admin.users.index', ['users' => $users]);
+            return view('admin.users.index', compact('users'));
 
         } catch (\Exception $e) {
             \Log::error('Admin users error', [
                 'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return response()->json([
-                'step' => 'load_users',
-                'error' => $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-                'db_connection' => config('database.default')
-            ], 500);
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'Unable to load users.');
         }
     }
 

@@ -24,6 +24,14 @@ class PropertyDeletionRequest extends Model
     ];
 
     /**
+     * The accessors to append to the model's array form.
+     */
+    protected $appends = [
+        'status_color',
+        'status_name'
+    ];
+
+    /**
      * Get the property this deletion request is for
      */
     public function property(): BelongsTo
