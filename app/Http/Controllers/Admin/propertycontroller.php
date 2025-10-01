@@ -46,8 +46,15 @@ class PropertyController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->route('admin.dashboard')
-                ->with('error', 'Unable to load pending properties.');
+            // Show detailed error in production to debug
+            return response()->json([
+                'error' => 'Pending properties failed',
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'database' => config('database.default'),
+                'query_attempted' => 'SELECT properties.*, users.name, users.email FROM properties JOIN users WHERE approval_status = pending'
+            ], 500);
         }
     }
 
@@ -260,8 +267,14 @@ class PropertyController extends Controller
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return redirect()->route('admin.dashboard')
-                ->with('error', 'Unable to load deletion requests.');
+            // Show detailed error in production to debug
+            return response()->json([
+                'error' => 'Deletion requests failed',
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+                'database' => config('database.default')
+            ], 500);
         }
     }
 
