@@ -30,27 +30,10 @@ class PasswordResetLinkController extends Controller
                 'email' => ['required', 'email'],
             ]);
 
-            // Enhanced logging before sending
-            \Log::info('Password reset initiated', [
-                'email' => $request->email,
-                'environment' => config('app.env'),
-                'mail_driver' => config('mail.default'),
-                'mail_host' => config('mail.mailers.smtp.host'),
-                'mail_port' => config('mail.mailers.smtp.port'),
-                'mail_encryption' => config('mail.mailers.smtp.encryption'),
-                'mail_from' => config('mail.from.address'),
-            ]);
-
+            // Send password reset link
             $status = Password::sendResetLink(
                 $request->only('email')
             );
-
-            // Enhanced logging after attempt
-            \Log::info('Password reset link attempt completed', [
-                'email' => $request->email,
-                'status' => $status,
-                'status_message' => __($status),
-            ]);
 
             if ($request->wantsJson() || $request->expectsJson()) {
                 if ($status == Password::RESET_LINK_SENT) {
@@ -74,11 +57,6 @@ class PasswordResetLinkController extends Controller
             }
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::error('Password reset validation failed', [
-                'email' => $request->email ?? 'N/A',
-                'errors' => $e->errors()
-            ]);
-
             if ($request->wantsJson() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
@@ -88,32 +66,15 @@ class PasswordResetLinkController extends Controller
             }
             throw $e;
         } catch (\Exception $e) {
-            \Log::error('Password reset failed with exception', [
-                'email' => $request->email ?? 'N/A',
-                'exception' => $e->getMessage(),
-                'exception_class' => get_class($e),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            // More detailed error message for debugging
-            $errorMessage = 'Unable to send reset link. ';
-            if (config('app.debug')) {
-                $errorMessage .= 'Error: ' . $e->getMessage();
-            } else {
-                $errorMessage .= 'Please try again later or contact support.';
-            }
+            \Log::error('Password reset error: ' . $e->getMessage());
 
             if ($request->wantsJson() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => $errorMessage,
-                    'debug_info' => config('app.debug') ? [
-                        'error' => $e->getMessage(),
-                        'class' => get_class($e)
-                    ] : null
+                    'message' => 'Unable to send reset link. Please try again later.'
                 ], 500);
             }
-            return back()->withErrors(['email' => $errorMessage]);
+            return back()->withErrors(['email' => 'Unable to send reset link. Please try again later.']);
         }
     }
 }
