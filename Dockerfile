@@ -87,6 +87,8 @@ RUN echo '#!/bin/bash\n\
 echo "=== PSU Dorm Finder Starting ==="\n\
 echo "Environment: $APP_ENV"\n\
 echo "Database: $DB_CONNECTION"\n\
+echo "Mail Mailer: $MAIL_MAILER"\n\
+echo "Mail Host: $MAIL_HOST"\n\
 \n\
 # Verify APP_KEY exists\n\
 if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then\n\
@@ -94,9 +96,21 @@ if [ -z "$APP_KEY" ] || [ "$APP_KEY" = "base64:" ]; then\n\
     php artisan key:generate --force || echo "Key generation failed"\n\
 fi\n\
 \n\
-# Clear config cache (safe, no DB needed)\n\
+# Clear ALL caches including bootstrap cache files\n\
+echo "Clearing caches..."\n\
+rm -f bootstrap/cache/config.php bootstrap/cache/routes-*.php bootstrap/cache/services.php\n\
 php artisan config:clear 2>/dev/null || true\n\
+php artisan route:clear 2>/dev/null || true\n\
 php artisan view:clear 2>/dev/null || true\n\
+php artisan cache:clear 2>/dev/null || true\n\
+\n\
+# Rebuild config cache with fresh environment variables\n\
+echo "Caching configuration..."\n\
+php artisan config:cache 2>/dev/null || echo "Config cache failed"\n\
+\n\
+# Verify mail configuration\n\
+echo "Verifying mail config..."\n\
+php artisan tinker --execute="echo config('"'"'mail.default'"'"') . PHP_EOL;" 2>/dev/null || true\n\
 \n\
 # Test Laravel can boot\n\
 echo "Testing Laravel..."\n\
