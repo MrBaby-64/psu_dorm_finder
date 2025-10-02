@@ -140,7 +140,7 @@
 
 @push('scripts')
 <script>
-    // Simple global functions that are accessible immediately
+    // Alert notification helper
     function showSimpleAlert(message, type) {
         if (type === 'warning') {
             alert('⚠️ ' + message);
@@ -183,7 +183,7 @@
         .then(data => {
             if (data.success) {
                 showSimpleAlert(data.message, 'success');
-                // Update button appearance
+                // Update heart icon and button text
                 const heart = document.getElementById('heart-icon-' + propertyId);
                 const text = document.getElementById('favorite-text-' + propertyId);
                 if (heart && text) {
@@ -203,7 +203,7 @@
         })
         .catch(error => {
             console.error('Favorites error:', error);
-            // Graceful fallback - check current state and show appropriate message
+            // Show success message even on error for better UX
             showSimpleAlert('Favorites updated! Please refresh to see the current state.', 'success');
         })
         .finally(() => {
@@ -249,7 +249,7 @@
             submitButton.textContent = 'Sending...';
         }
 
-        // Submit form
+        // Send inquiry to server
         fetch(form.action, {
             method: 'POST',
             headers: {
@@ -265,12 +265,12 @@
                 showSimpleAlert('✅ Inquiry Sent Successfully!\n\nYour inquiry has been sent to the landlord. You will receive a notification when they respond. Check your messages for updates.', 'success');
                 form.reset();
 
-                // Clear any room selection
+                // Reset room selection
                 const roomDisplay = document.getElementById('roomSelectionDisplay');
                 if (roomDisplay) roomDisplay.style.display = 'none';
                 document.getElementById('selectedRoomId').value = '';
 
-                // Redirect to messages after showing success
+                // Navigate to messages page
                 setTimeout(() => {
                     window.location.href = '{{ route("messages.index") }}';
                 }, 2000);
@@ -305,7 +305,7 @@
         }
     }
 
-    // Check favorites on page load for tenants
+    // Initialize favorite button state
     document.addEventListener('DOMContentLoaded', function() {
         @auth
             @if(auth()->user()->role === 'tenant')
@@ -334,18 +334,18 @@
         @endauth
     });
 
-    // Global variables for functionality
+    // Property state variables
     let currentImageIndex = 0;
     let totalImages = {{ $property->images->count() }};
     let currentRating = 0;
     let selectedRoom = null;
 
-    // Map variables
+    // Map configuration
     const propertyLocation = [{{ $property->latitude ?? 14.997480043450848 }}, {{ $property->longitude ?? 120.65323030030329 }}];
     const psuLocation = [14.997480043450848, 120.65323030030329];
     let map;
 
-    // Distance calculation function
+    // Calculate distance between two coordinates
     function calculateDistance(point1, point2) {
         const R = 6371; // Earth's radius in kilometers
         const dLat = (point2[0] - point1[0]) * Math.PI / 180;
@@ -357,7 +357,7 @@
         return R * c;
     }
 
-    // Update distance display immediately
+    // Update distance and walking time display
     function updateDistanceDisplay() {
         const distance = calculateDistance(psuLocation, propertyLocation);
         const distanceEl = document.getElementById('distanceText');
@@ -367,32 +367,31 @@
             distanceEl.textContent = distance.toFixed(1) + ' km';
         }
         if (walkingEl) {
-            const walkingMinutes = Math.round(distance * 12); // 12 minutes per km walking
+            const walkingMinutes = Math.round(distance * 12);
             walkingEl.textContent = `Approximately ${walkingMinutes} minutes walk`;
         }
     }
 
-    // Calculate distance on page load
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
-        // Update distance immediately
         updateDistanceDisplay();
 
-        // Add Enter key submit functionality to all textareas
         const textareas = document.querySelectorAll('textarea');
         textareas.forEach(textarea => {
             textarea.addEventListener('keydown', function(e) {
-                // Ctrl+Enter or Cmd+Enter to submit form
-                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault();
-                    const form = this.closest('form');
-                    if (form) {
-                        // Find the submit button and click it
-                        const submitBtn = form.querySelector('button[type="submit"]');
-                        if (submitBtn) {
-                            submitBtn.click();
-                        } else {
-                            // If no submit button found, try submitting the form directly
-                            form.requestSubmit();
+                if (e.key === 'Enter') {
+                    if (e.ctrlKey || e.metaKey) {
+                        return;
+                    } else {
+                        e.preventDefault();
+                        const form = this.closest('form');
+                        if (form) {
+                            const submitBtn = form.querySelector('button[type="submit"]');
+                            if (submitBtn) {
+                                submitBtn.click();
+                            } else {
+                                form.requestSubmit();
+                            }
                         }
                     }
                 }
@@ -400,9 +399,7 @@
         });
     });
 
-    // Legacy navigation functions removed - now using lightbox
-
-    // Modal functions
+    // Authentication modal handler
     function openAuthModal(type) {
         showSimpleAlert('Please login to access this feature.', 'warning');
         window.location.href = type === 'login' ? '{{ route("login") }}' : '{{ route("register") }}';
@@ -3115,15 +3112,12 @@
     </div>
 </div>
 
-<!-- Map scripts moved to first script section -->
-
 @push('scripts')
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
 <script>
-    // Additional map variables (propertyLocation and psuLocation already defined above)
-
+    // Initialize Leaflet map with property and PSU markers
     function initMap() {
         try {
             map = L.map('propertyMap').setView(propertyLocation, 15);
@@ -3133,7 +3127,7 @@
                 maxZoom: 19
             }).addTo(map);
 
-            // Property marker (BLUE)
+            // Blue marker for property location
             L.marker(propertyLocation, {
                 icon: L.icon({
                     iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
@@ -3145,7 +3139,7 @@
                 })
             }).addTo(map).bindPopup('<b>{{ $property->title }}</b>').openPopup();
 
-            // PSU Campus marker (RED to distinguish from property)
+            // Red marker for PSU campus
             L.marker(psuLocation, {
                 icon: L.icon({
                     iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
@@ -3163,14 +3157,14 @@
         }
     }
 
-    // Initialize map when page loads
+    // Load map after page is ready
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             if (typeof L !== 'undefined') initMap();
         }, 1000);
     });
 
-    // Room Edit Modal Functions
+    // Room edit modal handlers
     function openRoomEditModal(roomId, roomIndex) {
         const modal = document.getElementById('roomEditModal');
         const form = document.getElementById('roomEditForm');

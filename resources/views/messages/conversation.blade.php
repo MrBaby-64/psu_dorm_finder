@@ -64,7 +64,7 @@
                     <textarea name="body"
                               rows="3"
                               class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
-                              placeholder="Type your message... (Press Enter for new line, Ctrl+Enter to send)"
+                              placeholder="Type your message... (Press Enter to send, Ctrl+Enter for new line)"
                               required
                               onkeydown="handleTextareaKeydown(event)"></textarea>
                 </div>
@@ -102,14 +102,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Handle textarea keyboard events
 function handleTextareaKeydown(event) {
-    // Ctrl+Enter or Cmd+Enter to submit
-    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-        event.preventDefault();
-        event.target.closest('form').submit();
+    if (event.key === 'Enter') {
+        if (event.ctrlKey || event.metaKey) {
+            return;
+        } else {
+            event.preventDefault();
+            event.target.closest('form').submit();
+        }
     }
-    // Allow normal Enter for new lines
 }
 </script>
 @endsection

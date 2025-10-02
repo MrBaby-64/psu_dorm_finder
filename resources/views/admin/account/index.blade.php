@@ -20,7 +20,7 @@
             </div>
             <div>
                 <label class="text-sm text-gray-600">Email Address</label>
-                <p class="font-medium">{{ auth()->user()->email }}</p>
+                <p class="font-medium break-all">{{ auth()->user()->email }}</p>
             </div>
             <div>
                 <label class="text-sm text-gray-600">Mobile Number</label>
