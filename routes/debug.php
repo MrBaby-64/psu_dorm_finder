@@ -118,6 +118,39 @@ Route::get('/debug-mail-config', function () {
     ], 200, [], JSON_PRETTY_PRINT);
 });
 
+// Test SMTP connection
+Route::get('/debug-test-smtp-connection', function () {
+    try {
+        $transport = \Illuminate\Mail\Transport\SmtpTransport::class;
+        $swift = new \Swift_SmtpTransport(
+            config('mail.mailers.smtp.host'),
+            config('mail.mailers.smtp.port'),
+            config('mail.mailers.smtp.encryption')
+        );
+        $swift->setUsername(config('mail.mailers.smtp.username'));
+        $swift->setPassword(config('mail.mailers.smtp.password'));
+
+        // Try to start the transport
+        $swift->start();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'SMTP connection successful!',
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+            'encryption' => config('mail.mailers.smtp.encryption'),
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'exception_class' => get_class($e),
+            'host' => config('mail.mailers.smtp.host'),
+            'port' => config('mail.mailers.smtp.port'),
+        ], 500);
+    }
+});
+
 // Send test email
 Route::get('/debug-send-test-email', function () {
     try {
@@ -136,6 +169,7 @@ Route::get('/debug-send-test-email', function () {
         return response()->json([
             'success' => false,
             'error' => $e->getMessage(),
+            'exception_class' => get_class($e),
             'trace' => $e->getTraceAsString(),
         ], 500);
     }

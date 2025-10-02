@@ -91,16 +91,29 @@ class PasswordResetLinkController extends Controller
             \Log::error('Password reset failed with exception', [
                 'email' => $request->email ?? 'N/A',
                 'exception' => $e->getMessage(),
+                'exception_class' => get_class($e),
                 'trace' => $e->getTraceAsString()
             ]);
+
+            // More detailed error message for debugging
+            $errorMessage = 'Unable to send reset link. ';
+            if (config('app.debug')) {
+                $errorMessage .= 'Error: ' . $e->getMessage();
+            } else {
+                $errorMessage .= 'Please try again later or contact support.';
+            }
 
             if ($request->wantsJson() || $request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unable to send reset link. Please try again later.'
+                    'message' => $errorMessage,
+                    'debug_info' => config('app.debug') ? [
+                        'error' => $e->getMessage(),
+                        'class' => get_class($e)
+                    ] : null
                 ], 500);
             }
-            return back()->withErrors(['email' => 'Unable to send reset link. Please try again later.']);
+            return back()->withErrors(['email' => $errorMessage]);
         }
     }
 }
