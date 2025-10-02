@@ -301,12 +301,3 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 });
 
 require __DIR__.'/auth.php';
-
-/*
-|--------------------------------------------------------------------------
-| Production Debug Routes (Remove after fixing)
-|--------------------------------------------------------------------------
-*/
-if (app()->environment(['local', 'staging', 'production'])) {
-    require __DIR__.'/debug.php';
-}
