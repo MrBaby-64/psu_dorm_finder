@@ -12,9 +12,25 @@
                 </button>
                 @endif
 
-                <a href="{{ route('home') }}" class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 flex items-center">
-                    🎓 PSU Dorm Finder
-                </a>
+                @auth
+                    @if(auth()->user()->role === 'tenant')
+                        <a href="{{ route('tenant.account') }}" class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 flex items-center">
+                            🎓 PSU Dorm Finder
+                        </a>
+                    @elseif(auth()->user()->role === 'admin')
+                        <a href="{{ route('admin.dashboard') }}" class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 flex items-center">
+                            🎓 PSU Dorm Finder
+                        </a>
+                    @else
+                        <a href="{{ route('landlord.account') }}" class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 flex items-center">
+                            🎓 PSU Dorm Finder
+                        </a>
+                    @endif
+                @else
+                    <a href="{{ route('home') }}" class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 flex items-center">
+                        🎓 PSU Dorm Finder
+                    </a>
+                @endauth
             </div>
 
             {{-- DESKTOP MENU: Menu Items + User Controls - ONLY VISIBLE ON DESKTOP --}}
@@ -372,23 +388,45 @@
 <script>
 // Smart back navigation function
 function goBack() {
-    // Check if there's previous history in the same domain
-    if (document.referrer && document.referrer.indexOf(window.location.origin) === 0) {
-        window.history.back();
-    } else {
-        // Fallback to dashboard or home based on user role
-        @auth
+    @auth
+        // For authenticated users, prevent going back to login/register pages
+        // Check if we can safely go back in history
+        if (window.history.length > 1) {
+            // Get the referrer to check if it's a safe page
+            const referrer = document.referrer;
+            const unsafePages = ['/login', '/register', '/auth/', '/password/reset'];
+            const isUnsafePage = unsafePages.some(page => referrer.includes(page));
+
+            if (!isUnsafePage && referrer && referrer.indexOf(window.location.origin) === 0) {
+                window.history.back();
+            } else {
+                // Redirect to appropriate dashboard
+                @if(auth()->user()->role === 'tenant')
+                    window.location.href = "{{ route('tenant.account') }}";
+                @elseif(auth()->user()->role === 'admin')
+                    window.location.href = "{{ route('admin.dashboard') }}";
+                @else
+                    window.location.href = "{{ route('landlord.account') }}";
+                @endif
+            }
+        } else {
+            // No history, go to dashboard
             @if(auth()->user()->role === 'tenant')
                 window.location.href = "{{ route('tenant.account') }}";
             @elseif(auth()->user()->role === 'admin')
-                window.location.href = "{{ route('admin.account') }}";
+                window.location.href = "{{ route('admin.dashboard') }}";
             @else
                 window.location.href = "{{ route('landlord.account') }}";
             @endif
-        @else
+        }
+    @else
+        // For guest users
+        if (document.referrer && document.referrer.indexOf(window.location.origin) === 0) {
+            window.history.back();
+        } else {
             window.location.href = "{{ route('home') }}";
-        @endauth
-    }
+        }
+    @endauth
 }
 
 // User dropdown functionality - COMPLETELY ISOLATED
