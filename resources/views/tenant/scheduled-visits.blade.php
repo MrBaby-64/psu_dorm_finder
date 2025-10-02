@@ -252,6 +252,28 @@
 <script>
 const visits = @json($visits);
 
+// Add Enter key submit functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+        textarea.addEventListener('keydown', function(e) {
+            // Ctrl+Enter or Cmd+Enter to submit form
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                const form = this.closest('form');
+                if (form) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.click();
+                    } else {
+                        form.requestSubmit();
+                    }
+                }
+            }
+        });
+    });
+});
+
 function openCancelModal(visitId) {
     document.getElementById('cancelForm').action = `/tenant/scheduled-visits/${visitId}/cancel`;
     document.getElementById('cancelModal').classList.remove('hidden');

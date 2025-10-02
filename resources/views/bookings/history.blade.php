@@ -1,6 +1,19 @@
 @extends('layouts.account')
 
 @section('content')
+<style>
+    /* Hide scrollbar for webkit browsers */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Hide scrollbar for Firefox */
+    .scrollbar-hide {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+</style>
+
 <div class="py-8">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
@@ -93,17 +106,17 @@
         <!-- Filter Tabs -->
         <div class="bg-white rounded-lg shadow-sm mb-6">
             <div class="border-b border-gray-200">
-                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button onclick="showTab('all')" id="tab-all" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors duration-200">
+                <nav class="-mb-px flex space-x-4 md:space-x-8 overflow-x-auto scrollbar-hide" aria-label="Tabs" style="scrollbar-width: none; -ms-overflow-style: none;">
+                    <button onclick="showTab('all')" id="tab-all" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 md:py-4 px-3 md:px-6 border-b-2 font-medium text-xs md:text-sm transition-colors duration-200 flex-shrink-0">
                         All Activity
                     </button>
-                    <button onclick="showTab('bookings')" id="tab-bookings" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors duration-200">
+                    <button onclick="showTab('bookings')" id="tab-bookings" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 md:py-4 px-3 md:px-6 border-b-2 font-medium text-xs md:text-sm transition-colors duration-200 flex-shrink-0">
                         Bookings ({{ $stats['total_bookings'] }})
                     </button>
-                    <button onclick="showTab('inquiries')" id="tab-inquiries" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors duration-200">
+                    <button onclick="showTab('inquiries')" id="tab-inquiries" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 md:py-4 px-3 md:px-6 border-b-2 font-medium text-xs md:text-sm transition-colors duration-200 flex-shrink-0">
                         Inquiries ({{ $stats['total_inquiries'] }})
                     </button>
-                    <button onclick="showTab('visits')" id="tab-visits" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors duration-200">
+                    <button onclick="showTab('visits')" id="tab-visits" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 md:py-4 px-3 md:px-6 border-b-2 font-medium text-xs md:text-sm transition-colors duration-200 flex-shrink-0">
                         Visits ({{ $stats['scheduled_visits'] }})
                     </button>
                 </nav>
