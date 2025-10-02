@@ -149,9 +149,9 @@
                         Start Listing for Free
                     </a>
                 @else
-                    <a href="{{ route('register') }}" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition inline-block">
-                        Register as Landlord
-                    </a>
+                    <button onclick="openAuthModal('register')" class="bg-green-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-green-700 transition inline-block">
+                        Get Started
+                    </button>
                 @endauth
             </div>
         </div>

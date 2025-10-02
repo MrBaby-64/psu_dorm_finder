@@ -9,8 +9,13 @@
                 <h4 class="font-semibold mb-3">Quick Links</h4>
                 <ul class="space-y-2 text-gray-400">
                     <li><a href="{{ route('properties.browse') }}" class="hover:text-white">Browse Rentals</a></li>
-                    <li><a href="{{ route('about') }}" class="hover:text-white">About Us</a></li>
-                    <li><a href="{{ route('how-it-works') }}" class="hover:text-white">How It Works</a></li>
+                    @guest
+                        <li><a href="#" onclick="navigateToSection('about-us'); return false;" class="hover:text-white">About Us</a></li>
+                        <li><a href="#" onclick="navigateToSection('how-it-works'); return false;" class="hover:text-white">How It Works</a></li>
+                    @else
+                        <li><a href="{{ route('about') }}" class="hover:text-white">About Us</a></li>
+                        <li><a href="{{ route('how-it-works') }}" class="hover:text-white">How It Works</a></li>
+                    @endguest
                 </ul>
             </div>
             <div>

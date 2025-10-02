@@ -250,6 +250,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
             return app(\App\Http\Controllers\Admin\AccountControllerSimplified::class)->index();
         }
     })->name('account');
+
+    // Profile picture upload
+    Route::post('/account/upload-picture', [\App\Http\Controllers\Admin\AccountController::class, 'uploadProfilePicture'])->name('account.upload-picture');
     
     // Dashboard - Triple fallback system
     Route::get('/', function() {
