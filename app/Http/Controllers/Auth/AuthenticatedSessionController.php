@@ -29,13 +29,13 @@ class AuthenticatedSessionController extends Controller
 
     $user = auth()->user();
 
-    // Redirect based on role
+    // Redirect based on role with fresh_login flag
     if ($user->role === 'landlord') {
-        return redirect()->route('landlord.account');
+        return redirect()->route('landlord.account', ['fresh_login' => '1']);
     } elseif ($user->role === 'admin') {
-        return redirect()->route('admin.dashboard');
+        return redirect()->route('admin.dashboard', ['fresh_login' => '1']);
     } else {
-        return redirect()->route('tenant.account'); // tenant
+        return redirect()->route('tenant.account', ['fresh_login' => '1']); // tenant
     }
 }
 

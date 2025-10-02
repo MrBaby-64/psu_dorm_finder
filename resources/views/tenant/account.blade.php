@@ -206,3 +206,39 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// Prevent going back to login/register after successful login
+(function() {
+    const dashboardUrl = '{{ route("tenant.account") }}';
+
+    // Check if this is a fresh login
+    const urlParams = new URLSearchParams(window.location.search);
+    const isFreshLogin = urlParams.get('fresh_login') === '1';
+
+    if (isFreshLogin) {
+        // Remove the query parameter and replace history
+        window.history.replaceState(null, '', dashboardUrl);
+
+        // Set flag in sessionStorage
+        sessionStorage.setItem('preventBackToLogin', 'true');
+    }
+
+    // Prevent back navigation completely when flag is set
+    if (sessionStorage.getItem('preventBackToLogin') === 'true') {
+        // Override browser back button
+        history.pushState(null, document.title, location.href);
+
+        window.addEventListener('popstate', function () {
+            history.pushState(null, document.title, location.href);
+        });
+
+        // Clear flag after user navigates away from dashboard
+        window.addEventListener('beforeunload', function() {
+            sessionStorage.removeItem('preventBackToLogin');
+        });
+    }
+})();
+</script>
+@endpush
