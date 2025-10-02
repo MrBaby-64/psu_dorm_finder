@@ -8,6 +8,22 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     
     <style>
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
         /* Ensure navbar takes full width */
         nav {
             width: 100vw !important;
@@ -188,8 +204,8 @@
                     @else
                         {{-- Guest Desktop Navigation --}}
                         <a href="{{ route('properties.browse') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Find Rentals</a>
-                        <a href="{{ route('about') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">About Us</a>
-                        <a href="{{ route('how-it-works') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">How It Works</a>
+                        <a href="#" onclick="navigateToSection('about-us'); return false;" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">About Us</a>
+                        <a href="#" onclick="navigateToSection('how-it-works'); return false;" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">How It Works</a>
                         <button onclick="openAuthModal('login')" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Login</button>
                         <button onclick="openAuthModal('register')" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-all duration-200 font-medium shadow-sm">Sign Up</button>
                     @endauth
@@ -329,13 +345,13 @@
                                     <span>Find Rentals</span>
                                 </div>
                             </a>
-                            <a href="{{ route('about') }}" onclick="closeGuestMobileMenu();" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
+                            <a href="#" onclick="navigateToSection('about-us'); closeGuestMobileMenu(); return false;" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     <span>About Us</span>
                                 </div>
                             </a>
-                            <a href="{{ route('how-it-works') }}" onclick="closeGuestMobileMenu();" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
+                            <a href="#" onclick="navigateToSection('how-it-works'); closeGuestMobileMenu(); return false;" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     <span>How It Works</span>
@@ -1049,6 +1065,39 @@
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeForgotPasswordModal();
+            }
+        });
+
+        // Navigate to section (scroll if on home page, otherwise redirect)
+        function navigateToSection(sectionId) {
+            const currentPath = window.location.pathname;
+            const isHomePage = currentPath === '/' || currentPath === '';
+
+            if (isHomePage) {
+                // If on home page, scroll to section
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    // Section doesn't exist on this page, go to home
+                    window.location.href = '/#' + sectionId;
+                }
+            } else {
+                // If not on home page, redirect to home page with hash
+                window.location.href = '/#' + sectionId;
+            }
+        }
+
+        // On page load, check if there's a hash and scroll to it
+        window.addEventListener('DOMContentLoaded', function() {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                setTimeout(function() {
+                    const section = document.getElementById(hash);
+                    if (section) {
+                        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 100);
             }
         });
 

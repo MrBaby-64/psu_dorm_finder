@@ -555,9 +555,15 @@
 
                 <div class="text-center">
                     <a href="{{ route('how-it-works') }}" class="text-green-600 hover:text-green-700 font-medium mr-6">Learn more about our process →</a>
-                    <a href="{{ route('register') }}" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition inline-block">
-                        Get Started
-                    </a>
+                    @guest
+                        <button onclick="openAuthModal('register')" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition inline-block">
+                            Get Started
+                        </button>
+                    @else
+                        <a href="{{ route('properties.browse') }}" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition inline-block">
+                            Browse Properties
+                        </a>
+                    @endguest
                 </div>
             </div>
         </section>
@@ -602,9 +608,15 @@
                 </div>
 
                 <div class="text-center mt-12">
-                    <a href="{{ route('register') }}" class="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition inline-block">
-                        Join PSU Dorm Finder Today
-                    </a>
+                    @guest
+                        <button onclick="openAuthModal('register')" class="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition inline-block">
+                            Join PSU Dorm Finder Today
+                        </button>
+                    @else
+                        <a href="{{ route('properties.browse') }}" class="bg-white text-green-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition inline-block">
+                            Browse More Properties
+                        </a>
+                    @endguest
                 </div>
             </div>
         </section>
