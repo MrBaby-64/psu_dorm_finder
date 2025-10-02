@@ -376,6 +376,28 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Update distance immediately
         updateDistanceDisplay();
+
+        // Add Enter key submit functionality to all textareas
+        const textareas = document.querySelectorAll('textarea');
+        textareas.forEach(textarea => {
+            textarea.addEventListener('keydown', function(e) {
+                // Ctrl+Enter or Cmd+Enter to submit form
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    const form = this.closest('form');
+                    if (form) {
+                        // Find the submit button and click it
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.click();
+                        } else {
+                            // If no submit button found, try submitting the form directly
+                            form.requestSubmit();
+                        }
+                    }
+                }
+            });
+        });
     });
 
     // Legacy navigation functions removed - now using lightbox
@@ -2158,22 +2180,22 @@
                         <div class="bg-white border rounded-lg p-6 shadow-sm">
                             <div class="flex items-center justify-between mb-6">
                                 <div>
-                                    <div class="flex items-center justify-between">
-                                    <h2 class="text-xl font-bold text-gray-900">Reviews</h2>
+                                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                                    <h2 class="text-lg sm:text-xl font-bold text-gray-900">Reviews</h2>
                                     @if($totalReviews > 0)
-                                        <div class="flex items-center space-x-3">
-                                            <div class="flex items-center space-x-1">
+                                        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                                            <div class="flex items-center gap-1">
                                                 @for($i = 1; $i <= 5; $i++)
-                                                    <svg class="w-5 h-5" style="color: {{ $i <= round($averageRating) ? '#f59e0b' : '#d1d5db' }};" fill="currentColor" viewBox="0 0 20 20">
+                                                    <svg class="w-4 h-4 sm:w-5 sm:h-5" style="color: {{ $i <= round($averageRating) ? '#f59e0b' : '#d1d5db' }};" fill="currentColor" viewBox="0 0 20 20">
                                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                                                     </svg>
                                                 @endfor
                                             </div>
-                                            <div class="flex items-center space-x-2">
-                                                <span class="text-lg font-semibold text-gray-900">{{ number_format($averageRating, 1) }}</span>
-                                                <span class="text-sm text-gray-500">out of 5</span>
+                                            <div class="flex items-center gap-1 sm:gap-2 flex-wrap">
+                                                <span class="text-base sm:text-lg font-semibold text-gray-900">{{ number_format($averageRating, 1) }}</span>
+                                                <span class="text-xs sm:text-sm text-gray-500">out of 5</span>
                                             </div>
-                                            <div class="text-sm text-gray-500">
+                                            <div class="text-xs sm:text-sm text-gray-500">
                                                 ({{ $totalReviews }} {{ $totalReviews == 1 ? 'review' : 'reviews' }})
                                             </div>
                                         </div>
@@ -2195,15 +2217,15 @@
                                             @endphp
 
                                             @foreach($ratingCounts as $rating => $count)
-                                                <div class="flex items-center space-x-2 text-sm">
-                                                    <span class="w-3 text-gray-600">{{ $rating }}</span>
-                                                    <svg class="w-4 h-4" style="color: #f59e0b;" fill="currentColor" viewBox="0 0 20 20">
+                                                <div class="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                                                    <span class="w-2 sm:w-3 flex-shrink-0 text-gray-600">{{ $rating }}</span>
+                                                    <svg class="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" style="color: #f59e0b;" fill="currentColor" viewBox="0 0 20 20">
                                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                                                     </svg>
-                                                    <div class="flex-1 bg-gray-200 rounded-full h-2">
-                                                        <div class="bg-yellow-400 h-2 rounded-full transition-all duration-300" style="width: {{ $totalReviews > 0 ? ($count / $totalReviews) * 100 : 0 }}%;"></div>
+                                                    <div class="flex-1 min-w-0 bg-gray-200 rounded-full h-1.5 sm:h-2">
+                                                        <div class="bg-yellow-400 h-1.5 sm:h-2 rounded-full transition-all duration-300" style="width: {{ $totalReviews > 0 ? ($count / $totalReviews) * 100 : 0 }}%;"></div>
                                                     </div>
-                                                    <span class="w-8 text-gray-600 text-right">{{ $count }}</span>
+                                                    <span class="w-4 sm:w-8 flex-shrink-0 text-gray-600 text-right">{{ $count }}</span>
                                                 </div>
                                             @endforeach
                                         </div>
