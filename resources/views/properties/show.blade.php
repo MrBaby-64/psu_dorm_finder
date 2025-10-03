@@ -3371,8 +3371,20 @@
         })
         .then(data => {
             if (data.success) {
-                // Reload page to show updated data
-                window.location.reload();
+                // Close modal
+                closeRoomEditModal();
+
+                // Show success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg z-50';
+                successDiv.innerHTML = '<div class="flex items-center"><svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg><strong>Success!</strong>&nbsp;Room details updated successfully.</div>';
+                document.body.appendChild(successDiv);
+
+                // Auto remove after 3 seconds and reload
+                setTimeout(() => {
+                    successDiv.remove();
+                    window.location.reload();
+                }, 3000);
             } else {
                 alert('Error updating room details: ' + (data.message || 'Unknown error'));
             }
@@ -3384,7 +3396,8 @@
     }
 </script>
 
-<!-- Room Edit Modal -->
+<!-- Room Edit Modal (Only for landlord) -->
+@if(auth()->check() && auth()->user()->id === $property->user_id)
 <div id="roomEditModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
     <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
         <div class="flex justify-between items-center mb-4">
@@ -3607,5 +3620,6 @@
         </form>
     </div>
 </div>
+@endif
 
 @endpush
