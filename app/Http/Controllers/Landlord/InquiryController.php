@@ -9,8 +9,13 @@ use App\Models\Notification;
 use App\Models\ScheduledVisit;
 use Illuminate\Http\Request;
 
+/**
+ * Landlord Inquiry Controller
+ * Manages tenant inquiries and visit requests
+ */
 class InquiryController extends Controller
 {
+    // List all inquiries for landlord
     public function index()
     {
         $inquiries = Inquiry::whereHas('property', function($query) {

@@ -163,7 +163,17 @@ public function getUnreadNotificationsCountAttribute(): int
 }
 
 /**
- * Send the password reset notification.
+ * Send password reset notification
+ *
+ * NOTE: This method is a backup/fallback for Laravel's built-in
+ * Password::sendResetLink() functionality. Currently, the system
+ * uses SendGridService directly (see PasswordResetLinkController)
+ * for better reliability on cloud hosting platforms.
+ *
+ * This method can be used if you want to switch back to Laravel's
+ * default password reset system in the future.
+ *
+ * @param string $token The password reset token
  */
 public function sendPasswordResetNotification($token)
 {

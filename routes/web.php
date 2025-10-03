@@ -127,67 +127,13 @@ Route::delete('/scheduled-visits/{visit}', [App\Http\Controllers\ScheduledVisitC
 
 Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(function () {
     Route::get('/account', [\App\Http\Controllers\Landlord\AccountController::class, 'index'])->name('account');
-    
-    // Property management - Triple fallback system
-    Route::get('/properties', function() {
-        try {
-            return app(\App\Http\Controllers\Landlord\PropertyController::class)->index(request());
-        } catch (\Exception $e) {
-            \Log::error('Primary PropertyController failed: ' . $e->getMessage());
-            try {
-                return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->index();
-            } catch (\Exception $e2) {
-                \Log::error('Simplified PropertyController failed, using minimal: ' . $e2->getMessage());
-                return app(\App\Http\Controllers\Landlord\PropertyControllerMinimal::class)->index(request());
-            }
-        }
-    })->name('properties.index');
 
-    Route::get('/properties/create', function() {
-        try {
-            return app(\App\Http\Controllers\Landlord\PropertyController::class)->create();
-        } catch (\Exception $e) {
-            \Log::error('Primary PropertyController create failed: ' . $e->getMessage());
-            try {
-                return app(\App\Http\Controllers\Landlord\PropertyControllerSimplified::class)->create();
-            } catch (\Exception $e2) {
-                \Log::error('Simplified create failed, using minimal: ' . $e2->getMessage());
-                return app(\App\Http\Controllers\Landlord\PropertyControllerMinimal::class)->create();
-            }
-        }
-    })->name('properties.create');
-
-    Route::post('/properties', function(\Illuminate\Http\Request $request) {
-        try {
-            // Use the main PropertyController with full features
-            return app(\App\Http\Controllers\Landlord\PropertyController::class)->store($request);
-        } catch (\Exception $e) {
-            \Log::error('PropertyController store failed: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString(),
-                'input' => $request->except(['images', 'room_images'])
-            ]);
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['error' => 'Failed to create property. Please check all fields and try again. Error: ' . $e->getMessage()]);
-        }
-    })->name('properties.store');
-    Route::post('/properties/remove-temp-image', function(\Illuminate\Http\Request $request) {
-        try {
-            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->removeTempImage($request);
-        } catch (\Exception $e) {
-            \Log::error('Enhanced removeTempImage failed: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Failed to remove image']);
-        }
-    })->name('properties.remove-temp-image');
-
-    Route::post('/properties/store-map-position', function(\Illuminate\Http\Request $request) {
-        try {
-            return app(\App\Http\Controllers\Landlord\PropertyControllerEnhanced::class)->storeMapPosition($request);
-        } catch (\Exception $e) {
-            \Log::error('Enhanced storeMapPosition failed: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Failed to store map position']);
-        }
-    })->name('properties.store-map-position');
+    // Property Management Routes
+    Route::get('/properties', [\App\Http\Controllers\Landlord\PropertyController::class, 'index'])->name('properties.index');
+    Route::get('/properties/create', [\App\Http\Controllers\Landlord\PropertyController::class, 'create'])->name('properties.create');
+    Route::post('/properties', [\App\Http\Controllers\Landlord\PropertyController::class, 'store'])->name('properties.store');
+    Route::post('/properties/remove-temp-image', [\App\Http\Controllers\Landlord\PropertyController::class, 'removeTempImage'])->name('properties.remove-temp-image');
+    Route::post('/properties/store-map-position', [\App\Http\Controllers\Landlord\PropertyController::class, 'storeMapPosition'])->name('properties.store-map-position');
     Route::get('/properties/{property}/edit', [\App\Http\Controllers\Landlord\PropertyController::class, 'edit'])->name('properties.edit');
     Route::put('/properties/{property}', [\App\Http\Controllers\Landlord\PropertyController::class, 'update'])->name('properties.update');
     Route::delete('/properties/{property}', [\App\Http\Controllers\Landlord\PropertyController::class, 'destroy'])->name('properties.destroy');
@@ -241,36 +187,12 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
 */
 
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    // Account - Simplified fallback
-    Route::get('/account', function() {
-        try {
-            return app(\App\Http\Controllers\Admin\AccountController::class)->index();
-        } catch (\Exception $e) {
-            \Log::error('Primary Admin Account failed, using simplified: ' . $e->getMessage());
-            return app(\App\Http\Controllers\Admin\AccountControllerSimplified::class)->index();
-        }
-    })->name('account');
-
-    // Profile picture upload
+    // Admin Account Management
+    Route::get('/account', [\App\Http\Controllers\Admin\AccountController::class, 'index'])->name('account');
     Route::post('/account/upload-picture', [\App\Http\Controllers\Admin\AccountController::class, 'uploadProfilePicture'])->name('account.upload-picture');
-    
-    // Dashboard - Triple fallback system
-    Route::get('/', function() {
-        try {
-            return app(\App\Http\Controllers\Admin\DashboardController::class)->index();
-        } catch (\Exception $e) {
-            \Log::error('Primary Admin Dashboard failed: ' . $e->getMessage());
-            try {
-                return app(\App\Http\Controllers\Admin\DashboardControllerSimplified::class)->index();
-            } catch (\Exception $e2) {
-                \Log::error('Simplified Dashboard failed, using minimal: ' . $e2->getMessage());
-                return app(\App\Http\Controllers\Admin\DashboardControllerMinimal::class)->index();
-            }
-        }
-    })->name('dashboard');
-    
-    // Debug route
-    Route::get('/debug/test-connection', [\App\Http\Controllers\Admin\PropertyControllerDebug::class, 'testConnection'])->name('debug.test');
+
+    // Admin Dashboard
+    Route::get('/', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
 
     // Property approval
     Route::get('/properties/pending', [\App\Http\Controllers\Admin\PropertyController::class, 'pending'])->name('properties.pending');

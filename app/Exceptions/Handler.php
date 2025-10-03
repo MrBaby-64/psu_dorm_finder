@@ -23,12 +23,12 @@ class Handler extends ExceptionHandler
     ];
 
     /**
-     * Register the exception handling callbacks for the application.
+     * Register exception callbacks
      */
     public function register(): void
     {
         $this->reportable(function (Throwable $e) {
-            // Enhanced logging for production debugging
+            // Log errors in production for debugging
             if (app()->environment('production')) {
                 Log::error('Production Exception', [
                     'exception' => get_class($e),
@@ -46,11 +46,11 @@ class Handler extends ExceptionHandler
     }
 
     /**
-     * Render an exception into an HTTP response.
+     * Render exception as HTTP response
      */
     public function render($request, Throwable $e)
     {
-        // Handle 404 errors
+        // Handle 404 not found errors
         if ($e instanceof NotFoundHttpException) {
             if ($request->expectsJson()) {
                 return response()->json(['error' => 'Resource not found'], 404);
@@ -114,7 +114,7 @@ class Handler extends ExceptionHandler
     }
 
     /**
-     * Check if the exception is a database connection error
+     * Check if error is database connection issue
      */
     private function isDatabaseConnectionError(Throwable $e): bool
     {
@@ -127,7 +127,7 @@ class Handler extends ExceptionHandler
     }
 
     /**
-     * Get user-friendly error message for HTTP status codes
+     * Get error message for status code
      */
     private function getHttpErrorMessage(int $statusCode): string
     {

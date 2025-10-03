@@ -7,8 +7,13 @@ use App\Models\Property;
 use App\Models\Booking;
 use App\Models\Message;
 
+/**
+ * Admin Report Controller
+ * Generates system reports and analytics
+ */
 class ReportController extends Controller
 {
+    // Display reports page
     public function index()
     {
         if (auth()->user()->role !== 'admin') {

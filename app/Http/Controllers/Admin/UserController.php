@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Admin/UserController.php
 
 namespace App\Http\Controllers\Admin;
 
@@ -9,8 +8,13 @@ use App\Models\AuditLog;
 use App\Models\Inquiry;
 use Illuminate\Http\Request;
 
+/**
+ * Admin User Controller
+ * Manages user accounts, roles, and verification
+ */
 class UserController extends Controller
 {
+    // Check if current user is admin
     private function checkAdmin()
     {
         if (auth()->user()->role !== 'admin') {

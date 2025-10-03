@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Admin/PropertyController.php
 
 namespace App\Http\Controllers\Admin;
 
@@ -12,6 +11,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Admin Property Controller
+ * Handles property approvals, rejections, and deletion requests
+ */
 class PropertyController extends Controller
 {
     private function checkAdmin()

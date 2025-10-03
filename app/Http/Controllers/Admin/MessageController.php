@@ -8,8 +8,13 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * Admin Message Controller
+ * Manages landlord messages and inquiries sent to admin
+ */
 class MessageController extends Controller
 {
+    // Check if current user is admin
     private function checkAdmin()
     {
         if (auth()->user()->role !== 'admin') {

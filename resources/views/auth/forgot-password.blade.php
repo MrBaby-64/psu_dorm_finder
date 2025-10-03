@@ -1,9 +1,24 @@
+{{--
+    Forgot Password Page
+
+    This page allows users to request a password reset link via email.
+    The system uses SendGrid API to send emails reliably on cloud hosting.
+
+    Features:
+    - Email validation
+    - AJAX form submission (prevents page reload)
+    - Loading state with disabled button during submission
+    - Success/error message display
+    - Security information for users
+--}}
+
 @extends('layouts.guest')
 
 @section('content')
 <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
-        <!-- Header -->
+
+        {{-- Page Header --}}
         <div class="text-center">
             <div class="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                 <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -11,47 +26,48 @@
                 </svg>
             </div>
             <h2 class="text-3xl font-bold text-gray-900">Reset Your Password</h2>
-            <p class="mt-2 text-sm text-gray-600">Enter your email address below and we'll send you a password reset link</p>
+            <p class="mt-2 text-sm text-gray-600">Enter your email address and we'll send you a reset link</p>
         </div>
 
-        <!-- Session Status -->
+        {{-- Session Status Message (shown after form submission if not using AJAX) --}}
         <x-auth-session-status class="mb-4" :status="session('status')" />
 
-        <!-- Important Information Box -->
-        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+        {{-- Security Information Box --}}
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
             <div class="flex">
                 <div class="flex-shrink-0">
-                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <h3 class="text-sm font-medium text-yellow-800">⏱️ Important: Rate Limiting</h3>
-                    <div class="mt-2 text-sm text-yellow-700">
+                    <h3 class="text-sm font-medium text-blue-800">Security Information</h3>
+                    <div class="mt-2 text-sm text-blue-700">
                         <ul class="list-disc pl-5 space-y-1">
-                            <li>You can request a reset link only <strong>once every few minutes</strong> per email address</li>
-                            <li>If you don't receive the email, <strong>check your spam/junk folder</strong> first</li>
-                            <li>You can enter a <strong>different email address</strong> anytime without restrictions</li>
-                            <li>The reset link will <strong>expire after 60 minutes</strong> for security</li>
+                            <li>Password reset links are <strong>valid for 60 minutes</strong></li>
+                            <li>Check your <strong>spam/junk folder</strong> if you don't see the email</li>
+                            <li>For security, we won't reveal if an email exists in our system</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
 
+        {{-- Password Reset Request Form --}}
         <form method="POST" action="{{ route('password.email') }}" class="mt-8 space-y-6" id="forgot-password-form">
             @csrf
 
-            <!-- Email Address -->
+            {{-- Email Input Field --}}
             <div>
                 <x-input-label for="email" :value="__('Email')" />
                 <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
                 <x-input-error :messages="$errors->get('email')" class="mt-2" />
             </div>
 
-            <!-- Status Message -->
+            {{-- Status Message (dynamically updated via JavaScript) --}}
             <div id="status-message" class="hidden rounded-md p-4"></div>
 
+            {{-- Submit Button with Loading State --}}
             <div class="mt-6">
                 <x-primary-button type="submit" class="w-full justify-center" id="submit-btn">
                     <span id="btn-text">{{ __('Email Password Reset Link') }}</span>
@@ -60,10 +76,26 @@
             </div>
         </form>
 
+        {{--
+            JavaScript for AJAX Form Submission
+
+            This script handles the password reset form submission without page reload.
+            It provides better user experience with loading states and inline error messages.
+
+            Flow:
+            1. Prevent default form submission
+            2. Show loading state (disable button, change text)
+            3. Send AJAX request to server with email
+            4. Display success or error message
+            5. Re-enable button for retry if needed
+        --}}
         <script>
+        // Listen for form submission
         document.getElementById('forgot-password-form').addEventListener('submit', async function(e) {
+            // Prevent default form submission (page reload)
             e.preventDefault();
 
+            // Get form elements
             const form = this;
             const submitBtn = document.getElementById('submit-btn');
             const btnText = document.getElementById('btn-text');
@@ -71,13 +103,14 @@
             const statusMessage = document.getElementById('status-message');
             const email = document.getElementById('email').value;
 
-            // Disable button and show loading
+            // Step 1: Show loading state
             submitBtn.disabled = true;
             btnText.classList.add('hidden');
             btnLoading.classList.remove('hidden');
             statusMessage.classList.add('hidden');
 
             try {
+                // Step 2: Send AJAX request to server
                 const response = await fetch(form.action, {
                     method: 'POST',
                     headers: {
@@ -88,11 +121,14 @@
                     body: JSON.stringify({ email: email })
                 });
 
+                // Step 3: Parse JSON response from server
                 const data = await response.json();
 
-                // Show status message
+                // Step 4: Display appropriate message based on response
                 statusMessage.classList.remove('hidden');
+
                 if (data.success) {
+                    // Success: Show green message with checkmark
                     statusMessage.className = 'rounded-md p-4 bg-green-50 border border-green-200';
                     statusMessage.innerHTML = `
                         <div class="flex">
@@ -103,6 +139,7 @@
                         </div>
                     `;
                 } else {
+                    // Error: Show red message with X icon
                     statusMessage.className = 'rounded-md p-4 bg-red-50 border border-red-200';
                     statusMessage.innerHTML = `
                         <div class="flex">
@@ -114,7 +151,8 @@
                     `;
                 }
             } catch (error) {
-                console.error('Error:', error);
+                // Step 5: Handle network/connection errors
+                console.error('Network error:', error);
                 statusMessage.classList.remove('hidden');
                 statusMessage.className = 'rounded-md p-4 bg-red-50 border border-red-200';
                 statusMessage.innerHTML = `
@@ -126,7 +164,7 @@
                     </div>
                 `;
             } finally {
-                // Re-enable button
+                // Step 6: Always re-enable button after request completes
                 submitBtn.disabled = false;
                 btnText.classList.remove('hidden');
                 btnLoading.classList.add('hidden');
@@ -134,23 +172,23 @@
         });
         </script>
 
-        <!-- Email Information -->
+        {{-- Additional Information Box --}}
         <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div class="flex items-start">
                 <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <div>
-                    <h3 class="text-sm font-medium text-blue-800">🔐 Security Notice</h3>
+                    <h3 class="text-sm font-medium text-blue-800">🔐 How It Works</h3>
                     <p class="text-sm text-blue-700 mt-1">
-                        We'll send the password reset link to your email address. The link will be valid for 60 minutes for security reasons.
-                        Make sure to check your inbox and click the link to reset your password securely.
+                        Enter your email and we'll send you a secure link to reset your password.
+                        The link expires in 60 minutes for your security.
                     </p>
                 </div>
             </div>
         </div>
 
-        <!-- Back to Login -->
+        {{-- Back to Login Link --}}
         <div class="text-center mt-4">
             <a href="{{ route('login') }}" class="text-sm text-blue-600 hover:text-blue-800 underline">
                 ← Back to Login

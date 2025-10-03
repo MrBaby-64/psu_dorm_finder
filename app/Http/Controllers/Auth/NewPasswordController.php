@@ -13,6 +13,10 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
+/**
+ * New Password Controller
+ * Handles password reset completion after email link
+ */
 class NewPasswordController extends Controller
 {
     /**

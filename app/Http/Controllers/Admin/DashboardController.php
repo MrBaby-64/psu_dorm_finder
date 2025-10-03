@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Admin/DashboardController.php
 
 namespace App\Http\Controllers\Admin;
 
@@ -10,8 +9,13 @@ use App\Models\User;
 use App\Models\Booking;
 use App\Models\Message;
 
+/**
+ * Admin Dashboard Controller
+ * Shows statistics and overview for admin panel
+ */
 class DashboardController extends Controller
 {
+    // Display admin dashboard with statistics
     public function index()
     {
         // Check if user is admin

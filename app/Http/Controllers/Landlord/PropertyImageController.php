@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/Landlord/PropertyImageController.php
 
 namespace App\Http\Controllers\Landlord;
 
@@ -9,8 +8,13 @@ use App\Models\PropertyImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Property Image Controller
+ * Handles property image uploads and management
+ */
 class PropertyImageController extends Controller
 {
+    // Upload property images
     public function upload(Request $request, Property $property)
     {
         // Ensure landlord owns this property
