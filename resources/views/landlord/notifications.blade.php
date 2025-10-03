@@ -68,12 +68,32 @@
                                 @endif
                             </div>
                             <p class="text-sm text-gray-700 mb-2">{{ $notification->message }}</p>
+
+                            @php
+                                // Check if notification relates to a deleted property
+                                $propertyDeleted = false;
+                                if ($notification->action_url && str_contains($notification->action_url, '/properties/')) {
+                                    preg_match('/properties\/(\d+)/', $notification->action_url, $matches);
+                                    if (isset($matches[1])) {
+                                        $propertyDeleted = !\App\Models\Property::where('id', $matches[1])->exists();
+                                    }
+                                }
+                            @endphp
+
+                            @if($propertyDeleted)
+                                <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded-lg mb-2">
+                                    <p class="text-xs text-amber-800">
+                                        ℹ️ <strong>Note:</strong> This property has been deleted and is no longer available.
+                                    </p>
+                                </div>
+                            @endif
+
                             <div class="flex items-center justify-between">
                                 <span class="text-xs text-gray-500">
                                     {{ $notification->created_at->diffForHumans() }}
                                 </span>
                                 <div class="flex items-center gap-2">
-                                    @if($notification->action_url)
+                                    @if($notification->action_url && !$propertyDeleted)
                                         <form method="POST" action="{{ route('landlord.notifications.read', $notification) }}" class="inline">
                                             @csrf
                                             <button type="submit" class="text-xs text-blue-600 hover:text-blue-800 underline bg-transparent border-0 p-0 cursor-pointer">

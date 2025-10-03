@@ -78,6 +78,55 @@
             <p class="text-sm text-gray-600">Manage user roles and verification status</p>
         </div>
 
+        <!-- Search and Filter Section -->
+        <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <form method="GET" action="{{ route('admin.users.index') }}" class="flex flex-wrap gap-4">
+                <!-- Search -->
+                <div class="flex-1 min-w-[200px]">
+                    <input type="text"
+                           name="search"
+                           value="{{ request('search') }}"
+                           placeholder="Search by name or email..."
+                           class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+
+                <!-- Role Filter -->
+                <div>
+                    <select name="role" class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">All Roles</option>
+                        <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="landlord" {{ request('role') === 'landlord' ? 'selected' : '' }}>Landlord</option>
+                        <option value="tenant" {{ request('role') === 'tenant' ? 'selected' : '' }}>Tenant</option>
+                    </select>
+                </div>
+
+                <!-- Verification Filter -->
+                <div>
+                    <select name="verified" class="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">All Status</option>
+                        <option value="1" {{ request('verified') === '1' ? 'selected' : '' }}>Verified</option>
+                        <option value="0" {{ request('verified') === '0' ? 'selected' : '' }}>Unverified</option>
+                    </select>
+                </div>
+
+                <!-- Filter Button -->
+                <div>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+                        Filter
+                    </button>
+                </div>
+
+                <!-- Clear Button -->
+                @if(request()->hasAny(['search', 'role', 'verified']))
+                    <div>
+                        <a href="{{ route('admin.users.index') }}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition text-sm font-medium inline-block">
+                            Clear
+                        </a>
+                    </div>
+                @endif
+            </form>
+        </div>
+
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">

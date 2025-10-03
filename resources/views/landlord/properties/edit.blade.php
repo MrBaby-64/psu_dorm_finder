@@ -101,19 +101,115 @@
                     @csrf
                     @method('PUT')
 
-                    <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- LEFT COLUMN -->
+                        <div class="space-y-6">
+                            <!-- Property Title -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Property Title *</label>
+                                <input type="text" name="title" value="{{ old('title', $property->title) }}" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+
+                            <!-- House Rules -->
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Property Title *</label>
-                            <input type="text" name="title" value="{{ old('title', $property->title) }}" required
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <label class="block text-sm font-medium text-gray-900 mb-3">
+                                🏠 House Rules
+                            </label>
+
+                            @php
+                                $existingRules = $property->house_rules ?? [];
+                                $defaultRules = \App\Models\Property::getDefaultHouseRules();
+                            @endphp
+
+                            <!-- Default Rules -->
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+                                <p class="text-sm font-medium text-blue-900 mb-3">Default Rules (Check the rules that apply):</p>
+                                <div class="space-y-2">
+                                    @foreach($defaultRules as $rule)
+                                        <label class="flex items-start cursor-pointer hover:bg-blue-100 p-2 rounded transition">
+                                            <input type="checkbox"
+                                                   name="house_rules[]"
+                                                   value="{{ $rule }}"
+                                                   {{ in_array($rule, $existingRules) ? 'checked' : '' }}
+                                                   class="mt-1 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                            <span class="ml-3 text-sm text-gray-700">{{ $rule }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            <!-- Custom Rules -->
+                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                                <p class="text-sm font-medium text-green-900 mb-3">Your Custom Rules:</p>
+                                <div id="customRulesContainer" class="space-y-2 mb-3">
+                                    @php
+                                        $customRules = array_filter($existingRules, function($rule) use ($defaultRules) {
+                                            return !in_array($rule, $defaultRules);
+                                        });
+                                    @endphp
+
+                                    @foreach($customRules as $index => $customRule)
+                                        <div class="flex items-start gap-2" id="customRule{{ $index }}">
+                                            <input type="text"
+                                                   name="house_rules[]"
+                                                   value="{{ $customRule }}"
+                                                   placeholder="Enter your custom rule..."
+                                                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                                                   required>
+                                            <button type="button"
+                                                    onclick="removeCustomRule({{ $index }})"
+                                                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                                                    title="Remove this rule">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <button type="button"
+                                        onclick="addCustomRule()"
+                                        class="inline-flex items-center px-3 py-2 border border-green-300 rounded-lg text-sm font-medium text-green-700 bg-white hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Add Custom Rule
+                                </button>
+                            </div>
+
+                            <p class="mt-2 text-xs text-gray-500">
+                                💡 Tip: Clear house rules help tenants understand expectations and maintain a harmonious living environment.
+                            </p>
+                        </div>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Description *</label>
-                            <textarea name="description" rows="5" required
-                                      class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ old('description', $property->description) }}</textarea>
-                        </div>
+                        <!-- RIGHT COLUMN -->
+                        <div class="space-y-6">
+                            <!-- Monthly Rent -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Rent (₱) *</label>
+                                <input type="number" name="price" value="{{ old('price', $property->price) }}" min="0" step="0.01" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
 
+                            <!-- Number of Rooms -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Number of Rooms *</label>
+                                <input type="number" name="room_count" value="{{ old('room_count', $property->room_count) }}" min="1" required
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+
+                            <!-- Description -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                                <textarea name="description" rows="6" required
+                                          class="w-full px-3 py-2 border border-gray-300 rounded-md">{{ old('description', $property->description) }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mt-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Location Description *</label>
                             <input type="text" name="location_text" value="{{ old('location_text', $property->location_text) }}" required
@@ -155,19 +251,6 @@
                                 </label>
                                 <input type="number" step="0.0000001" name="longitude" value="{{ old('longitude', $property->longitude) }}" required readonly
                                        class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Rent (₱) *</label>
-                                <input type="number" name="price" value="{{ old('price', $property->price) }}" min="0" step="0.01" required
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Number of Rooms *</label>
-                                <input type="number" name="room_count" value="{{ old('room_count', $property->room_count) }}" min="1" required
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
                             </div>
                         </div>
 
@@ -257,4 +340,44 @@
 
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // House Rules Management
+    let customRuleCounter = {{ count($customRules ?? []) }};
+
+    function addCustomRule() {
+        customRuleCounter++;
+        const container = document.getElementById('customRulesContainer');
+        const ruleDiv = document.createElement('div');
+        ruleDiv.className = 'flex items-start gap-2';
+        ruleDiv.id = `customRule${customRuleCounter}`;
+
+        ruleDiv.innerHTML = `
+            <input type="text"
+                   name="house_rules[]"
+                   placeholder="Enter your custom rule..."
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                   required>
+            <button type="button"
+                    onclick="removeCustomRule(${customRuleCounter})"
+                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                    title="Remove this rule">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </button>
+        `;
+
+        container.appendChild(ruleDiv);
+    }
+
+    function removeCustomRule(id) {
+        const ruleDiv = document.getElementById(`customRule${id}`);
+        if (ruleDiv) {
+            ruleDiv.remove();
+        }
+    }
+</script>
+@endpush
 @endsection

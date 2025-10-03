@@ -166,6 +166,8 @@ class PropertyController extends Controller
             $rules = [
                 'title' => 'required|string|max:255',
                 'description' => 'required|string|min:50',
+                'house_rules' => 'nullable|array',
+                'house_rules.*' => 'nullable|string|max:500',
                 'location_text' => 'required|string|max:255',
                 'address_line' => 'required|string|max:255',
                 'barangay' => 'required|string|max:255',
@@ -308,6 +310,7 @@ class PropertyController extends Controller
                     'title' => $validated['title'],
                     'slug' => Property::generateUniqueSlug($validated['title']), // Use model method for better error handling
                     'description' => $validated['description'],
+                    'house_rules' => !empty($validated['house_rules']) ? array_values(array_filter($validated['house_rules'])) : null,
                     'location_text' => $validated['location_text'],
                     'address_line' => $validated['address_line'],
                     'barangay' => $validated['barangay'],
@@ -557,6 +560,8 @@ class PropertyController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'house_rules' => 'nullable|array',
+            'house_rules.*' => 'nullable|string|max:500',
             'location_text' => 'required|string|max:255',
             'address_line' => 'required|string|max:255',
             'barangay' => 'required|string|max:255',
@@ -584,6 +589,7 @@ class PropertyController extends Controller
                     'title' => $validated['title'],
                     'slug' => \Str::slug($validated['title']),
                     'description' => $validated['description'],
+                    'house_rules' => !empty($validated['house_rules']) ? array_values(array_filter($validated['house_rules'])) : null,
                     'location_text' => $validated['location_text'],
                     'address_line' => $validated['address_line'],
                     'barangay' => $validated['barangay'],

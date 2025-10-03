@@ -136,11 +136,11 @@
                                 </button>
                             @endif
 
-                            <!-- Contact Tenant -->
-                            <a href="mailto:{{ $inquiry->user->email }}"
-                               class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
-                                📧 Email Tenant
-                            </a>
+                            <!-- View Inquiry Details -->
+                            <button onclick="showInquiryDetails({{ $inquiry->id }})"
+                                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
+                                👁️ View Details
+                            </button>
                         </div>
 
                         <!-- Contextual Visit Suggestion -->
@@ -262,7 +262,44 @@
     </div>
 </div>
 
+<!-- Inquiry Details Modal -->
+<div id="detailsModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-900">Inquiry Details</h3>
+                    <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="detailsContent" class="space-y-4">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    const inquiriesData = {
+        @foreach($inquiries as $inquiry)
+        {{ $inquiry->id }}: {
+            tenant: '{{ $inquiry->user->name }}',
+            email: '{{ $inquiry->user->email }}',
+            property: '{{ $inquiry->property->title }}',
+            room: '{{ $inquiry->room ? $inquiry->room->room_number : "No specific room" }}',
+            moveInDate: '{{ $inquiry->move_in_date ? $inquiry->move_in_date->format("M j, Y") : "Not specified" }}',
+            moveOutDate: '{{ $inquiry->move_out_date ? $inquiry->move_out_date->format("M j, Y") : "Not specified" }}',
+            message: `{{ str_replace(["\r\n", "\n", "\r"], "\\n", addslashes($inquiry->message)) }}`,
+            status: '{{ $inquiry->status_name }}',
+            submitted: '{{ $inquiry->created_at->format("M j, Y \\a\\t g:i A") }}'
+        },
+        @endforeach
+    };
+
     document.addEventListener('DOMContentLoaded', function() {
         const textareas = document.querySelectorAll('textarea');
         textareas.forEach(textarea => {
@@ -288,6 +325,62 @@
             });
         });
     });
+
+    function showInquiryDetails(inquiryId) {
+        const inquiry = inquiriesData[inquiryId];
+        const content = `
+            <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Tenant Name</p>
+                        <p class="text-sm text-gray-900">${inquiry.tenant}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Email</p>
+                        <p class="text-sm text-gray-900">${inquiry.email}</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-700">Property</p>
+                    <p class="text-sm text-gray-900">${inquiry.property}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-700">Room</p>
+                    <p class="text-sm text-gray-900">${inquiry.room}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Move-in Date</p>
+                        <p class="text-sm text-gray-900">${inquiry.moveInDate}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">Move-out Date</p>
+                        <p class="text-sm text-gray-900">${inquiry.moveOutDate}</p>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-700">Status</p>
+                    <p class="text-sm text-gray-900">${inquiry.status}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-700">Submitted</p>
+                    <p class="text-sm text-gray-900">${inquiry.submitted}</p>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-gray-700 mb-2">Tenant's Message</p>
+                    <div class="bg-white p-3 rounded border border-gray-200">
+                        <p class="text-sm text-gray-700 whitespace-pre-line">${inquiry.message}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('detailsContent').innerHTML = content;
+        document.getElementById('detailsModal').classList.remove('hidden');
+    }
+
+    function closeDetailsModal() {
+        document.getElementById('detailsModal').classList.add('hidden');
+    }
 
     function showRejectModal(inquiryId) {
         document.getElementById('rejectForm').action = `/landlord/inquiries/${inquiryId}/reject`;
@@ -316,6 +409,10 @@
 
     document.getElementById('replyModal').addEventListener('click', function(e) {
         if (e.target === this) closeReplyModal();
+    });
+
+    document.getElementById('detailsModal').addEventListener('click', function(e) {
+        if (e.target === this) closeDetailsModal();
     });
 
     // Handle textarea keyboard events

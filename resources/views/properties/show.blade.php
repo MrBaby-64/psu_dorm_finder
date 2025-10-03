@@ -759,8 +759,8 @@
         @endauth
 
         const form = event.target;
-        const submitButton = form.querySelector('button[type="submit"]');
-        const originalText = submitButton.textContent;
+        const submitButton = document.querySelector('button[form="bookingForm"]');
+        const originalText = submitButton ? submitButton.textContent : 'Submit Booking';
 
         // Disable submit button and show loading
         submitButton.disabled = true;
@@ -857,8 +857,8 @@
         @endauth
 
         const form = event.target;
-        const submitButton = form.querySelector('button[type="submit"]');
-        const originalText = submitButton.textContent;
+        const submitButton = document.querySelector('button[form="scheduleForm"]');
+        const originalText = submitButton ? submitButton.textContent : '📅 Schedule Visit';
 
         // Disable submit button and show loading
         submitButton.disabled = true;
@@ -2196,15 +2196,21 @@
                         </div>
 
                         <!-- House Rules -->
+                        @if($property->house_rules && count($property->house_rules) > 0)
                         <div class="bg-white border rounded-lg p-6 shadow-sm">
-                            <h2 class="text-xl font-bold mb-4">House Rules</h2>
+                            <h2 class="text-xl font-bold mb-4 flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                House Rules
+                            </h2>
                             <ul class="list-disc list-inside text-gray-700 space-y-2">
-                                <li>No smoking inside the premises</li>
-                                <li>Visitors allowed until 10 PM</li>
-                                <li>Keep common areas clean</li>
-                                <li>Respect quiet hours (10 PM - 7 AM)</li>
+                                @foreach($property->house_rules as $rule)
+                                    <li>{{ $rule }}</li>
+                                @endforeach
                             </ul>
                         </div>
+                        @endif
 
                         <!-- Reviews Section -->
                         @php
@@ -2217,7 +2223,12 @@
                             <div class="flex items-center justify-between mb-6">
                                 <div>
                                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                                    <h2 class="text-lg sm:text-xl font-bold text-gray-900">Reviews</h2>
+                                    <h2 class="text-lg sm:text-xl font-bold text-gray-900 flex items-center">
+                                        <svg class="w-6 h-6 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                                        </svg>
+                                        Reviews
+                                    </h2>
                                     @if($totalReviews > 0)
                                         <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
                                             <div class="flex items-center gap-1">
@@ -2725,19 +2736,24 @@
 </div>
 
 <!-- Schedule Visit Modal -->
-<div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50" style="padding-top: 80px; padding-bottom: 20px;">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4 overflow-hidden max-h-full flex flex-col">
-        <div class="p-6 flex-1 overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-gray-800">Schedule a Visit</h3>
-                <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
+<div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 overflow-y-auto" style="padding-top: 80px;">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <!-- Header -->
+            <div class="px-4 sm:px-6 py-3 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800">Schedule a Visit</h3>
+                    <button onclick="closeScheduleModal()" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <form onsubmit="scheduleVisit(event)" class="space-y-4">
+            <!-- Content -->
+            <div class="px-4 sm:px-6 py-4">
+                <form id="scheduleForm" onsubmit="scheduleVisit(event)" class="space-y-3">
                 <!-- Landlord's Visit Instructions (if available) -->
                 @if($property->visit_instructions)
                     <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg">
@@ -2756,17 +2772,17 @@
                 @endif
 
                 <div>
-                    <label for="visit_date" class="block text-gray-700 font-semibold mb-2">Preferred Date</label>
+                    <label for="visit_date" class="block text-gray-700 font-medium mb-1 text-sm">Preferred Date</label>
                     <input type="date" name="visit_date" id="visit_date"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
                            min="{{ date('Y-m-d', strtotime('+1 day')) }}"
                            max="{{ date('Y-m-d', strtotime('+3 months')) }}"
                            required>
                 </div>
 
                 <div>
-                    <label for="visit_time" class="block text-gray-700 font-semibold mb-2">Preferred Time</label>
-                    <select name="visit_time" id="visit_time" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" required>
+                    <label for="visit_time" class="block text-gray-700 font-medium mb-1 text-sm">Preferred Time</label>
+                    <select name="visit_time" id="visit_time" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm" required>
                         <option value="">Select time</option>
                         <option value="08:00">8:00 AM</option>
                         <option value="09:00">9:00 AM</option>
@@ -2793,130 +2809,139 @@
                 @endif
 
                 <div>
-                    <label for="tenant_notes" class="block text-gray-700 font-semibold mb-2">Message/Notes (Optional)</label>
+                    <label for="tenant_notes" class="block text-gray-700 font-medium mb-1 text-sm">Message/Notes (Optional)</label>
                     <textarea name="tenant_notes"
                         id="tenant_notes"
-                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
                         rows="3"
                         placeholder="Any specific questions or requests about the visit..."></textarea>
                     <p class="text-xs text-gray-500 mt-1">Let the landlord know if you have any special requirements or questions</p>
                 </div>
-
-                <div class="flex gap-3 pt-4 pb-2 bg-white sticky bottom-0">
-                    <button type="button"
-                            onclick="closeScheduleModal()"
-                            class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold border-none outline-none"
-                            style="background-color: #e5e7eb !important; color: #374151 !important; font-weight: 600 !important; text-align: center !important; display: flex !important; align-items: center !important; justify-content: center !important; min-height: 48px;">
-                        <span style="color: #374151 !important; font-size: 16px; font-weight: 600;">Cancel</span>
-                    </button>
-                    <button type="submit"
-                            class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold border-none outline-none"
-                            style="background-color: #2563eb !important; color: white !important; font-weight: 600 !important; text-align: center !important; display: flex !important; align-items: center !important; justify-content: center !important; min-height: 48px;">
-                        <span style="color: white !important; font-size: 16px; font-weight: 600;">📅 Schedule Visit</span>
-                    </button>
-                </div>
             </form>
         </div>
+
+        <!-- Footer Buttons -->
+        <div style="padding: 16px 24px; border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
+            <div style="display: flex; gap: 12px;">
+                <button type="button"
+                        onclick="closeScheduleModal()"
+                        style="flex: 1; padding: 12px 16px; background-color: #e5e7eb; color: #374151; border-radius: 8px; font-weight: 600; font-size: 16px; border: none; cursor: pointer;">
+                    Cancel
+                </button>
+                <button type="submit"
+                        form="scheduleForm"
+                        style="flex: 1; padding: 12px 16px; background-color: #2563eb !important; color: #ffffff !important; border-radius: 8px; font-weight: 600; font-size: 16px; border: none; cursor: pointer;">
+                    📅 Schedule Visit
+                </button>
+            </div>
+        </div>
+    </div>
     </div>
 </div>
 
 <!-- Book Property Modal -->
-<div id="bookingModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50" style="padding-top: 80px; padding-bottom: 20px;">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4 overflow-hidden max-h-full flex flex-col">
-        <div class="p-6 flex-1 overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-gray-800">Book This Property</h3>
-                <button onclick="closeBookingModal()" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
+<div id="bookingModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <!-- Header -->
+            <div class="px-4 sm:px-6 py-3 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800">Book This Property</h3>
+                    <button onclick="closeBookingModal()" class="text-gray-400 hover:text-gray-600 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <form onsubmit="submitBooking(event)" class="space-y-4">
+            <!-- Content -->
+            <div class="px-4 sm:px-6 py-4">
+                <form id="bookingForm" onsubmit="submitBooking(event)" class="space-y-3">
                 @if($property->rooms->where('status', 'available')->count() > 1)
                 <div>
-                    <label for="room_id" class="block text-gray-700 font-semibold mb-2">Select Room</label>
-                    <select name="room_id" id="room_id" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500" required>
+                    <label for="room_id" class="block text-sm font-semibold text-gray-700 mb-1">Select Room</label>
+                    <select name="room_id" id="room_id" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500" required>
                         <option value="">Choose a room</option>
                         @foreach($property->rooms->where('status', 'available') as $room)
-                            <option value="{{ $room->id }}">{{ $room->room_number }} - {{ $room->type_name }} (Capacity: {{ $room->capacity }})</option>
+                            <option value="{{ $room->id }}">{{ $room->room_number }} - {{ $room->type_name }} ({{ $room->capacity }})</option>
                         @endforeach
                     </select>
                 </div>
                 @else
                     <input type="hidden" name="room_id" value="{{ $property->rooms->where('status', 'available')->first()->id ?? '' }}">
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                        <p class="text-sm text-blue-800">
-                            <strong>Room:</strong> {{ $property->rooms->where('status', 'available')->first()->room_number ?? 'N/A' }}
-                            <br><strong>Type:</strong> {{ $property->rooms->where('status', 'available')->first()->type_name ?? 'N/A' }}
-                            <br><strong>Capacity:</strong> {{ $property->rooms->where('status', 'available')->first()->capacity ?? 'N/A' }} person(s)
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
+                        <p class="text-xs sm:text-sm text-blue-800">
+                            <strong>Room:</strong> {{ $property->rooms->where('status', 'available')->first()->room_number ?? 'N/A' }} •
+                            <strong>Type:</strong> {{ $property->rooms->where('status', 'available')->first()->type_name ?? 'N/A' }} •
+                            <strong>Capacity:</strong> {{ $property->rooms->where('status', 'available')->first()->capacity ?? 'N/A' }}
                         </p>
                     </div>
                 @endif
 
                 <div>
-                    <label for="check_in" class="block text-gray-700 font-semibold mb-2">Check-in Date</label>
+                    <label for="check_in" class="block text-sm font-semibold text-gray-700 mb-1">Check-in Date</label>
                     <input type="date"
                            name="check_in"
                            id="check_in"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                            min="{{ date('Y-m-d') }}"
                            required>
                 </div>
 
                 <div>
-                    <label for="check_out" class="block text-gray-700 font-semibold mb-2">Check-out Date</label>
+                    <label for="check_out" class="block text-sm font-semibold text-gray-700 mb-1">Check-out Date</label>
                     <input type="date"
                            name="check_out"
                            id="check_out"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500"
                            min="{{ date('Y-m-d', strtotime('+1 day')) }}"
                            required>
                 </div>
 
                 <div>
-                    <label for="notes" class="block text-gray-700 font-semibold mb-2">Special Requests (Optional)</label>
+                    <label for="notes" class="block text-sm font-semibold text-gray-700 mb-1">Special Requests (Optional)</label>
                     <textarea name="notes"
                               id="notes"
-                              rows="3"
-                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 resize-none"
-                              placeholder="Any special requirements or questions..."></textarea>
+                              rows="2"
+                              class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 resize-none"
+                              placeholder="Any special requirements..."></textarea>
                 </div>
 
                 <!-- Pricing Info -->
-                <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                <div class="bg-orange-50 border border-orange-200 rounded-lg p-2.5">
                     <div class="flex justify-between items-center">
-                        <span class="text-gray-700 font-medium">Monthly Rate:</span>
-                        <span class="text-xl sm:text-2xl font-bold text-orange-600 break-words">₱{{ number_format($property->price) }}</span>
+                        <span class="text-sm font-medium text-gray-700">Monthly Rate:</span>
+                        <span class="text-lg font-bold text-orange-600">₱{{ number_format($property->price) }}</span>
                     </div>
-                    <p class="text-xs text-gray-500 mt-1">
-                        * Final amount will be calculated based on your stay duration
-                    </p>
+                    <p class="text-xs text-gray-500 mt-1">* Final amount based on stay duration</p>
                 </div>
 
                 <!-- Terms -->
-                <div class="flex items-start space-x-3">
+                <div class="flex items-start space-x-2">
                     <input type="checkbox" id="bookingTerms" class="mt-1" required>
                     <label for="bookingTerms" class="text-xs text-gray-600">
-                        I agree to the booking terms and understand that this request will be reviewed by the landlord.
+                        I agree to the booking terms and understand this request will be reviewed by the landlord.
                     </label>
                 </div>
-
-                <div class="flex space-x-3 pt-4 pb-2 bg-white sticky bottom-0">
-                    <button type="button"
-                            onclick="closeBookingModal()"
-                            class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold border-none outline-none"
-                            style="background-color: #e5e7eb !important; color: #374151 !important; font-weight: 600 !important; text-align: center !important; display: flex !important; align-items: center !important; justify-content: center !important; min-height: 48px;">
-                        <span style="color: #374151 !important; font-size: 16px; font-weight: 600;">Cancel</span>
-                    </button>
-                    <button type="submit"
-                            class="flex-1 px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition font-semibold border-none outline-none"
-                            style="background-color: #ea580c !important; color: white !important; font-weight: 600 !important; text-align: center !important; display: flex !important; align-items: center !important; justify-content: center !important; min-height: 48px;">
-                        <span style="color: white !important; font-size: 16px; font-weight: 600;">📋 Submit Booking</span>
-                    </button>
-                </div>
             </form>
+        </div>
+
+        <!-- Footer Buttons -->
+        <div style="padding: 16px 24px; border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
+            <div style="display: flex; gap: 12px;">
+                <button type="button"
+                        onclick="closeBookingModal()"
+                        style="flex: 1; padding: 12px 16px; background-color: #e5e7eb; color: #374151; border-radius: 8px; font-weight: 600; font-size: 16px; border: none; cursor: pointer;">
+                    Cancel
+                </button>
+                <button type="submit"
+                        form="bookingForm"
+                        style="flex: 1; padding: 12px 16px; background-color: #ea580c; color: #ffffff; border-radius: 8px; font-weight: 600; font-size: 16px; border: none; cursor: pointer;">
+                    Submit Booking
+                </button>
+            </div>
+        </div>
         </div>
     </div>
 </div>

@@ -19,6 +19,7 @@ class Property extends Model
         'title',
         'slug',
         'description',
+        'house_rules',
         'location_text',
         'address_line',
         'barangay',
@@ -51,7 +52,8 @@ class Property extends Model
         'is_verified' => 'boolean',
         'is_featured' => 'boolean',
         'visit_schedule_enabled' => 'boolean',
-        'visit_days' => 'json'  // Changed from 'array' to 'json' for PostgreSQL compatibility
+        'visit_days' => 'json',  // Changed from 'array' to 'json' for PostgreSQL compatibility
+        'house_rules' => 'json'  // Store house rules as JSON for both MySQL and PostgreSQL
     ];
 
     // Auto-generate slug when title changes
@@ -251,8 +253,48 @@ public function getPendingVisitsCountAttribute(): int
     {
         return $this->user_id === $user->id;
     }
+
     public function inquiries()
     {
-    return $this->hasMany(Inquiry::class);
+        return $this->hasMany(Inquiry::class);
+    }
+
+    /**
+     * Get default house rules
+     */
+    public static function getDefaultHouseRules(): array
+    {
+        return [
+            'No smoking inside the premises',
+            'Visitors allowed until 10 PM',
+            'Keep common areas clean',
+            'Respect quiet hours (10 PM – 7 AM)'
+        ];
+    }
+
+    /**
+     * Get formatted house rules with default and custom separation
+     */
+    public function getFormattedHouseRules(): array
+    {
+        $rules = $this->house_rules ?? [];
+        $defaultRules = self::getDefaultHouseRules();
+
+        return [
+            'default' => array_filter($rules, function($rule) use ($defaultRules) {
+                return in_array($rule, $defaultRules);
+            }),
+            'custom' => array_filter($rules, function($rule) use ($defaultRules) {
+                return !in_array($rule, $defaultRules);
+            })
+        ];
+    }
+
+    /**
+     * Get all active house rules
+     */
+    public function getActiveHouseRules(): array
+    {
+        return $this->house_rules ?? [];
     }
 }

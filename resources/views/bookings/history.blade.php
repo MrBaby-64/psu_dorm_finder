@@ -18,8 +18,8 @@
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">My Booking & Inquiry History</h1>
-            <p class="text-gray-600">Track all your property interactions, bookings, and communications in one place</p>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Inquiry History</h1>
+            <p class="text-gray-600">Track all your property interactions and communications in one place</p>
         </div>
 
         @if(session('success'))
@@ -29,7 +29,7 @@
         @endif
 
         <!-- Statistics Overview -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
                 <div class="flex items-center">
                     <div class="p-3 bg-blue-100 rounded-lg">
@@ -42,23 +42,6 @@
                         <p class="text-2xl font-semibold text-gray-900">{{ $stats['total_inquiries'] }}</p>
                         @if($stats['pending_inquiries'] > 0)
                             <p class="text-xs text-blue-600">{{ $stats['pending_inquiries'] }} pending</p>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-green-500">
-                <div class="flex items-center">
-                    <div class="p-3 bg-green-100 rounded-lg">
-                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Bookings</p>
-                        <p class="text-2xl font-semibold text-gray-900">{{ $stats['total_bookings'] }}</p>
-                        @if($stats['active_bookings'] > 0)
-                            <p class="text-xs text-green-600">{{ $stats['active_bookings'] }} active</p>
                         @endif
                     </div>
                 </div>
@@ -110,9 +93,6 @@
                     <button onclick="showTab('all')" id="tab-all" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 md:py-4 px-3 md:px-6 border-b-2 font-medium text-xs md:text-sm transition-colors duration-200 flex-shrink-0">
                         All Activity
                     </button>
-                    <button onclick="showTab('bookings')" id="tab-bookings" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 md:py-4 px-3 md:px-6 border-b-2 font-medium text-xs md:text-sm transition-colors duration-200 flex-shrink-0">
-                        Bookings ({{ $stats['total_bookings'] }})
-                    </button>
                     <button onclick="showTab('inquiries')" id="tab-inquiries" class="tab-button border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 md:py-4 px-3 md:px-6 border-b-2 font-medium text-xs md:text-sm transition-colors duration-200 flex-shrink-0">
                         Inquiries ({{ $stats['total_inquiries'] }})
                     </button>
@@ -132,19 +112,6 @@
 
                 @php
                     $allActivities = collect();
-
-                    // Add bookings to timeline
-                    foreach($bookings as $booking) {
-                        $allActivities->push([
-                            'type' => 'booking',
-                            'date' => $booking->created_at,
-                            'data' => $booking,
-                            'title' => 'Booking Request',
-                            'subtitle' => $booking->property->title,
-                            'status' => $booking->status,
-                            'icon' => 'booking'
-                        ]);
-                    }
 
                     // Add inquiries to timeline
                     foreach($inquiries as $inquiry) {
@@ -187,13 +154,7 @@
                                     @endif
                                     <div class="relative flex space-x-3">
                                         <div class="flex-shrink-0">
-                                            @if($activity['icon'] === 'booking')
-                                                <div class="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                                                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                    </svg>
-                                                </div>
-                                            @elseif($activity['icon'] === 'inquiry')
+                                            @if($activity['icon'] === 'inquiry')
                                                 <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                                                     <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -212,8 +173,6 @@
                                                 <p class="text-sm text-gray-900 font-medium">{{ $activity['title'] }}</p>
                                                 <p class="text-sm text-gray-500">{{ $activity['subtitle'] }}</p>
                                                 @if($activity['type'] === 'inquiry' && $activity['data']->room)
-                                                    <p class="text-xs text-gray-400">Room: {{ $activity['data']->room->room_number }}</p>
-                                                @elseif($activity['type'] === 'booking' && $activity['data']->room)
                                                     <p class="text-xs text-gray-400">Room: {{ $activity['data']->room->room_number }}</p>
                                                 @endif
                                             </div>
@@ -239,107 +198,6 @@
                         </svg>
                         <h3 class="text-lg font-medium text-gray-900 mb-2">No activity yet</h3>
                         <p class="text-gray-500 mb-6">Start browsing properties to create your first inquiry or booking!</p>
-                        <a href="{{ route('properties.browse') }}" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 inline-block transition">
-                            Browse Properties
-                        </a>
-                    </div>
-                @endif
-            </div>
-        </div>
-
-        <!-- Bookings Section -->
-        <div id="content-bookings" class="tab-content hidden">
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-xl font-semibold text-gray-900">My Bookings</h2>
-                    <div class="text-sm text-gray-500">
-                        {{ $bookings->count() }} total bookings
-                    </div>
-                </div>
-
-                @if($bookings->count() > 0)
-                    <div class="space-y-6">
-                        @foreach($bookings as $booking)
-                        <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200">
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1">
-                                    <div class="flex items-start justify-between">
-                                        <div>
-                                            <h3 class="text-lg font-semibold text-gray-900">{{ $booking->property->title }}</h3>
-                                            <p class="text-gray-600 mt-1">{{ $booking->property->location_text }}</p>
-                                            <p class="text-sm text-gray-500">Landlord: {{ $booking->property->user->name }}</p>
-                                        </div>
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $booking->status_color }}">
-                                            {{ $booking->status_name }}
-                                        </span>
-                                    </div>
-
-                                    @if($booking->room)
-                                        <div class="mt-3 p-3 bg-gray-50 rounded-lg">
-                                            <p class="text-sm font-medium text-gray-700">Room Details:</p>
-                                            <p class="text-sm text-gray-600">{{ $booking->room->room_number }} - Capacity: {{ $booking->room->capacity }} person(s)</p>
-                                        </div>
-                                    @endif
-
-                                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div class="flex items-center text-sm text-gray-600">
-                                            <svg class="w-4 h-4 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                            </svg>
-                                            <span class="font-medium">Check-in:</span>
-                                            <span class="ml-1">{{ $booking->check_in_date->format('M d, Y') }}</span>
-                                        </div>
-                                        <div class="flex items-center text-sm text-gray-600">
-                                            <svg class="w-4 h-4 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                            </svg>
-                                            <span class="font-medium">Check-out:</span>
-                                            <span class="ml-1">{{ $booking->check_out_date->format('M d, Y') }}</span>
-                                        </div>
-                                    </div>
-
-                                    @if($booking->total_amount)
-                                        <div class="mt-3 p-3 bg-green-50 rounded-lg">
-                                            <p class="text-sm font-medium text-green-800">Total Amount: {{ $booking->formatted_total_amount }}</p>
-                                            @if($booking->payment_status)
-                                                <p class="text-xs text-green-600">Payment Status: {{ $booking->payment_status_name }}</p>
-                                            @endif
-                                        </div>
-                                    @endif
-
-                                    <div class="mt-4 flex items-center justify-between">
-                                        <p class="text-xs text-gray-500">
-                                            Submitted on {{ $booking->created_at->format('M d, Y \a\t g:i A') }}
-                                        </p>
-
-                                        <div class="flex space-x-2">
-                                            @if($booking->canBeCancelled())
-                                                <form action="{{ route('bookings.cancel', $booking) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" onclick="return confirm('Are you sure you want to cancel this booking?')"
-                                                            class="text-red-600 hover:text-red-800 text-sm font-medium transition">
-                                                        Cancel Booking
-                                                    </button>
-                                                </form>
-                                            @endif
-                                            <a href="{{ route('properties.show', $booking->property) }}" class="text-green-600 hover:text-green-800 text-sm font-medium transition">
-                                                View Property
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="text-center py-12">
-                        <svg class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">No bookings yet</h3>
-                        <p class="text-gray-500 mb-6">Browse properties and create your first booking!</p>
                         <a href="{{ route('properties.browse') }}" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 inline-block transition">
                             Browse Properties
                         </a>

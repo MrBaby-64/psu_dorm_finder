@@ -38,11 +38,6 @@
                             📅 Calendar
                         </button>
                     </div>
-
-                    <!-- Quick Actions -->
-                    <button onclick="exportVisits()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700">
-                        📊 Export
-                    </button>
                 </div>
             </div>
 
@@ -457,6 +452,75 @@
         </div>
     </div>
 
+    <!-- Calendar View -->
+    <div id="calendarView" class="hidden">
+        <div class="bg-white rounded-xl shadow-xl overflow-hidden">
+            <!-- Calendar Header -->
+            <div class="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 px-6 py-5">
+                <div class="flex items-center justify-between">
+                    <button onclick="changeMonth(-1)" class="group p-2 hover:bg-white/20 rounded-lg transition-all duration-200 text-white" title="Previous Month">
+                        <svg class="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="text-center">
+                        <h3 id="calendarMonthYear" class="text-3xl font-bold text-white mb-1"></h3>
+                        <button onclick="goToToday()" class="text-xs text-white/80 hover:text-white hover:underline transition">
+                            Go to Today
+                        </button>
+                    </div>
+                    <button onclick="changeMonth(1)" class="group p-2 hover:bg-white/20 rounded-lg transition-all duration-200 text-white" title="Next Month">
+                        <svg class="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div id="calendarGrid" class="bg-white"></div>
+
+            <!-- Quick Stats Bar -->
+            <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-t border-gray-200">
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center space-x-6">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-red-500 rounded-full mr-2 animate-pulse"></div>
+                            <span class="text-gray-700"><span id="scheduledCount" class="font-bold">0</span> Scheduled</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                            <span class="text-gray-700"><span id="completedCount" class="font-bold">0</span> Completed</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-gray-400 rounded-full mr-2"></div>
+                            <span class="text-gray-700"><span id="cancelledCount" class="font-bold">0</span> Cancelled</span>
+                        </div>
+                    </div>
+                    <span id="totalVisitsCount" class="text-gray-500 font-medium"></span>
+                </div>
+            </div>
+
+            <!-- Visit Details Panel (Enhanced) -->
+            <div id="visitDetailsPanel" class="hidden border-t-4 border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <div class="p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <h4 id="visitDetailsTitle" class="text-xl font-bold text-gray-900"></h4>
+                            <p id="visitDetailsSubtitle" class="text-sm text-gray-600 mt-1"></p>
+                        </div>
+                        <button onclick="closeVisitDetails()" class="group p-2 hover:bg-white rounded-lg transition-all duration-200">
+                            <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-600 group-hover:rotate-90 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="visitDetailsList" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirm Visit Modal -->
     <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
         <div class="flex items-center justify-center min-h-screen px-4">
@@ -546,6 +610,418 @@
 
             document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
             document.getElementById('calendarView').style.display = view === 'calendar' ? 'block' : 'none';
+
+            // Initialize calendar when switching to calendar view
+            if (view === 'calendar') {
+                renderCalendar();
+            }
+        }
+
+        // Calendar State
+        let calendarMonth = new Date().getMonth();
+        let calendarYear = new Date().getFullYear();
+        let calendarVisits = [];
+
+        // Calendar Rendering
+        function renderCalendar() {
+            calendarVisits = @json($visits->items());
+            const calendarGrid = document.getElementById('calendarGrid');
+            const monthYearDisplay = document.getElementById('calendarMonthYear');
+
+            if (!calendarGrid || !monthYearDisplay) return;
+
+            const today = new Date();
+            const firstDay = new Date(calendarYear, calendarMonth, 1);
+            const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+            const prevMonthLastDay = new Date(calendarYear, calendarMonth, 0).getDate();
+
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+            const dayNamesShort = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+
+            // Update month/year display
+            monthYearDisplay.textContent = `${monthNames[calendarMonth]} ${calendarYear}`;
+
+            let calendarHTML = '<div class="grid grid-cols-7 border-l border-t border-gray-300">';
+
+            // Day headers (enhanced professional styling)
+            dayNamesShort.forEach((day, index) => {
+                const isWeekend = index === 0 || index === 6;
+                calendarHTML += `
+                    <div class="bg-gradient-to-b from-slate-100 to-slate-50 border-r border-b border-gray-300 py-3 px-2 text-center">
+                        <span class="font-extrabold ${isWeekend ? 'text-blue-600' : 'text-gray-700'} text-xs tracking-wider">
+                            ${day}
+                        </span>
+                    </div>
+                `;
+            });
+
+            // Track stats
+            let totalScheduled = 0;
+            let totalCompleted = 0;
+            let totalCancelled = 0;
+
+            // Previous month's trailing days
+            for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+                const day = prevMonthLastDay - i;
+                calendarHTML += `
+                    <div class="bg-gray-50 border-r border-b border-gray-300 p-3 min-h-[120px] text-gray-400 relative">
+                        <div class="text-xs font-semibold opacity-30">${day}</div>
+                    </div>
+                `;
+            }
+
+            // Current month's days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const isToday = day === today.getDate() && calendarMonth === today.getMonth() && calendarYear === today.getFullYear();
+                const isPast = new Date(dateStr) < new Date(today.setHours(0,0,0,0));
+                const isWeekend = new Date(dateStr).getDay() === 0 || new Date(dateStr).getDay() === 6;
+
+                // Find visits for this day
+                const dayVisits = calendarVisits.filter(visit => {
+                    let visitDate = visit.confirmed_date || visit.preferred_date;
+                    if (typeof visitDate === 'object' && visitDate !== null) {
+                        visitDate = visitDate.date || visitDate;
+                    }
+                    if (typeof visitDate === 'string') {
+                        return visitDate.startsWith(dateStr);
+                    }
+                    return false;
+                });
+
+                // Determine highlight color based on visit status
+                let highlightClass = 'bg-white hover:bg-gray-50';
+                let borderClass = 'border border-gray-200';
+                let shadowClass = '';
+                let ringClass = '';
+
+                if (dayVisits.length > 0) {
+                    const hasCompleted = dayVisits.some(v => v.status === 'completed');
+                    const hasScheduled = dayVisits.some(v => v.status === 'pending' || v.status === 'confirmed');
+                    const hasCancelled = dayVisits.some(v => v.status === 'cancelled' || v.status === 'no_show');
+
+                    // Update stats
+                    dayVisits.forEach(v => {
+                        if (v.status === 'completed') totalCompleted++;
+                        else if (v.status === 'pending' || v.status === 'confirmed') totalScheduled++;
+                        else if (v.status === 'cancelled' || v.status === 'no_show') totalCancelled++;
+                    });
+
+                    if (hasCompleted && !hasScheduled) {
+                        // All completed - GREEN
+                        highlightClass = 'bg-gradient-to-br from-green-50 to-green-100 hover:from-green-100 hover:to-green-200';
+                        borderClass = 'border-2 border-green-400';
+                        shadowClass = 'shadow-md shadow-green-200';
+                    } else if (hasScheduled) {
+                        // Has scheduled visits - RED
+                        highlightClass = 'bg-gradient-to-br from-red-50 to-red-100 hover:from-red-100 hover:to-red-200';
+                        borderClass = 'border-2 border-red-400';
+                        shadowClass = 'shadow-md shadow-red-200';
+                        ringClass = 'ring-1 ring-red-300';
+                    } else if (hasCancelled) {
+                        // Only cancelled - GRAY
+                        highlightClass = 'bg-gradient-to-br from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200';
+                        borderClass = 'border-2 border-gray-300';
+                    }
+                }
+
+                if (isToday) {
+                    borderClass = 'border-4 border-yellow-400';
+                    ringClass = 'ring-2 ring-yellow-300';
+                    if (!dayVisits.length) {
+                        highlightClass = 'bg-gradient-to-br from-yellow-50 to-amber-50 hover:from-yellow-100 hover:to-amber-100';
+                    }
+                }
+
+                if (isWeekend && !dayVisits.length && !isToday) {
+                    highlightClass = 'bg-gray-50/50 hover:bg-gray-100/50';
+                }
+
+                calendarHTML += `
+                    <div class="${highlightClass} border-r border-b border-gray-300 ${shadowClass} p-3 min-h-[120px] transition-all duration-200 cursor-pointer group relative"
+                         onclick="showDayVisits('${dateStr}', ${day}, '${monthNames[calendarMonth]}')"
+                         ${isToday ? 'data-today="true"' : ''}>
+
+                        ${isToday ? '<div class="absolute inset-0 border-2 border-yellow-400 pointer-events-none rounded-sm"></div>' : ''}
+                        ${dayVisits.length > 0 && hasScheduled ? '<div class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>' : ''}
+
+                        <div class="relative z-10">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center space-x-1">
+                                    <span class="${isWeekend ? 'text-blue-600' : isToday ? 'text-yellow-700' : isPast ? 'text-gray-500' : 'text-gray-800'} ${isToday ? 'text-xl font-black' : 'text-base font-bold'}">
+                                        ${day}
+                                    </span>
+                                    ${isToday ? '<span class="text-[10px] font-bold text-yellow-600 bg-yellow-100 px-1.5 py-0.5 rounded-full">TODAY</span>' : ''}
+                                </div>
+                            </div>
+
+                            <div class="space-y-1">
+                `;
+
+                // Show visit count and status indicators with better styling
+                if (dayVisits.length > 0) {
+                    const completed = dayVisits.filter(v => v.status === 'completed').length;
+                    const scheduled = dayVisits.filter(v => v.status === 'pending' || v.status === 'confirmed').length;
+                    const cancelled = dayVisits.filter(v => v.status === 'cancelled' || v.status === 'no_show').length;
+
+                    if (scheduled > 0) {
+                        calendarHTML += `
+                            <div class="flex items-center text-xs font-bold text-red-800 bg-red-500 text-white px-2.5 py-1.5 rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
+                                <span class="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></span>
+                                ${scheduled} Scheduled
+                            </div>
+                        `;
+                    }
+                    if (completed > 0) {
+                        calendarHTML += `
+                            <div class="flex items-center text-xs font-bold text-green-800 bg-green-500 text-white px-2.5 py-1.5 rounded-lg shadow-sm">
+                                <svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                                ${completed} Done
+                            </div>
+                        `;
+                    }
+                    if (cancelled > 0) {
+                        calendarHTML += `
+                            <div class="flex items-center text-xs font-semibold text-gray-700 bg-gray-300 px-2.5 py-1.5 rounded-lg">
+                                <svg class="w-3 h-3 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                                </svg>
+                                ${cancelled} Cancelled
+                            </div>
+                        `;
+                    }
+                } else if (!isPast) {
+                    calendarHTML += `
+                        <div class="text-xs text-gray-400 italic opacity-0 group-hover:opacity-100 transition-opacity">
+                            No visits
+                        </div>
+                    `;
+                }
+
+                calendarHTML += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Next month's leading days
+            const totalCells = startingDayOfWeek + daysInMonth;
+            const remainingCells = 7 - (totalCells % 7);
+            if (remainingCells < 7) {
+                for (let day = 1; day <= remainingCells; day++) {
+                    calendarHTML += `
+                        <div class="bg-gray-50 border-r border-b border-gray-300 p-3 min-h-[120px] text-gray-400 relative">
+                            <div class="text-xs font-semibold opacity-30">${day}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            calendarHTML += '</div>';
+            calendarGrid.innerHTML = calendarHTML;
+
+            // Update stats bar
+            updateCalendarStats(totalScheduled, totalCompleted, totalCancelled);
+        }
+
+        function updateCalendarStats(scheduled, completed, cancelled) {
+            const scheduledEl = document.getElementById('scheduledCount');
+            const completedEl = document.getElementById('completedCount');
+            const cancelledEl = document.getElementById('cancelledCount');
+            const totalEl = document.getElementById('totalVisitsCount');
+
+            if (scheduledEl) scheduledEl.textContent = scheduled;
+            if (completedEl) completedEl.textContent = completed;
+            if (cancelledEl) cancelledEl.textContent = cancelled;
+            if (totalEl) totalEl.textContent = `${scheduled + completed + cancelled} total visits this month`;
+        }
+
+        function goToToday() {
+            calendarMonth = new Date().getMonth();
+            calendarYear = new Date().getFullYear();
+            renderCalendar();
+
+            // Scroll to today's date
+            setTimeout(() => {
+                const todayCell = document.querySelector('[data-today="true"]');
+                if (todayCell) {
+                    todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    todayCell.classList.add('ring-4', 'ring-blue-400');
+                    setTimeout(() => {
+                        todayCell.classList.remove('ring-4', 'ring-blue-400');
+                    }, 2000);
+                }
+            }, 100);
+        }
+
+        function changeMonth(direction) {
+            calendarMonth += direction;
+
+            if (calendarMonth > 11) {
+                calendarMonth = 0;
+                calendarYear++;
+            } else if (calendarMonth < 0) {
+                calendarMonth = 11;
+                calendarYear--;
+            }
+
+            renderCalendar();
+        }
+
+        function showDayVisits(dateStr, day, monthName) {
+            const dayVisits = calendarVisits.filter(visit => {
+                let visitDate = visit.confirmed_date || visit.preferred_date;
+                if (typeof visitDate === 'object' && visitDate !== null) {
+                    visitDate = visitDate.date || visitDate;
+                }
+                if (typeof visitDate === 'string') {
+                    return visitDate.startsWith(dateStr);
+                }
+                return false;
+            });
+
+            if (dayVisits.length === 0) {
+                showNotification('No visits scheduled for this day', 'info');
+                return;
+            }
+
+            const panel = document.getElementById('visitDetailsPanel');
+            const detailsList = document.getElementById('visitDetailsList');
+            const detailsTitle = document.getElementById('visitDetailsTitle');
+            const detailsSubtitle = document.getElementById('visitDetailsSubtitle');
+
+            if (!panel || !detailsList || !detailsTitle || !detailsSubtitle) return;
+
+            // Update title
+            detailsTitle.innerHTML = `📅 Visits on ${monthName} ${day}, ${calendarYear}`;
+            detailsSubtitle.innerHTML = `${dayVisits.length} visit${dayVisits.length > 1 ? 's' : ''} • Click on a visit to view full details`;
+
+            let detailsHTML = '';
+
+            dayVisits.forEach((visit, index) => {
+                const statusConfig = {
+                    'pending': {
+                        bg: 'bg-gradient-to-r from-yellow-50 to-yellow-100',
+                        border: 'border-yellow-400',
+                        text: 'text-yellow-800',
+                        badge: 'bg-yellow-500 text-white',
+                        icon: '⏳'
+                    },
+                    'confirmed': {
+                        bg: 'bg-gradient-to-r from-blue-50 to-blue-100',
+                        border: 'border-blue-400',
+                        text: 'text-blue-800',
+                        badge: 'bg-blue-500 text-white',
+                        icon: '✓'
+                    },
+                    'completed': {
+                        bg: 'bg-gradient-to-r from-green-50 to-green-100',
+                        border: 'border-green-400',
+                        text: 'text-green-800',
+                        badge: 'bg-green-500 text-white',
+                        icon: '✓'
+                    },
+                    'cancelled': {
+                        bg: 'bg-gradient-to-r from-red-50 to-red-100',
+                        border: 'border-red-400',
+                        text: 'text-red-800',
+                        badge: 'bg-red-500 text-white',
+                        icon: '✕'
+                    },
+                    'no_show': {
+                        bg: 'bg-gradient-to-r from-gray-50 to-gray-100',
+                        border: 'border-gray-400',
+                        text: 'text-gray-800',
+                        badge: 'bg-gray-500 text-white',
+                        icon: '👻'
+                    }
+                };
+
+                const config = statusConfig[visit.status] || statusConfig['pending'];
+                const time = visit.confirmed_time || visit.preferred_time;
+
+                detailsHTML += `
+                    <div class="group ${config.bg} border-2 ${config.border} rounded-xl p-4 cursor-pointer hover:shadow-xl transition-all duration-200 transform hover:-translate-y-1"
+                         onclick="goToVisit(${visit.id})">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <div class="mt-1">
+                                    <span class="text-2xl">${config.icon}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h5 class="font-bold ${config.text} text-lg mb-1 truncate">${visit.property.title}</h5>
+                                    <div class="space-y-1">
+                                        <p class="text-sm ${config.text} flex items-center">
+                                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                            ${visit.tenant.name}
+                                        </p>
+                                        <p class="text-sm ${config.text} flex items-center font-semibold">
+                                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            ${time}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1.5 rounded-full text-xs font-bold ${config.badge} shadow-sm whitespace-nowrap ml-3">
+                                ${visit.status.toUpperCase()}
+                            </span>
+                        </div>
+
+                        ${visit.notes ? `
+                            <div class="mt-3 pt-3 border-t ${config.border} border-opacity-30">
+                                <p class="text-xs ${config.text} opacity-80 italic">
+                                    <span class="font-semibold not-italic">Note:</span> ${visit.notes.substring(0, 100)}${visit.notes.length > 100 ? '...' : ''}
+                                </p>
+                            </div>
+                        ` : ''}
+
+                        <div class="mt-3 flex items-center justify-between">
+                            <span class="text-xs ${config.text} opacity-70">Click to view full details →</span>
+                            <svg class="w-5 h-5 ${config.text} opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                `;
+            });
+
+            detailsList.innerHTML = detailsHTML;
+            panel.classList.remove('hidden');
+
+            // Smooth scroll to panel
+            setTimeout(() => {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function closeVisitDetails() {
+            const panel = document.getElementById('visitDetailsPanel');
+            if (panel) {
+                panel.classList.add('hidden');
+            }
+        }
+
+        function goToVisit(visitId) {
+            closeVisitDetails();
+            const visitElement = document.getElementById(`visit-${visitId}`);
+            if (visitElement) {
+                toggleView('list');
+                setTimeout(() => {
+                    visitElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    visitElement.classList.add('bg-blue-100');
+                    setTimeout(() => visitElement.classList.remove('bg-blue-100'), 3000);
+                }, 300);
+            }
         }
 
         // Enhanced Filtering
@@ -762,16 +1238,6 @@
             }
         }
 
-        // Export functionality
-        function exportVisits() {
-            const params = new URLSearchParams(window.location.search);
-            params.set('export', 'csv');
-
-            const exportUrl = '/landlord/scheduled-visits/export?' + params.toString();
-            window.open(exportUrl, '_blank');
-
-            showNotification('Export started! Check your downloads.', 'info');
-        }
 
         // Notification system
         function showNotification(message, type = 'info') {
