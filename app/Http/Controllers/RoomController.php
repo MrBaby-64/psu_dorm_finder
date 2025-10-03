@@ -27,56 +27,81 @@ class RoomController extends Controller
      */
     public function update(Request $request, Room $room)
     {
-        // Check if user owns this room's property
-        if (Auth::user()->id !== $room->property->user_id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
-        // Validate the request
-        $validatedData = $request->validate([
-            'room_number' => 'required|string|max:50',
-            'capacity' => 'required|integer|min:1|max:20',
-            'price' => 'required|numeric|min:0',
-            'size_sqm' => 'nullable|numeric|min:0',
-            'description' => 'nullable|string|max:1000',
-            'furnished_status' => 'nullable|string|in:furnished,semi_furnished,unfurnished',
-            'bathroom_type' => 'nullable|string|in:private,shared,communal',
-            'ac_type' => 'nullable|string|in:central,split,window,ceiling_fan,none',
-            'internet_speed_mbps' => 'nullable|integer|min:0',
-            'storage_space' => 'nullable|string|in:closet,wardrobe,built_in,none',
-            'flooring_type' => 'nullable|string|in:tile,wood,concrete,carpet,vinyl',
-            'advance_payment_months' => 'nullable|integer|min:1|max:12',
-            'security_deposit' => 'nullable|numeric|min:0',
-            'minimum_stay_months' => 'nullable|integer|min:1|max:24',
-            'house_rules' => 'nullable|string|max:1000',
-            'has_kitchenette' => 'nullable|boolean',
-            'has_refrigerator' => 'nullable|boolean',
-            'has_study_desk' => 'nullable|boolean',
-            'has_balcony' => 'nullable|boolean',
-            'pets_allowed' => 'nullable|boolean',
-            'smoking_allowed' => 'nullable|boolean',
-            'included_utilities' => 'nullable|string', // Will be JSON string
-        ]);
-
-        // Handle included utilities JSON
-        if (isset($validatedData['included_utilities'])) {
-            $utilities = json_decode($validatedData['included_utilities'], true);
-            $validatedData['included_utilities'] = $utilities ?: null;
-        }
-
-        // Convert empty strings to null for nullable fields
-        foreach (['furnished_status', 'bathroom_type', 'ac_type', 'storage_space', 'flooring_type', 'house_rules'] as $field) {
-            if (isset($validatedData[$field]) && $validatedData[$field] === '') {
-                $validatedData[$field] = null;
+        try {
+            // Check if user owns this room's property
+            if (Auth::user()->id !== $room->property->user_id) {
+                return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
             }
+
+            // Validate the request
+            $validatedData = $request->validate([
+                'room_number' => 'required|string|max:50',
+                'capacity' => 'required|integer|min:1|max:20',
+                'price' => 'required|numeric|min:0',
+                'size_sqm' => 'nullable|numeric|min:0',
+                'description' => 'nullable|string|max:1000',
+                'furnished_status' => 'nullable|string|in:furnished,semi_furnished,unfurnished',
+                'bathroom_type' => 'nullable|string|in:private,shared,communal',
+                'ac_type' => 'nullable|string|in:central,split,window,ceiling_fan,none',
+                'internet_speed_mbps' => 'nullable|integer|min:0',
+                'storage_space' => 'nullable|string|in:closet,wardrobe,built_in,none',
+                'flooring_type' => 'nullable|string|in:tile,wood,concrete,carpet,vinyl',
+                'advance_payment_months' => 'nullable|integer|min:1|max:12',
+                'security_deposit' => 'nullable|numeric|min:0',
+                'minimum_stay_months' => 'nullable|integer|min:1|max:24',
+                'house_rules' => 'nullable|string|max:1000',
+                'has_kitchenette' => 'nullable|boolean',
+                'has_refrigerator' => 'nullable|boolean',
+                'has_study_desk' => 'nullable|boolean',
+                'has_balcony' => 'nullable|boolean',
+                'pets_allowed' => 'nullable|boolean',
+                'smoking_allowed' => 'nullable|boolean',
+                'included_utilities' => 'nullable|string', // Will be JSON string
+            ]);
+
+            // Handle included utilities JSON
+            if (isset($validatedData['included_utilities'])) {
+                $utilities = json_decode($validatedData['included_utilities'], true);
+                $validatedData['included_utilities'] = $utilities ?: null;
+            }
+
+            // Convert empty strings to null for nullable fields
+            foreach (['furnished_status', 'bathroom_type', 'ac_type', 'storage_space', 'flooring_type', 'house_rules'] as $field) {
+                if (isset($validatedData[$field]) && $validatedData[$field] === '') {
+                    $validatedData[$field] = null;
+                }
+            }
+
+            // Handle checkboxes (convert to boolean, false if not present)
+            $checkboxFields = ['has_kitchenette', 'has_refrigerator', 'has_study_desk', 'has_balcony', 'pets_allowed', 'smoking_allowed'];
+            foreach ($checkboxFields as $field) {
+                $validatedData[$field] = isset($validatedData[$field]) && $validatedData[$field] ? true : false;
+            }
+
+            // Update the room
+            $room->update($validatedData);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Room details updated successfully!'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Return validation errors
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed: ' . implode(', ', array_map(fn($errors) => implode(', ', $errors), $e->errors()))
+            ], 422);
+        } catch (\Exception $e) {
+            // Log error and return generic message
+            \Log::error('Room update error', [
+                'error' => $e->getMessage(),
+                'room_id' => $room->id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating room: ' . $e->getMessage()
+            ], 500);
         }
-
-        // Update the room
-        $room->update($validatedData);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Room details updated successfully!'
-        ]);
     }
 }
