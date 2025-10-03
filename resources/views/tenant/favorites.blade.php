@@ -156,19 +156,10 @@
 
                             <!-- Actions -->
                             <div class="flex space-x-2">
-                                <a href="{{ route('properties.show', $property->slug) }}" 
-                                   class="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-center text-sm font-medium">
+                                <a href="{{ route('properties.show', $property->slug) }}"
+                                   class="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-center text-sm font-medium">
                                     View Details
                                 </a>
-                                
-                                @auth
-                                    @if(auth()->user()->role === 'tenant')
-                                        <button onclick="openInquiryModal({{ $property->id }})" 
-                                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">
-                                            Inquire
-                                        </button>
-                                    @endif
-                                @endauth
                             </div>
 
                             <!-- Saved date -->
@@ -199,83 +190,4 @@
         @endif
     </div>
 </div>
-
-<!-- Quick Inquiry Modal -->
-<div id="inquiryModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4 overflow-hidden">
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold text-gray-800">Quick Inquiry</h3>
-                <button onclick="closeInquiryModal()" class="text-gray-400 hover:text-gray-600 transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
-            </div>
-
-            <form id="quickInquiryForm" action="{{ route('inquiries.store') }}" method="POST">
-                @csrf
-                <input type="hidden" name="property_id" id="modalPropertyId">
-                
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Move-in Date</label>
-                    <input type="date" 
-                           name="move_in_date"
-                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                           min="{{ date('Y-m-d') }}">
-                </div>
-
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Message</label>
-                    <textarea name="message" 
-                              rows="4" 
-                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500" 
-                              placeholder="Hi, I'm interested in this property..." 
-                              required></textarea>
-                </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button type="button"
-                            onclick="closeInquiryModal()"
-                            class="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                            class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold">
-                        Send Inquiry
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-function openInquiryModal(propertyId) {
-    document.getElementById('modalPropertyId').value = propertyId;
-    document.getElementById('inquiryModal').classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeInquiryModal() {
-    document.getElementById('inquiryModal').classList.add('hidden');
-    document.body.style.overflow = 'auto';
-}
-
-// Close modal when clicking outside
-document.getElementById('inquiryModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeInquiryModal();
-    }
-});
-
-// Close modal on Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeInquiryModal();
-    }
-});
-</script>
-@endpush
 @endsection
