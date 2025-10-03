@@ -9,11 +9,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
+/**
+ * Login/Logout Controller
+ * Handles user authentication sessions
+ */
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
+    // Display the login page
     public function create(): View
     {
         return view('auth.login');

@@ -6,10 +6,32 @@ use SendGrid;
 use SendGrid\Mail\Mail;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * SendGrid Email Service
+ *
+ * This service handles sending emails via SendGrid HTTP API.
+ * We use HTTP API (port 443) instead of SMTP (port 587) because
+ * many free hosting providers block outbound SMTP connections.
+ *
+ * Benefits of using SendGrid API:
+ * - Works on all hosting platforms (uses HTTPS port 443)
+ * - More reliable than SMTP
+ * - Faster email delivery
+ * - Better error handling and logging
+ */
 class SendGridService
 {
+    /**
+     * @var SendGrid SendGrid client instance
+     */
     protected $sendgrid;
 
+    /**
+     * Initialize SendGrid client with API key
+     *
+     * The API key is stored in config/services.php and
+     * retrieved from SENDGRID_API_KEY environment variable
+     */
     public function __construct()
     {
         $apiKey = config('services.sendgrid.api_key');
@@ -17,43 +39,72 @@ class SendGridService
     }
 
     /**
-     * Send password reset email using SendGrid API
+     * Send password reset email via SendGrid API
+     *
+     * This method constructs and sends a password reset email with a
+     * professionally designed HTML template containing the reset link.
+     *
+     * @param string $to Recipient email address
+     * @param string $resetUrl The password reset URL with token
+     * @param string|null $userName Optional user's name for personalization
+     * @return bool True if email sent successfully, false otherwise
      */
     public function sendPasswordResetEmail($to, $resetUrl, $userName = null)
     {
         try {
+            // Create new email message
             $email = new Mail();
+
+            // Set sender information from config
             $email->setFrom(
                 config('mail.from.address'),
                 config('mail.from.name')
             );
+
+            // Set email subject
             $email->setSubject('Reset Your PSU Dorm Finder Password');
+
+            // Set recipient
             $email->addTo($to, $userName ?? 'User');
 
-            // Simple HTML email
+            // Generate HTML content for the email
             $htmlContent = $this->getPasswordResetHtml($resetUrl, $userName);
             $email->addContent("text/html", $htmlContent);
 
+            // Send email via SendGrid API
             $response = $this->sendgrid->send($email);
 
-            Log::info('SendGrid API Response', [
+            // Log the response for monitoring
+            Log::info('SendGrid email sent', [
                 'status' => $response->statusCode(),
-                'to' => $to
+                'recipient' => $to
             ]);
 
+            // Check if response code is in success range (200-299)
             return $response->statusCode() >= 200 && $response->statusCode() < 300;
 
         } catch (\Exception $e) {
-            Log::error('SendGrid API Error', [
+            // Log any errors that occur during sending
+            Log::error('SendGrid sending failed', [
                 'error' => $e->getMessage(),
-                'to' => $to
+                'recipient' => $to
             ]);
             return false;
         }
     }
 
     /**
-     * Generate password reset email HTML
+     * Generate HTML template for password reset email
+     *
+     * Creates a responsive, professional-looking HTML email with:
+     * - Branded header with gradient
+     * - Clear call-to-action button
+     * - Security information (60 minute expiry)
+     * - Fallback plain URL if button doesn't work
+     *
+     * @param string $resetUrl The password reset URL
+     * @param string|null $userName User's name for personalization
+     * @return string Complete HTML email template
      */
     private function getPasswordResetHtml($resetUrl, $userName)
     {

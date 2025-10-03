@@ -15,8 +15,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Landlord Property Controller
+ * Manages property listings, creation, editing, and deletion
+ */
 class PropertyController extends Controller
 {
+    // List all properties owned by landlord
     public function index(Request $request)
     {
         if (auth()->user()->role !== 'landlord') {

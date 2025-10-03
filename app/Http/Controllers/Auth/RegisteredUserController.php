@@ -18,8 +18,13 @@ use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Http;
 
+/**
+ * User Registration Controller
+ * Handles new user account creation with reCAPTCHA verification
+ */
 class RegisteredUserController extends Controller
 {
+    // Show registration page
     public function create(): View
     {
         return view('auth.register');

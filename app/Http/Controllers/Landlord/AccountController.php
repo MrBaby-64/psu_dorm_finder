@@ -15,6 +15,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
+/**
+ * Landlord Account Controller
+ * Manages landlord dashboard and account overview
+ */
 class AccountController extends Controller
 {
     public function __construct()

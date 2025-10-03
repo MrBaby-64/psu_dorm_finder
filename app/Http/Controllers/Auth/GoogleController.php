@@ -11,11 +11,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
+/**
+ * Google OAuth Controller
+ * Handles Google Sign-In authentication
+ */
 class GoogleController extends Controller
 {
-    /**
-     * Redirect to Google OAuth provider
-     */
+    // Redirect to Google OAuth page
     public function redirectToGoogle()
     {
         return Socialite::driver('google')->redirect();

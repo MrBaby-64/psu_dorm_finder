@@ -9,11 +9,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
+/**
+ * Password Confirmation Controller
+ * Handles password re-confirmation for sensitive actions
+ */
 class ConfirmablePasswordController extends Controller
 {
-    /**
-     * Show the confirm password view.
-     */
+    // Show password confirmation page
     public function show(): View
     {
         return view('auth.confirm-password');
