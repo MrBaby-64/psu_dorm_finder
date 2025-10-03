@@ -54,17 +54,17 @@ theservices:
       - key: MAIL_MAILER
         value: smtp
       - key: MAIL_HOST
-        value: smtp.gmail.com
+        value: smtp.sendgrid.net
       - key: MAIL_PORT
         value: 587
       - key: MAIL_USERNAME
-        value: tohkayatogam@gmail.com
+        value: apikey
       - key: MAIL_PASSWORD
-        value: iitgzylpzdwliknq
+        sync: false
       - key: MAIL_ENCRYPTION
         value: tls
       - key: MAIL_FROM_ADDRESS
-        value: tohkayatogam@gmail.com
+        value: psuteam001@gmail.com
       - key: MAIL_FROM_NAME
         value: PSU Dorm Finder
 
