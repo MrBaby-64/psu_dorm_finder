@@ -67,6 +67,8 @@ theservices:
         value: psuteam001@gmail.com
       - key: MAIL_FROM_NAME
         value: PSU Dorm Finder
+      - key: SENDGRID_API_KEY
+        sync: false
 
 databases:
   - name: psu-dorm-finder-db
