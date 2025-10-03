@@ -3419,20 +3419,18 @@
                 </div>
 
                 <!-- Description (left) and Size/Price (right stacked) -->
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                        <textarea id="edit_description" name="description" rows="5" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Brief description of the room..."></textarea>
+                        <textarea id="edit_description" name="description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Describe this room's features and condition"></textarea>
                     </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Size (m²)</label>
-                            <input type="number" step="0.1" id="edit_size_sqm" name="size_sqm" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 15.5">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Price per Month (₱)</label>
-                            <input type="number" id="edit_price" name="price" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 5000">
-                        </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Room Size (sqm)</label>
+                        <input type="number" step="0.1" min="0" id="edit_size_sqm" name="size_sqm" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 12.5">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Monthly Price (₱)</label>
+                        <input type="number" step="0.01" min="0" id="edit_price" name="price" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., 5500">
                     </div>
                 </div>
             </div>

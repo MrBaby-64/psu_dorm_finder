@@ -46,18 +46,19 @@ class RoomController extends Controller
                 'internet_speed_mbps' => 'nullable|integer|min:0',
                 'storage_space' => 'nullable|string|in:closet,wardrobe,built_in,none',
                 'flooring_type' => 'nullable|string|in:tile,wood,concrete,carpet,vinyl',
-                'advance_payment_months' => 'nullable|integer|min:1|max:12',
                 'security_deposit' => 'nullable|numeric|min:0',
                 'minimum_stay_months' => 'nullable|integer|min:1|max:24',
                 'house_rules' => 'nullable|string|max:1000',
-                'has_kitchenette' => 'nullable|boolean',
-                'has_refrigerator' => 'nullable|boolean',
-                'has_study_desk' => 'nullable|boolean',
-                'has_balcony' => 'nullable|boolean',
-                'pets_allowed' => 'nullable|boolean',
-                'smoking_allowed' => 'nullable|boolean',
                 'included_utilities' => 'nullable|string', // Will be JSON string
             ]);
+
+            // Handle advance_payment_months separately (convert empty to null)
+            $validatedData['advance_payment_months'] = $request->input('advance_payment_months');
+            if ($validatedData['advance_payment_months'] === '' || $validatedData['advance_payment_months'] === null) {
+                $validatedData['advance_payment_months'] = null;
+            } else {
+                $validatedData['advance_payment_months'] = (int) $validatedData['advance_payment_months'];
+            }
 
             // Handle included utilities JSON
             if (isset($validatedData['included_utilities'])) {
@@ -72,10 +73,10 @@ class RoomController extends Controller
                 }
             }
 
-            // Handle checkboxes (convert to boolean, false if not present)
+            // Handle checkboxes (get from request, not validated data, because unchecked boxes don't send data)
             $checkboxFields = ['has_kitchenette', 'has_refrigerator', 'has_study_desk', 'has_balcony', 'pets_allowed', 'smoking_allowed'];
             foreach ($checkboxFields as $field) {
-                $validatedData[$field] = isset($validatedData[$field]) && $validatedData[$field] ? true : false;
+                $validatedData[$field] = $request->has($field) ? true : false;
             }
 
             // Update the room
