@@ -40,7 +40,8 @@ class PasswordResetLinkController extends Controller
                     'email' => $request->email,
                     'error_type' => get_class($emailError)
                 ]);
-                throw new \Exception('Email service temporarily unavailable - please try again in a moment');
+                // For presentation: Don't block users if email fails
+                return back()->with('status', '✅ For demo purposes: Password reset is temporarily disabled. Please create a new account or contact admin for assistance.');
             }
 
             if ($request->wantsJson() || $request->expectsJson()) {
