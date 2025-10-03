@@ -3364,7 +3364,11 @@
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            // Log response for debugging
+            console.log('Response status:', response.status);
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 // Reload page to show updated data
@@ -3375,7 +3379,7 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error updating room details');
+            alert('Error updating room details. Check console for details.');
         });
     }
 </script>
@@ -3401,7 +3405,9 @@
                     </svg>
                     Basic Room Information
                 </h4>
-                <div class="grid grid-cols-2 gap-4">
+
+                <!-- Room Number and Capacity -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
                         <input type="text" id="edit_room_number" name="room_number" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 101">
@@ -3410,18 +3416,24 @@
                         <label class="block text-sm font-medium text-gray-700 mb-1">Capacity (pax)</label>
                         <input type="number" id="edit_capacity" name="capacity" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 2">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Price per Month (₱)</label>
-                        <input type="number" id="edit_price" name="price" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 5000">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Size (m²)</label>
-                        <input type="number" step="0.1" id="edit_size_sqm" name="size_sqm" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 15.5">
-                    </div>
                 </div>
-                <div class="mt-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea id="edit_description" name="description" rows="2" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Brief description of the room..."></textarea>
+
+                <!-- Description (left) and Size/Price (right stacked) -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea id="edit_description" name="description" rows="5" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="Brief description of the room..."></textarea>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Size (m²)</label>
+                            <input type="number" step="0.1" id="edit_size_sqm" name="size_sqm" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 15.5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Price per Month (₱)</label>
+                            <input type="number" id="edit_price" name="price" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm" placeholder="e.g., 5000">
+                        </div>
+                    </div>
                 </div>
             </div>
 
