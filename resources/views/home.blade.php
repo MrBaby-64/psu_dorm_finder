@@ -60,7 +60,7 @@
                         📍 Near Bacolor Campus
                     </a>
                     <a href="{{ route('properties.browse', ['city' => 'San Fernando']) }}" class="hover:underline">
-                        📍 Near San Fernando Campus
+                        📍 Near San Fernando
                     </a>
                     <a href="{{ route('properties.browse', ['is_verified' => 1]) }}" class="hover:underline">
                         ✓ PSU Verified Properties

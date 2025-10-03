@@ -268,9 +268,11 @@
         textareas.forEach(textarea => {
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
-                    if (e.ctrlKey || e.metaKey) {
+                    if (e.shiftKey) {
+                        // Allow Shift+Enter for new line
                         return;
                     } else {
+                        // Enter alone submits the form
                         e.preventDefault();
                         const form = this.closest('form');
                         if (form) {
@@ -318,12 +320,16 @@
 
     // Handle textarea keyboard events
     function handleTextareaKeydown(event) {
-        // Ctrl+Enter or Cmd+Enter to submit
-        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-            event.preventDefault();
-            event.target.closest('form').submit();
+        if (event.key === 'Enter') {
+            if (event.shiftKey) {
+                // Allow Shift+Enter for new line
+                return;
+            } else {
+                // Enter alone submits the form
+                event.preventDefault();
+                event.target.closest('form').submit();
+            }
         }
-        // Allow normal Enter for new lines
     }
 </script>
 @endsection

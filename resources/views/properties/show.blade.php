@@ -380,9 +380,11 @@
         textareas.forEach(textarea => {
             textarea.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
-                    if (e.ctrlKey || e.metaKey) {
+                    if (e.shiftKey) {
+                        // Allow Shift+Enter for new line
                         return;
                     } else {
+                        // Enter alone submits the form
                         e.preventDefault();
                         const form = this.closest('form');
                         if (form) {
@@ -992,8 +994,45 @@
     }
 
     function enableMapClick() {
-        showSimpleAlert('Click on the map to set your location, then get directions.', 'info');
         closeDirectionsModal();
+
+        if (!map) {
+            showSimpleAlert('Map is not loaded yet. Please wait a moment.', 'error');
+            return;
+        }
+
+        showSimpleAlert('Click anywhere on the map to set your starting location', 'info');
+
+        // Enable map click event
+        map.once('click', function(e) {
+            const clickedLat = e.latlng.lat;
+            const clickedLng = e.latlng.lng;
+            const propertyLat = propertyLocation[0];
+            const propertyLng = propertyLocation[1];
+
+            // Add temporary marker for clicked location
+            const clickMarker = L.marker([clickedLat, clickedLng], {
+                icon: L.icon({
+                    iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            }).addTo(map).bindPopup('Your Location').openPopup();
+
+            // Open directions in Google Maps
+            const url = `https://www.google.com/maps/dir/${clickedLat},${clickedLng}/${propertyLat},${propertyLng}`;
+            window.open(url, '_blank');
+
+            // Remove marker after 3 seconds
+            setTimeout(() => {
+                map.removeLayer(clickMarker);
+            }, 3000);
+
+            showSimpleAlert('Opening directions in Google Maps...', 'success');
+        });
     }
 
     // Keyboard and click event handlers
@@ -3120,12 +3159,41 @@
     // Initialize Leaflet map with property and PSU markers
     function initMap() {
         try {
-            map = L.map('propertyMap').setView(propertyLocation, 15);
+            // Check if Leaflet is loaded
+            if (typeof L === 'undefined') {
+                console.error('Leaflet library not loaded');
+                document.getElementById('propertyMap').innerHTML = '<div class="p-4 text-center text-red-600">Map library failed to load. Please refresh the page.</div>';
+                return;
+            }
 
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors',
-                maxZoom: 19
-            }).addTo(map);
+            // Check if element exists and clear any placeholder content
+            const mapElement = document.getElementById('propertyMap');
+            if (!mapElement) {
+                console.error('Map element not found');
+                return;
+            }
+
+            // Clear any placeholder content
+            mapElement.innerHTML = '';
+
+            // Initialize map
+            map = L.map('propertyMap', {
+                scrollWheelZoom: true,
+                tap: true
+            }).setView(propertyLocation, 15);
+
+            // Add tile layer with error handling
+            const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19,
+                minZoom: 10
+            });
+
+            tileLayer.on('tileerror', function(error) {
+                console.warn('Tile loading error:', error);
+            });
+
+            tileLayer.addTo(map);
 
             // Blue marker for property location
             L.marker(propertyLocation, {
@@ -3151,17 +3219,42 @@
                 })
             }).addTo(map).bindPopup('<strong style="color: #dc2626;">🏫 PSU Main Campus</strong><br><small style="color: #6b7280;">Universidad Pangasinan State</small>');
 
+            // Invalidate size to ensure proper rendering
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+
+            console.log('Map initialized successfully');
+
         } catch (error) {
-            console.error('Map error:', error);
-            document.getElementById('propertyMap').innerHTML = '<div class="p-4 text-center text-red-600">Map failed to load</div>';
+            console.error('Map initialization error:', error);
+            const mapElement = document.getElementById('propertyMap');
+            if (mapElement) {
+                mapElement.innerHTML = '<div class="p-4 text-center text-red-600"><p class="font-semibold mb-2">Map failed to load</p><p class="text-sm">Error: ' + error.message + '</p><button onclick="location.reload()" class="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Refresh Page</button></div>';
+            }
         }
     }
 
     // Load map after page is ready
     document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(() => {
-            if (typeof L !== 'undefined') initMap();
-        }, 1000);
+        // Wait for Leaflet to load
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        const tryInitMap = setInterval(() => {
+            attempts++;
+            if (typeof L !== 'undefined') {
+                clearInterval(tryInitMap);
+                initMap();
+            } else if (attempts >= maxAttempts) {
+                clearInterval(tryInitMap);
+                console.error('Leaflet failed to load after ' + maxAttempts + ' attempts');
+                const mapElement = document.getElementById('propertyMap');
+                if (mapElement) {
+                    mapElement.innerHTML = '<div class="p-4 text-center text-red-600"><p class="font-semibold mb-2">Map library failed to load</p><p class="text-sm">Please check your internet connection and refresh the page.</p><button onclick="location.reload()" class="mt-3 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Refresh Page</button></div>';
+                }
+            }
+        }, 300);
     });
 
     // Room edit modal handlers

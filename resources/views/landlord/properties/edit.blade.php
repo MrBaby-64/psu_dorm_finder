@@ -143,14 +143,18 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Latitude *</label>
-                                <input type="number" step="0.0000001" name="latitude" value="{{ old('latitude', $property->latitude) }}" required
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Latitude * <span class="text-xs text-gray-500">(Auto-filled from map)</span>
+                                </label>
+                                <input type="number" step="0.0000001" name="latitude" value="{{ old('latitude', $property->latitude) }}" required readonly
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Longitude *</label>
-                                <input type="number" step="0.0000001" name="longitude" value="{{ old('longitude', $property->longitude) }}" required
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    Longitude * <span class="text-xs text-gray-500">(Auto-filled from map)</span>
+                                </label>
+                                <input type="number" step="0.0000001" name="longitude" value="{{ old('longitude', $property->longitude) }}" required readonly
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed">
                             </div>
                         </div>
 
