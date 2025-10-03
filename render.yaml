@@ -1,4 +1,4 @@
-theservices:
+services:
   - type: web
     name: psu-dorm-finder
     runtime: docker
