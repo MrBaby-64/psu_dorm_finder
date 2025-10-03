@@ -125,73 +125,102 @@
                 <h2 class="text-lg font-semibold text-gray-900 mb-4">Property Information</h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Property Title -->
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Property Title <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text"
-                               name="title"
-                               value="{{ old('title') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('title') border-red-300 bg-red-50 @enderror"
-                               placeholder="e.g., Cozy Student Dormitory near PSU"
-                               required>
-                        @error('title')
-                            <p class="mt-1 text-sm text-red-600 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                </svg>
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </div>
+                    <!-- LEFT COLUMN -->
+                    <div class="space-y-6">
+                        <!-- Property Title -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Property Title <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text"
+                                   name="title"
+                                   value="{{ old('title') }}"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('title') border-red-300 bg-red-50 @enderror"
+                                   placeholder="e.g., Cozy Student Dormitory near PSU"
+                                   required>
+                            @error('title')
+                                <p class="mt-1 text-sm text-red-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
 
-                    <!-- Description -->
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Description <span class="text-red-500">*</span>
-                        </label>
-                        <textarea name="description"
-                                  rows="4"
-                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('description') border-red-300 bg-red-50 @enderror"
-                                  placeholder="Describe your property, its features, and what makes it special... (minimum 50 characters)"
-                                  required>{{ old('description') }}</textarea>
-                        @error('description')
-                            <p class="mt-1 text-sm text-red-600 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                </svg>
-                                {{ $message }}
-                            </p>
-                        @enderror
-                    </div>
-
-                    <!-- Monthly Rate -->
+                        <!-- House Rules -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Monthly Rate (₱) <span class="text-red-500">*</span>
+                        <label class="block text-sm font-medium text-gray-900 mb-3">
+                            🏠 House Rules
                         </label>
-                        <input type="number"
-                               name="price"
-                               value="{{ old('price') }}"
-                               min="500"
-                               max="50000"
-                               step="0.01"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('price') border-red-300 bg-red-50 @enderror"
-                               placeholder="e.g., 5000 (minimum ₱500)"
-                               required>
-                        @error('price')
-                            <p class="mt-1 text-sm text-red-600 flex items-center">
-                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+
+                        <!-- Default Rules -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+                            <p class="text-sm font-medium text-blue-900 mb-3">Default Rules (Check the rules that apply):</p>
+                            <div class="space-y-2">
+                                @foreach(\App\Models\Property::getDefaultHouseRules() as $index => $rule)
+                                    <label class="flex items-start cursor-pointer hover:bg-blue-100 p-2 rounded transition">
+                                        <input type="checkbox"
+                                               name="house_rules[]"
+                                               value="{{ $rule }}"
+                                               checked
+                                               class="mt-1 h-4 w-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                        <span class="ml-3 text-sm text-gray-700">{{ $rule }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Custom Rules -->
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p class="text-sm font-medium text-green-900 mb-3">Add Your Own Rules:</p>
+                            <div id="customRulesContainer" class="space-y-2 mb-3">
+                                <!-- Custom rules will be added here -->
+                            </div>
+                            <button type="button"
+                                    onclick="addCustomRule()"
+                                    class="inline-flex items-center px-3 py-2 border border-green-300 rounded-lg text-sm font-medium text-green-700 bg-white hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                                 </svg>
-                                {{ $message }}
-                            </p>
-                        @enderror
+                                Add Custom Rule
+                            </button>
+                        </div>
+
+                        <p class="mt-2 text-xs text-gray-500">
+                            💡 Tip: Clear house rules help tenants understand expectations and maintain a harmonious living environment.
+                        </p>
+                    </div>
                     </div>
 
-                    <!-- Number of Rooms -->
-                    <div>
+                    <!-- RIGHT COLUMN -->
+                    <div class="space-y-6">
+                        <!-- Monthly Rate -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Monthly Rate (₱) <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number"
+                                   name="price"
+                                   value="{{ old('price') }}"
+                                   min="500"
+                                   max="50000"
+                                   step="0.01"
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('price') border-red-300 bg-red-50 @enderror"
+                                   placeholder="e.g., 5000 (minimum ₱500)"
+                                   required>
+                            @error('price')
+                                <p class="mt-1 text-sm text-red-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <!-- Number of Rooms -->
+                        <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Number of Rooms <span class="text-red-500">*</span>
                         </label>
@@ -213,6 +242,27 @@
                                 {{ $message }}
                             </p>
                         @enderror
+                        </div>
+
+                        <!-- Description -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Description <span class="text-red-500">*</span>
+                            </label>
+                            <textarea name="description"
+                                      rows="6"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('description') border-red-300 bg-red-50 @enderror"
+                                      placeholder="Describe your property, its features, and what makes it special... (minimum 50 characters)"
+                                      required>{{ old('description') }}</textarea>
+                            @error('description')
+                                <p class="mt-1 text-sm text-red-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
             </div>
@@ -364,7 +414,7 @@
                                 <li>Enter your property address above (Street, Barangay, City)</li>
                                 <li>Click the <strong>"Find on Map"</strong> button to search for your address</li>
                                 <li><strong>Click directly on the map</strong> where your property is located</li>
-                                <li>A green marker will appear - drag it to adjust the exact location if needed</li>
+                                <li>A blue marker will appear - drag it to adjust the exact location if needed</li>
                                 <li>The Latitude & Longitude fields will auto-fill</li>
                             </ol>
                             <p class="text-xs text-blue-600 mt-2 italic">💡 Tip: You can also use "Use My Current Location" if you're at the property right now!</p>
@@ -380,8 +430,8 @@
                     <button type="button" onclick="useMyLocation()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm font-medium">
                         📍 Use My Current Location
                     </button>
-                    <button type="button" onclick="openDirectionsModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition text-sm">
-                        🧭 Get Directions
+                    <button type="button" onclick="openDirectionsModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition text-sm font-medium" style="display: inline-block !important; color: white !important; opacity: 1 !important; visibility: visible !important; background-color: #9333ea !important;">
+                        <span style="color: white !important;">🧭 Get Directions</span>
                     </button>
                 </div>
 
@@ -839,6 +889,42 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
 <script>
+    // House Rules Management
+    let customRuleCounter = 0;
+
+    function addCustomRule() {
+        customRuleCounter++;
+        const container = document.getElementById('customRulesContainer');
+        const ruleDiv = document.createElement('div');
+        ruleDiv.className = 'flex items-start gap-2';
+        ruleDiv.id = `customRule${customRuleCounter}`;
+
+        ruleDiv.innerHTML = `
+            <input type="text"
+                   name="house_rules[]"
+                   placeholder="Enter your custom rule..."
+                   class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                   required>
+            <button type="button"
+                    onclick="removeCustomRule(${customRuleCounter})"
+                    class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                    title="Remove this rule">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </button>
+        `;
+
+        container.appendChild(ruleDiv);
+    }
+
+    function removeCustomRule(id) {
+        const ruleDiv = document.getElementById(`customRule${id}`);
+        if (ruleDiv) {
+            ruleDiv.remove();
+        }
+    }
+
     function validateForm() {
         // Check if at least one image is available (either uploaded or existing temp images)
         const imageInput = document.getElementById('imageInput');

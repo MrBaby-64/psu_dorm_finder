@@ -18,12 +18,35 @@ class UserController extends Controller
         }
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $this->checkAdmin();
 
-        // PostgreSQL compatible - simple Eloquent query
-        $users = User::orderBy('created_at', 'desc')->paginate(20);
+        // Build query with filters
+        $query = User::query();
+
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'ILIKE', "%{$search}%")
+                  ->orWhere('email', 'ILIKE', "%{$search}%");
+            });
+        }
+
+        // Role filter
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+
+        // Verification filter
+        if ($request->filled('verified')) {
+            $isVerified = $request->verified === '1';
+            $query->where('is_verified', $isVerified);
+        }
+
+        // Order by created_at desc and paginate
+        $users = $query->orderBy('created_at', 'desc')->paginate(20)->appends($request->query());
 
         return view('admin.users.index', compact('users'));
     }

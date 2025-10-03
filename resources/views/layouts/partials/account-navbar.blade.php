@@ -46,7 +46,7 @@
                         <a href="{{ route('tenant.scheduled-visits') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg text-gray-700 hover:text-green-600 hover:bg-gray-100 transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Visits</a>
                         <a href="{{ route('tenant.reviews') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg text-gray-700 hover:text-green-600 hover:bg-gray-100 transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Reviews</a>
                         <a href="{{ route('bookings.index') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg text-gray-700 hover:text-green-600 hover:bg-gray-100 transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium relative">
-                            Bookings
+                            Inquiries
                             @php
                                 $bookingCount = \App\Models\Booking::where('user_id', auth()->id())->where('status', 'pending')->count();
                             @endphp
@@ -66,6 +66,7 @@
 
                     @elseif(auth()->user()->role === 'admin')
                         {{-- Admin Menu --}}
+                        <a href="{{ route('properties.browse') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg text-gray-700 hover:text-green-600 hover:bg-gray-100 transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Browse</a>
                         <a href="{{ route('admin.dashboard') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg text-gray-700 hover:text-green-600 hover:bg-gray-100 transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Dashboard</a>
                         <a href="{{ route('admin.account') }}" class="nav-link px-2 lg:px-3 py-2 rounded-lg {{ request()->routeIs('admin.account') ? 'text-green-600 bg-green-50' : 'text-gray-700 hover:text-green-600 hover:bg-gray-100' }} transition-all duration-200 whitespace-nowrap text-xs lg:text-sm font-medium">Profile</a>
 
@@ -241,7 +242,7 @@
                                 <a href="{{ route('bookings.index') }}" class="mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium relative">
                                     <div class="flex items-center space-x-3">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
-                                        <span>Bookings</span>
+                                        <span>Inquiries</span>
                                         @php
                                             $bookingCount = \App\Models\Booking::where('user_id', auth()->id())->where('status', 'pending')->count();
                                         @endphp
