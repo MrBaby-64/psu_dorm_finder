@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\SendGridService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class PasswordResetLinkController extends Controller
@@ -25,20 +27,12 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request)
     {
-        // Log request for debugging
-        \Log::info('Password reset requested', [
-            'email' => $request->email,
-            'ip' => $request->ip(),
-            'mail_driver' => config('mail.default'),
-            'mail_host' => config('mail.mailers.smtp.host')
-        ]);
-
         $request->validate([
             'email' => ['required', 'email'],
         ]);
 
         try {
-            // Check if user exists first
+            // Check if user exists
             $user = \App\Models\User::where('email', $request->email)->first();
 
             if (!$user) {
@@ -49,70 +43,61 @@ class PasswordResetLinkController extends Controller
                 ]);
             }
 
-            // Attempt to send the password reset link with timeout protection
-            $status = Password::sendResetLink(
-                $request->only('email')
+            // Create password reset token
+            $token = Str::random(64);
+
+            // Store token in database
+            \DB::table('password_reset_tokens')->updateOrInsert(
+                ['email' => $request->email],
+                [
+                    'email' => $request->email,
+                    'token' => hash('sha256', $token),
+                    'created_at' => now()
+                ]
             );
 
-            \Log::info('Password reset status: ' . $status);
+            // Generate reset URL
+            $resetUrl = url(route('password.reset', [
+                'token' => $token,
+                'email' => $request->email,
+            ], false));
 
-            // If successful, return success message
-            if ($status === Password::RESET_LINK_SENT) {
+            // Try SendGrid API first (bypasses SMTP port blocking)
+            $sendGridService = new SendGridService();
+            $sent = $sendGridService->sendPasswordResetEmail(
+                $user->email,
+                $resetUrl,
+                $user->name
+            );
+
+            if ($sent) {
+                \Log::info('Password reset email sent via SendGrid API', [
+                    'email' => $user->email
+                ]);
+
                 return response()->json([
                     'success' => true,
                     'message' => '✅ Password reset link sent! Please check your email (including spam folder).'
                 ]);
             }
 
-            // Handle throttling
-            if ($status === Password::RESET_THROTTLED) {
-                return response()->json([
-                    'success' => false,
-                    'message' => '⏱️ Please wait before requesting another reset link.'
-                ], 429);
-            }
-
-            // Generic success for security
-            return response()->json([
-                'success' => true,
-                'message' => '✅ If that email exists in our system, you will receive a password reset link shortly.'
-            ]);
-
-        } catch (\Symfony\Component\Mailer\Exception\TransportException $e) {
-            // Symfony Mailer transport error (Laravel 9+)
-            \Log::error('Mail Transport Error', [
-                'error' => $e->getMessage(),
-                'email' => $request->email
+            // If SendGrid API fails, log and return graceful error
+            \Log::warning('SendGrid API failed, email not sent', [
+                'email' => $user->email
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => '📧 Email service temporarily unavailable. For your presentation, please use the demo account or contact admin.',
-                'debug' => config('app.debug') ? $e->getMessage() : null
-            ], 500);
-
-        } catch (\Swift_TransportException $e) {
-            // Swift Mailer transport error (Laravel 8 and older)
-            \Log::error('SMTP Error in password reset', [
-                'error' => $e->getMessage(),
-                'email' => $request->email
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => '📧 Email service temporarily unavailable. For your presentation, please use the demo account or contact admin.',
-                'debug' => config('app.debug') ? $e->getMessage() : null
+                'message' => '⚠️ Unable to send email at this time. Please try again later or contact support.'
             ], 500);
 
         } catch (\Exception $e) {
-            // Log the error for debugging
             \Log::error('Password reset failed', [
                 'error' => $e->getMessage(),
                 'type' => get_class($e),
-                'trace' => $e->getTraceAsString()
+                'email' => $request->email
             ]);
 
-            // Return graceful error message
             return response()->json([
                 'success' => false,
                 'message' => '⚠️ Unable to send email. For demo purposes, please create a new account or contact admin for assistance.',
