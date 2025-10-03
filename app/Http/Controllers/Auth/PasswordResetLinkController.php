@@ -38,7 +38,18 @@ class PasswordResetLinkController extends Controller
         ]);
 
         try {
-            // Attempt to send the password reset link
+            // Check if user exists first
+            $user = \App\Models\User::where('email', $request->email)->first();
+
+            if (!$user) {
+                // For security, don't reveal if email doesn't exist
+                return response()->json([
+                    'success' => true,
+                    'message' => '✅ If that email exists in our system, you will receive a password reset link shortly.'
+                ]);
+            }
+
+            // Attempt to send the password reset link with timeout protection
             $status = Password::sendResetLink(
                 $request->only('email')
             );
@@ -49,27 +60,62 @@ class PasswordResetLinkController extends Controller
             if ($status === Password::RESET_LINK_SENT) {
                 return response()->json([
                     'success' => true,
-                    'message' => '✅ Password reset link sent! Please check your email.'
+                    'message' => '✅ Password reset link sent! Please check your email (including spam folder).'
                 ]);
             }
 
-            // If user not found, still return success for security (don't reveal if email exists)
+            // Handle throttling
+            if ($status === Password::RESET_THROTTLED) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '⏱️ Please wait before requesting another reset link.'
+                ], 429);
+            }
+
+            // Generic success for security
             return response()->json([
                 'success' => true,
                 'message' => '✅ If that email exists in our system, you will receive a password reset link shortly.'
             ]);
 
+        } catch (\Symfony\Component\Mailer\Exception\TransportException $e) {
+            // Symfony Mailer transport error (Laravel 9+)
+            \Log::error('Mail Transport Error', [
+                'error' => $e->getMessage(),
+                'email' => $request->email
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => '📧 Email service temporarily unavailable. For your presentation, please use the demo account or contact admin.',
+                'debug' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+
+        } catch (\Swift_TransportException $e) {
+            // Swift Mailer transport error (Laravel 8 and older)
+            \Log::error('SMTP Error in password reset', [
+                'error' => $e->getMessage(),
+                'email' => $request->email
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => '📧 Email service temporarily unavailable. For your presentation, please use the demo account or contact admin.',
+                'debug' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+
         } catch (\Exception $e) {
             // Log the error for debugging
-            \Log::error('Password reset email failed', [
+            \Log::error('Password reset failed', [
                 'error' => $e->getMessage(),
+                'type' => get_class($e),
                 'trace' => $e->getTraceAsString()
             ]);
 
             // Return graceful error message
             return response()->json([
                 'success' => false,
-                'message' => '⚠️ Unable to send email at this time. Please try again later or contact support.',
+                'message' => '⚠️ Unable to send email. For demo purposes, please create a new account or contact admin for assistance.',
                 'debug' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
