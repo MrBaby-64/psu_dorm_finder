@@ -30,10 +30,18 @@ class PasswordResetLinkController extends Controller
                 'email' => ['required', 'email'],
             ]);
 
-            // Send password reset link
-            $status = Password::sendResetLink(
-                $request->only('email')
-            );
+            // Send password reset link with timeout handling
+            try {
+                $status = Password::sendResetLink(
+                    $request->only('email')
+                );
+            } catch (\Exception $emailError) {
+                \Log::error('Email sending error during password reset: ' . $emailError->getMessage(), [
+                    'email' => $request->email,
+                    'error_type' => get_class($emailError)
+                ]);
+                throw new \Exception('Email service temporarily unavailable - please try again in a moment');
+            }
 
             if ($request->wantsJson() || $request->expectsJson()) {
                 if ($status == Password::RESET_LINK_SENT) {
