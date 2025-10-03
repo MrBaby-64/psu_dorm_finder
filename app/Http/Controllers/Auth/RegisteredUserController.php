@@ -195,8 +195,17 @@ class RegisteredUserController extends Controller
             // Clear rate limit on successful registration
             RateLimiter::clear($key);
 
-            // Fire the registered event without email verification
-            event(new Registered($user));
+            // Fire the registered event - wrapped in try-catch to prevent email errors from blocking registration
+            try {
+                event(new Registered($user));
+            } catch (\Exception $e) {
+                Log::error('Email notification failed during registration', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'error' => $e->getMessage()
+                ]);
+                // Don't block registration if email fails
+            }
 
             // Redirect to dashboard based on user role
             $redirectRoute = match($user->role) {
