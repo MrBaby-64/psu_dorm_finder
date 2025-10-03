@@ -440,63 +440,118 @@
     let map, markers = {};
     
     function initMap() {
-        // Initialize map centered on PSU Main Campus
-        map = L.map('browseMap').setView([14.997609479592196, 120.65313160859495], 13);
+        try {
+            // Check if Leaflet is loaded
+            if (typeof L === 'undefined') {
+                console.error('Leaflet library not loaded');
+                const mapElement = document.getElementById('browseMap');
+                if (mapElement) {
+                    mapElement.innerHTML = '<div class="p-4 text-center text-red-600">Map library failed to load. Please refresh the page.</div>';
+                }
+                return;
+            }
 
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+            // Initialize map centered on PSU Main Campus
+            map = L.map('browseMap', {
+                scrollWheelZoom: true,
+                tap: true
+            }).setView([14.997609479592196, 120.65313160859495], 13);
 
-        // Add PSU Main Campus marker (RED to distinguish from properties)
-        L.marker([14.997609479592196, 120.65313160859495], {
-            icon: L.icon({
-                iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41]
-            })
-        }).addTo(map).bindPopup('<strong style="color: #dc2626;">🏫 PSU Main Campus</strong><br><small style="color: #6b7280;">Universidad Pangasinan State</small>');
-        
-        // Add property markers (BLUE to distinguish from PSU Campus)
-        @foreach($properties as $property)
-            @if($property->latitude && $property->longitude)
-                markers[{{ $property->id }}] = L.marker([{{ $property->latitude }}, {{ $property->longitude }}], {
-                    icon: L.icon({
-                        iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
-                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                        iconSize: [25, 41],
-                        iconAnchor: [12, 41],
-                        popupAnchor: [1, -34],
-                        shadowSize: [41, 41]
-                    })
-                }).addTo(map)
-                .bindPopup(`
-                    <div class="p-2">
-                        <b>{{ $property->title }}</b><br>
-                        <span class="text-green-600 font-bold">₱{{ number_format($property->price) }}</span>/month<br>
-                        <a href="{{ route('properties.show', $property) }}" class="text-blue-600 text-sm">View Details →</a>
-                    </div>
-                `);
-            @endif
-        @endforeach
+            // Add tile layer with error handling
+            const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            });
+
+            tileLayer.on('tileerror', function(error) {
+                console.warn('Tile loading error:', error);
+            });
+
+            tileLayer.addTo(map);
+
+            // Add PSU Main Campus marker (RED to distinguish from properties)
+            L.marker([14.997609479592196, 120.65313160859495], {
+                icon: L.icon({
+                    iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            }).addTo(map).bindPopup('<strong style="color: #dc2626;">🏫 PSU Main Campus</strong><br><small style="color: #6b7280;">Universidad Pangasinan State</small>');
+
+            // Add property markers (BLUE to distinguish from PSU Campus)
+            @foreach($properties as $property)
+                @if($property->latitude && $property->longitude)
+                    markers[{{ $property->id }}] = L.marker([{{ $property->latitude }}, {{ $property->longitude }}], {
+                        icon: L.icon({
+                            iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowSize: [41, 41]
+                        })
+                    }).addTo(map)
+                    .bindPopup(`
+                        <div class="p-2">
+                            <b>{{ $property->title }}</b><br>
+                            <span class="text-green-600 font-bold">₱{{ number_format($property->price) }}</span>/month<br>
+                            <a href="{{ route('properties.show', $property) }}" class="text-blue-600 text-sm">View Details →</a>
+                        </div>
+                    `);
+                @endif
+            @endforeach
+
+            // Invalidate size to ensure proper rendering
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 100);
+
+            console.log('Browse map initialized successfully');
+
+        } catch (error) {
+            console.error('Map initialization error:', error);
+            const mapElement = document.getElementById('browseMap');
+            if (mapElement) {
+                mapElement.innerHTML = '<div class="p-4 text-center text-red-600"><p class="font-semibold mb-2">Map failed to load</p><p class="text-sm">Error: ' + error.message + '</p></div>';
+            }
+        }
     }
-    
+
     function highlightMarker(propertyId) {
         if (markers[propertyId]) {
             markers[propertyId].openPopup();
         }
     }
-    
+
     function unhighlightMarker(propertyId) {
         if (markers[propertyId]) {
             markers[propertyId].closePopup();
         }
     }
-    
+
     // Initialize map when page loads
-    document.addEventListener('DOMContentLoaded', initMap);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wait for Leaflet to load
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        const tryInitMap = setInterval(() => {
+            attempts++;
+            if (typeof L !== 'undefined') {
+                clearInterval(tryInitMap);
+                initMap();
+            } else if (attempts >= maxAttempts) {
+                clearInterval(tryInitMap);
+                console.error('Leaflet failed to load after ' + maxAttempts + ' attempts');
+                const mapElement = document.getElementById('browseMap');
+                if (mapElement) {
+                    mapElement.innerHTML = '<div class="p-4 text-center text-red-600"><p class="font-semibold mb-2">Map library failed to load</p><p class="text-sm">Please check your internet connection and refresh the page.</p></div>';
+                }
+            }
+        }, 300);
+    });
 </script>
 @endpush

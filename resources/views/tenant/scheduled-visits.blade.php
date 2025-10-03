@@ -257,9 +257,11 @@ document.addEventListener('DOMContentLoaded', function() {
     textareas.forEach(textarea => {
         textarea.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
-                if (e.ctrlKey || e.metaKey) {
+                if (e.shiftKey) {
+                    // Allow Shift+Enter for new line
                     return;
                 } else {
+                    // Enter alone submits the form
                     e.preventDefault();
                     const form = this.closest('form');
                     if (form) {

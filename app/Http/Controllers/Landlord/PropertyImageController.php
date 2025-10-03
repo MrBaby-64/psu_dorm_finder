@@ -29,13 +29,20 @@ class PropertyImageController extends Controller
             // Store image
             $path = $image->store('properties', 'public');
 
+            // Get current count and max sort order (PostgreSQL compatible)
+            $currentCount = PropertyImage::where('property_id', $property->id)->count();
+            $maxSortOrder = PropertyImage::where('property_id', $property->id)->max('sort_order');
+
+            // Handle NULL from max() in PostgreSQL when no records exist
+            $nextSortOrder = ($maxSortOrder === null) ? 0 : ($maxSortOrder + 1);
+
             // Create image record
             $propertyImage = PropertyImage::create([
                 'property_id' => $property->id,
-                'url' => $path,
-                'alt' => $property->title . ' - Image ' . ($index + 1),
-                'is_cover' => PropertyImage::where('property_id', $property->id)->count() === 0, // First image is cover
-                'sort_order' => PropertyImage::where('property_id', $property->id)->max('sort_order') + 1,
+                'image_path' => $path,
+                'alt_text' => $property->title . ' - Image ' . ($index + 1),
+                'is_cover' => $currentCount === 0, // First image is cover
+                'sort_order' => $nextSortOrder,
             ]);
 
             $uploadedImages[] = $propertyImage;
@@ -69,14 +76,21 @@ class PropertyImageController extends Controller
         }
 
         // Delete file from storage
-        Storage::disk('public')->delete($image->url);
+        if (Storage::disk('public')->exists($image->image_path)) {
+            Storage::disk('public')->delete($image->image_path);
+        }
+
+        // Store is_cover status before deletion
+        $wasCover = $image->is_cover;
 
         // Delete record
         $image->delete();
 
         // If this was the cover, set another image as cover
-        if ($image->is_cover) {
-            $newCover = PropertyImage::where('property_id', $property->id)->first();
+        if ($wasCover) {
+            $newCover = PropertyImage::where('property_id', $property->id)
+                ->orderBy('sort_order')
+                ->first();
             if ($newCover) {
                 $newCover->update(['is_cover' => true]);
             }

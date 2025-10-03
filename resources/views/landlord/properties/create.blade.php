@@ -309,18 +309,19 @@
                         @enderror
                     </div>
 
-                    <!-- Map Coordinates -->
+                    <!-- Map Coordinates (Auto-filled) -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Latitude <span class="text-red-500">*</span>
+                            Latitude <span class="text-red-500">*</span> <span class="text-xs text-gray-500">(Auto-filled from map)</span>
                         </label>
-                        <input type="number" 
-                               name="latitude" 
+                        <input type="number"
+                               name="latitude"
                                id="latitudeInput"
                                value="{{ old('latitude') }}"
                                step="any"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('latitude') border-red-300 @enderror"
-                               placeholder="e.g., 14.997480">
+                               readonly
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed @error('latitude') border-red-300 @enderror"
+                               placeholder="Click on map to set location">
                         @error('latitude')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -328,15 +329,16 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Longitude <span class="text-red-500">*</span>
+                            Longitude <span class="text-red-500">*</span> <span class="text-xs text-gray-500">(Auto-filled from map)</span>
                         </label>
-                        <input type="number" 
-                               name="longitude" 
+                        <input type="number"
+                               name="longitude"
                                id="longitudeInput"
                                value="{{ old('longitude') }}"
                                step="any"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('longitude') border-red-300 @enderror"
-                               placeholder="e.g., 120.653230">
+                               readonly
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed @error('longitude') border-red-300 @enderror"
+                               placeholder="Click on map to set location">
                         @error('longitude')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -346,15 +348,36 @@
 
             <!-- Map Section -->
             <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
-                <h2 class="text-lg font-semibold text-gray-900 mb-4">Property Location</h2>
-                <p class="text-sm text-gray-600 mb-4">Click on the map to set your property's exact location</p>
-                
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">📍 Property Location</h2>
+
+                <!-- Friendly Instructions -->
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-blue-700 font-semibold mb-2">📌 How to set your property location:</p>
+                            <ol class="list-decimal list-inside text-sm text-blue-700 space-y-1">
+                                <li>Enter your property address above (Street, Barangay, City)</li>
+                                <li>Click the <strong>"Find on Map"</strong> button to search for your address</li>
+                                <li><strong>Click directly on the map</strong> where your property is located</li>
+                                <li>A green marker will appear - drag it to adjust the exact location if needed</li>
+                                <li>The Latitude & Longitude fields will auto-fill</li>
+                            </ol>
+                            <p class="text-xs text-blue-600 mt-2 italic">💡 Tip: You can also use "Use My Current Location" if you're at the property right now!</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Map Controls -->
                 <div class="flex flex-wrap gap-2 mb-4">
-                    <button type="button" onclick="findOnMap()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">
+                    <button type="button" onclick="findOnMap()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-medium">
                         🗺️ Find on Map
                     </button>
-                    <button type="button" onclick="useMyLocation()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm">
+                    <button type="button" onclick="useMyLocation()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm font-medium">
                         📍 Use My Current Location
                     </button>
                     <button type="button" onclick="openDirectionsModal()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition text-sm">
