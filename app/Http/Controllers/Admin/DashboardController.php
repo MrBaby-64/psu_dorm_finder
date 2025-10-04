@@ -34,7 +34,7 @@ class DashboardController extends Controller
                 'total_users' => User::count(),
                 'landlords' => User::where('role', 'landlord')->count(),
                 'tenants' => User::where('role', 'tenant')->count(),
-                'total_bookings' => Booking::count(),
+                'total_bookings' => Booking::where('status', 'approved')->count(),
                 'pending_bookings' => Booking::where('status', 'pending')->count(),
             ];
 

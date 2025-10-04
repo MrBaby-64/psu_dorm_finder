@@ -359,6 +359,19 @@ function viewUserDetails(userId) {
     .then(data => {
         if (data.success) {
             content.innerHTML = data.html;
+
+            // Execute scripts in the loaded content
+            const scripts = content.querySelectorAll('script');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                if (script.src) {
+                    newScript.src = script.src;
+                } else {
+                    newScript.textContent = script.textContent;
+                }
+                document.body.appendChild(newScript);
+                document.body.removeChild(newScript);
+            });
         } else {
             throw new Error(data.error || 'Unknown error occurred');
         }

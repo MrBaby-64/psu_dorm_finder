@@ -203,9 +203,9 @@
                             <a href="{{ route('tenant.account') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Dashboard</a>
 
                         @elseif(auth()->user()->role === 'admin')
-                            <a href="{{ route('properties.browse') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Find Rentals</a>
-                            <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Admin Panel</a>
-                            <a href="{{ route('admin.account') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Dashboard</a>
+                            <a href="{{ route('properties.browse') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Browse</a>
+                            <a href="{{ route('admin.dashboard') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Dashboard</a>
+                            <a href="{{ route('admin.account') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Profile</a>
 
                         @else
                             <a href="{{ route('properties.browse') }}" class="text-gray-700 hover:text-green-600 transition-all duration-200 font-medium">Find Rentals</a>
@@ -312,19 +312,19 @@
                                 <a href="{{ route('properties.browse') }}" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
                                     <div class="flex items-center space-x-3">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                        <span>Find Rentals</span>
+                                        <span>Browse</span>
                                     </div>
                                 </a>
                                 <a href="{{ route('admin.dashboard') }}" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
                                     <div class="flex items-center space-x-3">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                        <span>Admin Panel</span>
+                                        <span>Dashboard</span>
                                     </div>
                                 </a>
                                 <a href="{{ route('admin.account') }}" class="guest-mobile-nav-link block px-4 py-3 rounded-lg text-gray-700 hover:text-green-600 hover:bg-green-50 transition-all duration-200 font-medium">
                                     <div class="flex items-center space-x-3">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v0H8v0z"></path></svg>
-                                        <span>Dashboard</span>
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                        <span>Profile</span>
                                     </div>
                                 </a>
 
