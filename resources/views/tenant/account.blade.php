@@ -20,55 +20,55 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <a href="{{ route('favorites.index') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-md hover:bg-gray-50 transition-all duration-200 group">
+            <a href="{{ route('favorites.index') }}" class="bg-white rounded-xl shadow-lg p-6 block hover:shadow-2xl transition-all duration-300 group fade-in-up border border-red-100">
                 <div class="flex items-center">
-                    <div class="p-3 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
-                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-14 h-14 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 group-hover:text-gray-700">Favorites</p>
-                        <p class="text-2xl font-semibold text-gray-900">{{ $stats['favorites_count'] }}</p>
-                        <p class="text-xs text-red-600 group-hover:text-red-700 mt-1">Click to view →</p>
+                        <p class="text-sm font-medium text-gray-600 group-hover:text-gray-800">Favorites</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $stats['favorites_count'] }}</p>
+                        <p class="text-xs text-red-600 group-hover:text-red-700 mt-1 font-semibold">View all →</p>
                     </div>
                 </div>
             </a>
 
 
-            <a href="{{ route('tenant.scheduled-visits') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-md hover:bg-gray-50 transition-all duration-200 group">
+            <a href="{{ route('tenant.scheduled-visits') }}" class="bg-white rounded-xl shadow-lg p-6 block hover:shadow-2xl transition-all duration-300 group fade-in-up border border-blue-100">
                 <div class="flex items-center">
-                    <div class="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
-                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 group-hover:text-gray-700">Scheduled Visits</p>
+                        <p class="text-sm font-medium text-gray-600 group-hover:text-gray-800">Scheduled Visits</p>
                         <div class="flex items-center space-x-2">
-                            <p class="text-2xl font-semibold text-gray-900">{{ $stats['scheduled_visits_count'] }}</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $stats['scheduled_visits_count'] }}</p>
                             @if($stats['scheduled_visits_count'] > 0)
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     active
                                 </span>
                             @endif
                         </div>
-                        <p class="text-xs text-blue-600 group-hover:text-blue-700 mt-1">Click to manage →</p>
+                        <p class="text-xs text-blue-600 group-hover:text-blue-700 mt-1 font-semibold">Manage →</p>
                     </div>
                 </div>
             </a>
 
-            <a href="{{ route('tenant.reviews') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-md hover:bg-gray-50 transition-all duration-200 group">
+            <a href="{{ route('tenant.reviews') }}" class="bg-white rounded-xl shadow-lg p-6 block hover:shadow-2xl transition-all duration-300 group fade-in-up border border-yellow-100">
                 <div class="flex items-center">
-                    <div class="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
-                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-14 h-14 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <svg class="w-7 h-7 text-white" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 group-hover:text-gray-700">Reviews</p>
-                        <p class="text-2xl font-semibold text-gray-900">{{ $stats['reviews_count'] }}</p>
-                        <p class="text-xs text-yellow-600 group-hover:text-yellow-700 mt-1">Click to view →</p>
+                        <p class="text-sm font-medium text-gray-600 group-hover:text-gray-800">Reviews</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ $stats['reviews_count'] }}</p>
+                        <p class="text-xs text-yellow-600 group-hover:text-yellow-700 mt-1 font-semibold">View all →</p>
                     </div>
                 </div>
             </a>
