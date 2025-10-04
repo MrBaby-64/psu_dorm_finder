@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
     {
         // Set application timezone
         date_default_timezone_set('Asia/Manila');
+
+        // Use Tailwind pagination styling
+        Paginator::useTailwind();
 
         // Force HTTPS in production
         if (app()->environment('production')) {

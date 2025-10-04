@@ -305,9 +305,13 @@
                 @endforeach
 
                 <!-- Pagination -->
-                <div class="mt-6">
-                    {{ $properties->links() }}
+                @if($properties->hasPages())
+                <div class="mt-8 flex justify-center">
+                    <div class="bg-white rounded-lg shadow-md p-4">
+                        {{ $properties->links() }}
+                    </div>
                 </div>
+                @endif
             </div>
 
             <!-- RIGHT SIDE: Map (2/5 width) -->

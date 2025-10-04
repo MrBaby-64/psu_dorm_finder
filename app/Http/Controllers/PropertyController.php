@@ -29,7 +29,8 @@ class PropertyController extends Controller
     {
         $query = Property::query()
             ->with(['coverImage', 'amenities', 'landlord'])
-            ->approved();
+            ->approved()
+            ->whereHas('landlord'); // Only show properties with existing landlords
 
         // Apply filters
         if ($request->filled('q')) {

@@ -39,9 +39,9 @@
             <p class="text-sm text-gray-500 mt-2">{{ $stats['landlords'] }} landlords, {{ $stats['tenants'] }} tenants</p>
         </div>
 
-        <!-- Total Bookings -->
+        <!-- Approved Bookings -->
         <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-gray-600 text-sm mb-2">Total Bookings</h3>
+            <h3 class="text-gray-600 text-sm mb-2">Approved Bookings</h3>
             <p class="text-4xl font-bold text-purple-500">{{ $stats['total_bookings'] }}</p>
             <p class="text-sm text-gray-500 mt-2">{{ $stats['pending_bookings'] }} pending</p>
         </div>
