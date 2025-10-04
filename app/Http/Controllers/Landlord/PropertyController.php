@@ -153,10 +153,13 @@ class PropertyController extends Controller
         $uploadedFiles = [];
 
         try {
-            // Handle image uploads - upload directly to Cloudinary in production, temp storage in local
+            // Handle image uploads - upload directly to Cloudinary if configured, otherwise use local storage
             if ($request->hasFile('images')) {
-                if (config('app.env') === 'production') {
-                    // Production: Upload directly to Cloudinary
+                // Check if Cloudinary is configured
+                $useCloudinary = !empty(config('cloudinary.cloud_name'));
+
+                if ($useCloudinary) {
+                    // Upload directly to Cloudinary
                     $cloudinary = new Cloudinary([
                         'cloud' => [
                             'cloud_name' => config('cloudinary.cloud_name'),
@@ -696,8 +699,11 @@ class PropertyController extends Controller
                 if ($request->hasFile('images')) {
                     $currentImageCount = $property->images->count();
 
-                    if (config('app.env') === 'production') {
-                        // Production: Upload to Cloudinary
+                    // Check if Cloudinary is configured (by checking if cloud_name exists)
+                    $useCloudinary = !empty(config('cloudinary.cloud_name'));
+
+                    if ($useCloudinary) {
+                        // Upload to Cloudinary
                         $cloudinary = new Cloudinary([
                             'cloud' => [
                                 'cloud_name' => config('cloudinary.cloud_name'),
@@ -728,6 +734,11 @@ class PropertyController extends Controller
                                     'alt_text' => $property->title . ' - Image ' . ($currentImageCount + $index + 1),
                                     'is_cover' => $currentImageCount === 0 && $index === 0,
                                     'sort_order' => $currentImageCount + $index
+                                ]);
+
+                                Log::info('Cloudinary upload successful in property update', [
+                                    'property_id' => $property->id,
+                                    'image_url' => $uploadResult['secure_url']
                                 ]);
                             } catch (\Exception $e) {
                                 Log::error('Cloudinary upload failed during property update: ' . $e->getMessage());
