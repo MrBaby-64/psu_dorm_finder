@@ -304,11 +304,68 @@
                 </div>
                 @endforeach
 
+                <!-- Debug Info (Remove after testing) -->
+                <div class="mt-4 p-4 bg-yellow-100 border-2 border-yellow-500 rounded-lg">
+                    <p class="font-bold">Debug: Total Properties = {{ $properties->total() }}, Current Page = {{ $properties->currentPage() }}, Last Page = {{ $properties->lastPage() }}, Has Pages = {{ $properties->hasPages() ? 'YES' : 'NO' }}</p>
+                </div>
+
                 <!-- Pagination -->
                 @if($properties->hasPages())
                 <div class="mt-8 flex justify-center">
-                    <div class="bg-white rounded-lg shadow-md p-4">
-                        {{ $properties->links() }}
+                    <div class="bg-white rounded-lg shadow-lg p-6 border-2 border-green-500">
+                        <div class="flex items-center justify-between gap-4">
+                            <!-- Results Info -->
+                            <div class="text-sm font-semibold text-gray-800">
+                                Showing
+                                <span class="text-green-600 font-bold">{{ $properties->firstItem() }}</span>
+                                to
+                                <span class="text-green-600 font-bold">{{ $properties->lastItem() }}</span>
+                                of
+                                <span class="text-green-600 font-bold">{{ $properties->total() }}</span>
+                                properties
+                            </div>
+
+                            <!-- Pagination Buttons -->
+                            <div class="flex items-center gap-2">
+                                {{-- Previous Button --}}
+                                @if ($properties->onFirstPage())
+                                    <span class="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-200 border-2 border-gray-300 rounded-lg cursor-not-allowed">
+                                        ← Previous
+                                    </span>
+                                @else
+                                    <a href="{{ $properties->previousPageUrl() }}"
+                                       class="px-4 py-2 text-sm font-bold text-white bg-green-600 border-2 border-green-600 rounded-lg hover:bg-green-700 hover:shadow-lg transition-all duration-200">
+                                        ← Previous
+                                    </a>
+                                @endif
+
+                                {{-- Page Numbers --}}
+                                @foreach(range(1, $properties->lastPage()) as $page)
+                                    @if($page == $properties->currentPage())
+                                        <span class="px-4 py-2 text-sm font-bold text-white bg-green-600 border-2 border-green-600 rounded-lg shadow-md">
+                                            {{ $page }}
+                                        </span>
+                                    @else
+                                        <a href="{{ $properties->url($page) }}"
+                                           class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-green-50 hover:border-green-500 hover:text-green-700 transition-all duration-200">
+                                            {{ $page }}
+                                        </a>
+                                    @endif
+                                @endforeach
+
+                                {{-- Next Button --}}
+                                @if ($properties->hasMorePages())
+                                    <a href="{{ $properties->nextPageUrl() }}"
+                                       class="px-4 py-2 text-sm font-bold text-white bg-green-600 border-2 border-green-600 rounded-lg hover:bg-green-700 hover:shadow-lg transition-all duration-200">
+                                        Next →
+                                    </a>
+                                @else
+                                    <span class="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-200 border-2 border-gray-300 rounded-lg cursor-not-allowed">
+                                        Next →
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
                 @endif
