@@ -93,7 +93,7 @@
                             @php
                                 $coverImage = $property->images->firstWhere('is_cover', true) ?: $property->images->first();
                             @endphp
-                            <img src="{{ asset('storage/' . $coverImage->image_path) }}"
+                            <img src="{{ $coverImage->full_url }}"
                                  alt="{{ $coverImage->alt_text }}"
                                  class="w-full h-full object-cover">
                         @else

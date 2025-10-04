@@ -40,7 +40,7 @@
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                     @foreach($property->images as $image)
                     <div class="relative group">
-                        <img src="{{ asset('storage/' . $image->image_path) }}" 
+                        <img src="{{ $image->full_url }}"
                              alt="{{ $property->title }}"
                              class="w-full h-32 object-cover rounded-lg">
                         

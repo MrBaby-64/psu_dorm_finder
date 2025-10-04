@@ -112,6 +112,22 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
+    // Accessor for profile picture URL
+    public function getProfilePictureUrlAttribute(): string
+    {
+        if (empty($this->profile_picture)) {
+            return '';
+        }
+
+        // Check if it's a Cloudinary URL (starts with http:// or https://)
+        if (str_starts_with($this->profile_picture, 'http://') || str_starts_with($this->profile_picture, 'https://')) {
+            return $this->profile_picture; // Return Cloudinary URL directly
+        }
+
+        // For local storage images
+        return \Storage::disk('public')->url($this->profile_picture);
+    }
+
     // Scopes
     public function scopeByRole($query, string $role)
     {

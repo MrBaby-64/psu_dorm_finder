@@ -6,7 +6,7 @@
         <!-- Profile Picture Display -->
         <div class="relative inline-block">
             @if(auth()->user()->profile_picture)
-                <img src="{{ asset('storage/' . auth()->user()->profile_picture) }}"
+                <img src="{{ auth()->user()->profile_picture_url }}"
                      alt="Profile Picture"
                      class="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-gray-200"
                      id="profile-preview">

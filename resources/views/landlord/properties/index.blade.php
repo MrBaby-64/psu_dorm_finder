@@ -186,7 +186,7 @@
                         <div class="relative cursor-pointer group property-image" onclick="openImageGallery('{{ $property->id }}')">
                             @php
                                 $coverImage = $property->images->where('is_cover', true)->first() ?? $property->images->first();
-                                $imageUrl = $coverImage ? asset('storage/' . $coverImage->image_path) : null;
+                                $imageUrl = $coverImage ? $coverImage->full_url : null;
                             @endphp
 
                             @if($imageUrl)
@@ -271,7 +271,7 @@
                         <script type="application/json" id="property-images-{{ $property->id }}">
                             {!! json_encode($property->images->map(function($image) {
                                 return [
-                                    'url' => asset('storage/' . $image->image_path),
+                                    'url' => $image->full_url,
                                     'alt' => $image->description ?? 'Property image',
                                     'is_cover' => $image->is_cover
                                 ];
