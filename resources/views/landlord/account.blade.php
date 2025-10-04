@@ -440,7 +440,7 @@
                             <a href="{{ route('properties.show', $property->slug) }}" class="flex items-center space-x-3 hover:bg-gray-50 transition-colors duration-200 rounded-lg p-2 cursor-pointer group">
                                 @php
                                     $mainImage = $property->images->where('is_cover', true)->first() ?? $property->images->first();
-                                    $imageUrl = $mainImage ? asset('storage/' . $mainImage->image_path) : 'https://via.placeholder.com/50x50?text=No+Image';
+                                    $imageUrl = $mainImage ? $mainImage->full_url : 'https://via.placeholder.com/50x50?text=No+Image';
                                 @endphp
 
                                 <img src="{{ $imageUrl }}"
