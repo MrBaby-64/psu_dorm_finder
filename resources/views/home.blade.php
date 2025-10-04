@@ -15,16 +15,86 @@
                     </div>
                 </div>
 
-                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
-                    Find Your Perfect <span class="text-green-600">Student Accommodation</span>
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 leading-tight px-4">
+                    Find Rooms for Rent with <span class="text-green-600">PSU Dorm Finder</span>
                 </h1>
-
-                <p class="text-lg sm:text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-                    Connect with verified landlords and discover quality dormitories near PSU campus
+                <p class="text-lg sm:text-xl text-gray-600 mb-10 max-w-3xl mx-auto px-4">
+                    Discover verified dormitories and apartments near PSU Bacolor & San Fernando
                 </p>
 
+                {{-- Search Form --}}
+                <form action="{{ route('properties.browse') }}" method="GET" class="max-w-3xl mx-auto mb-10 px-4 fade-in-up">
+                    <div class="bg-white rounded-2xl shadow-xl p-3 flex flex-col sm:flex-row gap-3 border-2 border-green-100 hover:border-green-300 transition-all duration-300">
+                        <div class="flex-1 relative">
+                            <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <input
+                                type="text"
+                                name="q"
+                                placeholder="Search by location, property name..."
+                                class="w-full pl-12 pr-4 py-4 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-400 text-base sm:text-lg border-0 bg-gray-50 hover:bg-white transition-colors"
+                            >
+                        </div>
+                        <button type="submit" class="bg-green-600 text-white px-6 sm:px-8 py-4 rounded-xl font-bold hover:bg-green-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 whitespace-nowrap">
+                            🔍 Search Now
+                        </button>
+                    </div>
+                </form>
+
+                {{-- Popular Amenities --}}
+                <div class="max-w-4xl mx-auto mb-10 px-4 fade-in-up">
+                    <div class="bg-white/60 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-white/50">
+                        <p class="text-sm font-semibold text-gray-700 mb-4 text-center flex items-center justify-center gap-2">
+                            <span class="text-lg">✨</span> Popular Amenities
+                        </p>
+                        <div class="flex flex-wrap gap-2 sm:gap-3 justify-center">
+                            <a href="{{ route('properties.browse', ['amenity' => 'wifi']) }}"
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2.5 rounded-full hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                                <span class="text-base">📶</span> WiFi
+                            </a>
+                            <a href="{{ route('properties.browse', ['amenity' => 'kitchen']) }}"
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2.5 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                                <span class="text-base">🍳</span> Kitchen
+                            </a>
+                            <a href="{{ route('properties.browse', ['amenity' => 'parking']) }}"
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-4 py-2.5 rounded-full hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                                <span class="text-base">🅿️</span> Parking
+                            </a>
+                            <a href="{{ route('properties.browse', ['amenity' => 'laundry']) }}"
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2.5 rounded-full hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                                <span class="text-base">🧺</span> Laundry
+                            </a>
+                            <a href="{{ route('properties.browse', ['amenity' => 'ac']) }}"
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-4 py-2.5 rounded-full hover:from-cyan-600 hover:to-cyan-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                                <span class="text-base">❄️</span> Air Con
+                            </a>
+                            <a href="{{ route('properties.browse', ['amenity' => 'security']) }}"
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2.5 rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                                <span class="text-base">🔒</span> Security
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Quick Links --}}
+                <div class="flex justify-center gap-3 sm:gap-4 text-sm flex-wrap mb-16 px-4 fade-in-up">
+                    <a href="{{ route('properties.browse', ['city' => 'Bacolor']) }}"
+                       class="quick-link flex items-center gap-2 bg-white/80 backdrop-blur-sm text-gray-700 px-4 sm:px-5 py-2.5 rounded-full hover:bg-white hover:text-green-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium border border-gray-200 hover:border-green-300 transform hover:-translate-y-0.5">
+                        <span>📍</span> <span class="hidden sm:inline">Near</span> Bacolor Campus
+                    </a>
+                    <a href="{{ route('properties.browse', ['city' => 'San Fernando']) }}"
+                       class="quick-link flex items-center gap-2 bg-white/80 backdrop-blur-sm text-gray-700 px-4 sm:px-5 py-2.5 rounded-full hover:bg-white hover:text-green-600 transition-all duration-300 shadow-sm hover:shadow-md font-medium border border-gray-200 hover:border-green-300 transform hover:-translate-y-0.5">
+                        <span>📍</span> <span class="hidden sm:inline">Near</span> San Fernando
+                    </a>
+                    <a href="{{ route('properties.browse', ['is_verified' => 1]) }}"
+                       class="quick-link flex items-center gap-2 bg-green-600 text-white px-4 sm:px-5 py-2.5 rounded-full hover:bg-green-700 transition-all duration-300 shadow-md hover:shadow-lg font-medium transform hover:-translate-y-0.5">
+                        <span>✓</span> PSU Verified Properties
+                    </a>
+                </div>
+
                 <!-- CTA Buttons -->
-                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
                     @auth
                         <a href="{{ route('properties.browse') }}"
                            class="btn-primary bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition font-bold shadow-lg text-lg w-full sm:w-auto">
@@ -44,80 +114,6 @@
                             ✨ Create New Account
                         </a>
                     @endauth
-                </div>
-
-                <!-- Quick Features Section -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mt-16">
-                    <!-- Feature Card 1 -->
-                    <div class="feature-card bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300">
-                        <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <span class="text-3xl">🏠</span>
-                        </div>
-                        <h3 class="font-bold text-xl text-gray-900 mb-3">Browse Properties</h3>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            Explore verified dormitories and student housing options near PSU campus with detailed information
-                        </p>
-                        <div class="mt-4 pt-4 border-t border-gray-100">
-                            <span class="text-xs font-semibold text-green-600 uppercase tracking-wide">100+ Properties</span>
-                        </div>
-                    </div>
-
-                    <!-- Feature Card 2 -->
-                    <div class="feature-card bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300">
-                        <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <span class="text-3xl">📅</span>
-                        </div>
-                        <h3 class="font-bold text-xl text-gray-900 mb-3">Schedule Visits</h3>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            Book property viewings directly with landlords at your convenience and find your ideal home
-                        </p>
-                        <div class="mt-4 pt-4 border-t border-gray-100">
-                            <span class="text-xs font-semibold text-blue-600 uppercase tracking-wide">Easy Booking</span>
-                        </div>
-                    </div>
-
-                    <!-- Feature Card 3 -->
-                    <div class="feature-card bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300">
-                        <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <span class="text-3xl">💬</span>
-                        </div>
-                        <h3 class="font-bold text-xl text-gray-900 mb-3">Direct Messaging</h3>
-                        <p class="text-gray-600 text-sm leading-relaxed">
-                            Communicate with property owners in real-time and get your questions answered instantly
-                        </p>
-                        <div class="mt-4 pt-4 border-t border-gray-100">
-                            <span class="text-xs font-semibold text-purple-600 uppercase tracking-wide">24/7 Support</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Additional Benefits -->
-                <div class="mt-16 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-green-100">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Why Choose PSU Dorm Finder?</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div class="text-center">
-                            <div class="text-3xl mb-2">✓</div>
-                            <p class="text-sm font-semibold text-gray-900">Verified Listings</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl mb-2">🔒</div>
-                            <p class="text-sm font-semibold text-gray-900">Secure Platform</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl mb-2">⚡</div>
-                            <p class="text-sm font-semibold text-gray-900">Quick Response</p>
-                        </div>
-                        <div class="text-center">
-                            <div class="text-3xl mb-2">🎯</div>
-                            <p class="text-sm font-semibold text-gray-900">Best Matches</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Trust Indicators -->
-                <div class="mt-16 text-center text-gray-500 text-sm">
-                    <p class="mb-2">🔐 Secured with SSL encryption</p>
-                    <p>Trusted by <span class="font-bold text-green-600">500+</span> PSU students and property owners</p>
                 </div>
             </div>
         </div>
