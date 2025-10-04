@@ -7,17 +7,31 @@
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <!-- Pending Approval -->
-        <div class="bg-white rounded-lg shadow p-6 fade-in-up">
-            <h3 class="text-gray-600 text-sm mb-2">Pending Approval</h3>
-            <p class="text-4xl font-bold text-orange-500">{{ $stats['pending_properties'] }}</p>
-            <a href="{{ route('admin.properties.pending') }}" class="text-blue-600 text-sm mt-2 inline-block">Review now →</a>
+        <div class="bg-white rounded-lg shadow-sm p-6 fade-in-up hover:shadow-lg transition-all duration-200 group">
+            <div class="flex items-center justify-between mb-3">
+                <div class="p-3 bg-orange-50 rounded-lg group-hover:bg-orange-100 transition-colors">
+                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 group-hover:text-gray-700 mb-2">Pending Approval</h3>
+            <p class="text-3xl font-bold text-orange-600">{{ $stats['pending_properties'] }}</p>
+            <a href="{{ route('admin.properties.pending') }}" class="text-orange-600 hover:text-orange-700 text-sm mt-2 inline-block font-medium">Review now →</a>
         </div>
 
         <!-- Deletion Requests -->
-        <div class="bg-white rounded-lg shadow p-6 fade-in-up">
-            <h3 class="text-gray-600 text-sm mb-2">Deletion Requests</h3>
-            <p class="text-4xl font-bold text-red-500">{{ $stats['pending_deletion_requests'] }}</p>
-            <a href="{{ route('admin.properties.deletion-requests') }}" class="text-blue-600 text-sm mt-2 inline-block">
+        <div class="bg-white rounded-lg shadow-sm p-6 fade-in-up hover:shadow-lg transition-all duration-200 group">
+            <div class="flex items-center justify-between mb-3">
+                <div class="p-3 bg-red-50 rounded-lg group-hover:bg-red-100 transition-colors">
+                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 group-hover:text-gray-700 mb-2">Deletion Requests</h3>
+            <p class="text-3xl font-bold text-red-600">{{ $stats['pending_deletion_requests'] }}</p>
+            <a href="{{ route('admin.properties.deletion-requests') }}" class="text-red-600 hover:text-red-700 text-sm mt-2 inline-block font-medium">
                 @if($stats['pending_deletion_requests'] > 0)
                     Review now →
                 @else
@@ -27,23 +41,44 @@
         </div>
 
         <!-- Approved Properties -->
-        <div class="bg-white rounded-lg shadow p-6 fade-in-up">
-            <h3 class="text-gray-600 text-sm mb-2">Approved Properties</h3>
-            <p class="text-4xl font-bold text-green-500">{{ $stats['approved_properties'] }}</p>
+        <div class="bg-white rounded-lg shadow-sm p-6 fade-in-up hover:shadow-lg transition-all duration-200 group">
+            <div class="flex items-center justify-between mb-3">
+                <div class="p-3 bg-green-50 rounded-lg group-hover:bg-green-100 transition-colors">
+                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 group-hover:text-gray-700 mb-2">Approved Properties</h3>
+            <p class="text-3xl font-bold text-green-600">{{ $stats['approved_properties'] }}</p>
         </div>
 
         <!-- Total Users -->
-        <div class="bg-white rounded-lg shadow p-6 fade-in-up">
-            <h3 class="text-gray-600 text-sm mb-2">Total Users</h3>
-            <p class="text-4xl font-bold text-blue-500">{{ $stats['total_users'] }}</p>
-            <p class="text-sm text-gray-500 mt-2">{{ $stats['landlords'] }} landlords, {{ $stats['tenants'] }} tenants</p>
+        <div class="bg-white rounded-lg shadow-sm p-6 fade-in-up hover:shadow-lg transition-all duration-200 group">
+            <div class="flex items-center justify-between mb-3">
+                <div class="p-3 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
+                    <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 group-hover:text-gray-700 mb-2">Total Users</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ $stats['total_users'] }}</p>
+            <p class="text-xs text-gray-500 mt-2">{{ $stats['landlords'] }} landlords, {{ $stats['tenants'] }} tenants</p>
         </div>
 
         <!-- Approved Bookings -->
-        <div class="bg-white rounded-lg shadow p-6 fade-in-up">
-            <h3 class="text-gray-600 text-sm mb-2">Approved Bookings</h3>
-            <p class="text-4xl font-bold text-purple-500">{{ $stats['total_bookings'] }}</p>
-            <p class="text-sm text-gray-500 mt-2">{{ $stats['pending_bookings'] }} pending</p>
+        <div class="bg-white rounded-lg shadow-sm p-6 fade-in-up hover:shadow-lg transition-all duration-200 group">
+            <div class="flex items-center justify-between mb-3">
+                <div class="p-3 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
+                    <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 group-hover:text-gray-700 mb-2">Approved Bookings</h3>
+            <p class="text-3xl font-bold text-purple-600">{{ $stats['total_bookings'] }}</p>
+            <p class="text-xs text-gray-500 mt-2">{{ $stats['pending_bookings'] }} pending</p>
         </div>
     </div>
 

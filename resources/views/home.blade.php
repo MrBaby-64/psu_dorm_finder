@@ -4,67 +4,120 @@
 
 @section('content')
     {{-- Hero Section --}}
-    <div class="bg-gradient-to-r from-green-500 to-green-700 text-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <div class="text-center">
-                <h1 class="text-4xl md:text-5xl font-bold mb-4">
-                    Find Rooms for Rent with PSU Dorm Finder
-                </h1>
-                <p class="text-xl mb-8 text-green-100">
-                    Discover verified dormitories and apartments near PSU Bacolor & San Fernando
-                </p>
-                
-                {{-- Search Form --}}
-                <form action="{{ route('properties.browse') }}" method="GET" class="max-w-2xl mx-auto">
-                    <div class="flex gap-2">
-                        <input 
-                            type="text" 
-                            name="q" 
-                            placeholder="Search by location, property name..."
-                            class="flex-1 px-6 py-4 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-400 text-lg"
-                        >
-                        <button type="submit" class="bg-white text-green-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition">
-                            Search
-                        </button>
-                    </div>
-                </form>
-
-                {{-- Popular Amenities --}}
-                <div class="mt-8 max-w-4xl mx-auto">
-                    <p class="text-sm text-green-100 mb-3 text-center">Popular Amenities:</p>
-                    <div class="flex flex-wrap gap-3 justify-center">
-                        <a href="{{ route('properties.browse', ['amenity' => 'wifi']) }}" class="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition whitespace-nowrap">
-                            <span>📶</span> WiFi
-                        </a>
-                        <a href="{{ route('properties.browse', ['amenity' => 'kitchen']) }}" class="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition whitespace-nowrap">
-                            <span>🍳</span> Kitchen
-                        </a>
-                        <a href="{{ route('properties.browse', ['amenity' => 'parking']) }}" class="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition whitespace-nowrap">
-                            <span>🅿️</span> Parking
-                        </a>
-                        <a href="{{ route('properties.browse', ['amenity' => 'laundry']) }}" class="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition whitespace-nowrap">
-                            <span>🧺</span> Laundry
-                        </a>
-                        <a href="{{ route('properties.browse', ['amenity' => 'ac']) }}" class="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition whitespace-nowrap">
-                            <span>❄️</span> Air Con
-                        </a>
-                        <a href="{{ route('properties.browse', ['amenity' => 'security']) }}" class="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white px-4 py-2 rounded-full hover:bg-white/30 transition whitespace-nowrap">
-                            <span>🔒</span> Security
-                        </a>
+    <div class="min-h-screen gradient-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-6xl w-full">
+            <!-- Hero Section -->
+            <div class="text-center fade-in-up">
+                <!-- Logo with floating animation -->
+                <div class="inline-block mb-6 float-animation">
+                    <div class="text-6xl sm:text-7xl font-bold text-green-600 mb-2 drop-shadow-lg">
+                        🎓 PSU Dorm Finder
                     </div>
                 </div>
 
-                {{-- Quick Links --}}
-                <div class="mt-6 flex justify-center gap-4 text-sm flex-wrap">
-                    <a href="{{ route('properties.browse', ['city' => 'Bacolor']) }}" class="hover:underline">
-                        📍 Near Bacolor Campus
-                    </a>
-                    <a href="{{ route('properties.browse', ['city' => 'San Fernando']) }}" class="hover:underline">
-                        📍 Near San Fernando
-                    </a>
-                    <a href="{{ route('properties.browse', ['is_verified' => 1]) }}" class="hover:underline">
-                        ✓ PSU Verified Properties
-                    </a>
+                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-4 leading-tight">
+                    Find Your Perfect <span class="text-green-600">Student Accommodation</span>
+                </h1>
+
+                <p class="text-lg sm:text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+                    Connect with verified landlords and discover quality dormitories near PSU campus
+                </p>
+
+                <!-- CTA Buttons -->
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+                    @auth
+                        <a href="{{ route('properties.browse') }}"
+                           class="btn-primary bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition font-bold shadow-lg text-lg w-full sm:w-auto">
+                            🏠 Browse Properties
+                        </a>
+                        <a href="{{ route(auth()->user()->role . '.account') }}"
+                           class="btn-secondary bg-white text-green-600 border-2 border-green-600 px-8 py-4 rounded-xl transition font-bold text-lg w-full sm:w-auto hover:bg-green-50">
+                            📊 My Dashboard
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}"
+                           class="btn-primary bg-green-600 text-white px-8 py-4 rounded-xl hover:bg-green-700 transition font-bold shadow-lg text-lg w-full sm:w-auto">
+                            🔐 Sign In to Your Account
+                        </a>
+                        <a href="{{ route('register') }}"
+                           class="btn-secondary bg-white text-green-600 border-2 border-green-600 px-8 py-4 rounded-xl transition font-bold text-lg w-full sm:w-auto hover:bg-green-50">
+                            ✨ Create New Account
+                        </a>
+                    @endauth
+                </div>
+
+                <!-- Quick Features Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mt-16">
+                    <!-- Feature Card 1 -->
+                    <div class="feature-card bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300">
+                        <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <span class="text-3xl">🏠</span>
+                        </div>
+                        <h3 class="font-bold text-xl text-gray-900 mb-3">Browse Properties</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Explore verified dormitories and student housing options near PSU campus with detailed information
+                        </p>
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <span class="text-xs font-semibold text-green-600 uppercase tracking-wide">100+ Properties</span>
+                        </div>
+                    </div>
+
+                    <!-- Feature Card 2 -->
+                    <div class="feature-card bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300">
+                        <div class="w-16 h-16 bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <span class="text-3xl">📅</span>
+                        </div>
+                        <h3 class="font-bold text-xl text-gray-900 mb-3">Schedule Visits</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Book property viewings directly with landlords at your convenience and find your ideal home
+                        </p>
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <span class="text-xs font-semibold text-blue-600 uppercase tracking-wide">Easy Booking</span>
+                        </div>
+                    </div>
+
+                    <!-- Feature Card 3 -->
+                    <div class="feature-card bg-white p-8 rounded-2xl shadow-lg border border-gray-100 hover:shadow-2xl transition-all duration-300">
+                        <div class="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <span class="text-3xl">💬</span>
+                        </div>
+                        <h3 class="font-bold text-xl text-gray-900 mb-3">Direct Messaging</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed">
+                            Communicate with property owners in real-time and get your questions answered instantly
+                        </p>
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            <span class="text-xs font-semibold text-purple-600 uppercase tracking-wide">24/7 Support</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Benefits -->
+                <div class="mt-16 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-green-100">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Why Choose PSU Dorm Finder?</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">✓</div>
+                            <p class="text-sm font-semibold text-gray-900">Verified Listings</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">🔒</div>
+                            <p class="text-sm font-semibold text-gray-900">Secure Platform</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">⚡</div>
+                            <p class="text-sm font-semibold text-gray-900">Quick Response</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl mb-2">🎯</div>
+                            <p class="text-sm font-semibold text-gray-900">Best Matches</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trust Indicators -->
+                <div class="mt-16 text-center text-gray-500 text-sm">
+                    <p class="mb-2">🔐 Secured with SSL encryption</p>
+                    <p>Trusted by <span class="font-bold text-green-600">500+</span> PSU students and property owners</p>
                 </div>
             </div>
         </div>
