@@ -11,23 +11,6 @@
                 <h1 class="text-2xl font-bold text-gray-900">Property Inquiries</h1>
                 <p class="text-gray-600">Manage inquiries from potential tenants</p>
             </div>
-            <div class="flex items-center space-x-4">
-                <!-- View Scheduled Visits Shortcut -->
-                <a href="{{ route('landlord.scheduled-visits') }}"
-                   style="display: inline-flex; align-items: center; padding: 12px 24px; background-color: #7c3aed; color: #ffffff; font-weight: 500; border-radius: 8px; text-decoration: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); transition: all 0.2s;"
-                   onmouseover="this.style.backgroundColor='#6d28d9'"
-                   onmouseout="this.style.backgroundColor='#7c3aed'">
-                    <svg style="width: 20px; height: 20px; margin-right: 8px; color: #ffffff;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                    <span style="color: #ffffff; font-weight: 500;">View Scheduled Visits</span>
-                    @if(isset($pendingVisitsCount) && $pendingVisitsCount > 0)
-                        <span style="margin-left: 8px; display: inline-flex; align-items: center; padding: 2px 8px; background-color: #fde047; color: #a16207; border-radius: 9999px; font-size: 12px; font-weight: 500;">
-                            {{ $pendingVisitsCount }}
-                        </span>
-                    @endif
-                </a>
-            </div>
         </div>
 
         <!-- Success Message -->
@@ -142,21 +125,6 @@
                                 👁️ View Details
                             </button>
                         </div>
-
-                        <!-- Contextual Visit Suggestion -->
-                        @if($inquiry->status === 'pending')
-                            <div class="mt-4 pt-4 border-t border-gray-200">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-xs text-gray-500">
-                                        💡 <span class="font-medium">Pro tip:</span> Has this tenant requested a property visit?
-                                    </p>
-                                    <a href="{{ route('landlord.scheduled-visits') }}"
-                                       class="text-xs text-purple-600 hover:text-purple-700 font-medium hover:underline">
-                                        Check visit requests →
-                                    </a>
-                                </div>
-                            </div>
-                        @endif
                     </div>
                 @endforeach
             </div>
@@ -175,16 +143,7 @@
                 <p class="mt-2 text-gray-500">When tenants send inquiries about your properties, they'll appear here.</p>
 
                 <!-- Quick Actions for Empty State -->
-                <div style="margin-top: 32px; display: flex; justify-content: center; gap: 16px;">
-                    <a href="{{ route('landlord.scheduled-visits') }}"
-                       style="display: inline-flex; align-items: center; padding: 8px 16px; background-color: #7c3aed; color: #ffffff; font-weight: 500; border-radius: 8px; text-decoration: none; transition: background-color 0.2s;"
-                       onmouseover="this.style.backgroundColor='#6d28d9'"
-                       onmouseout="this.style.backgroundColor='#7c3aed'">
-                        <svg style="width: 16px; height: 16px; margin-right: 8px; color: #ffffff;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                        </svg>
-                        <span style="color: #ffffff; font-weight: 500;">Check Scheduled Visits</span>
-                    </a>
+                <div style="margin-top: 32px; display: flex; justify-content: center;">
                     <a href="{{ route('landlord.properties.index') }}"
                        style="display: inline-flex; align-items: center; padding: 8px 16px; background-color: #4b5563; color: #ffffff; font-weight: 500; border-radius: 8px; text-decoration: none; transition: background-color 0.2s;"
                        onmouseover="this.style.backgroundColor='#374151'"
