@@ -304,11 +304,6 @@
                 </div>
                 @endforeach
 
-                <!-- Debug Info (Remove after testing) -->
-                <div class="mt-4 p-4 bg-yellow-100 border-2 border-yellow-500 rounded-lg">
-                    <p class="font-bold">Debug: Total Properties = {{ $properties->total() }}, Current Page = {{ $properties->currentPage() }}, Last Page = {{ $properties->lastPage() }}, Has Pages = {{ $properties->hasPages() ? 'YES' : 'NO' }}</p>
-                </div>
-
                 <!-- Pagination -->
                 @if($properties->hasPages())
                 <div class="mt-8 flex justify-center">
