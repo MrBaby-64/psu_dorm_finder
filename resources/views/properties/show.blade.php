@@ -1693,7 +1693,12 @@
                     <div class="lg:col-span-2 space-y-6">
                         <div>
                             <div class="flex items-center justify-between mb-4">
-                            <h1 class="text-2xl sm:text-3xl font-bold break-words">{{ $property->title }}</h1>
+                            <h1 class="text-2xl sm:text-3xl font-bold break-words flex items-center gap-2 flex-wrap">
+                                <span>{{ $property->title }}</span>
+                                @if($property->is_verified)
+                                    <x-psu-verified-badge size="md" />
+                                @endif
+                            </h1>
                                 @auth
                                     @if(auth()->user()->role === 'tenant')
                                         <button onclick="toggleFavorite({{ $property->id }})"
@@ -2313,9 +2318,13 @@
                                             <div class="flex items-start justify-between mb-3">
                                                 <div class="flex-1">
                                                     <div class="flex items-center space-x-3 mb-2">
-                                                        <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-white text-sm font-bold">
-                                                            {{ strtoupper(substr($review->reviewer_name, 0, 1)) }}
-                                                        </div>
+                                                        @if($review->user->profile_picture_url)
+                                                            <img src="{{ $review->user->profile_picture_url }}" class="w-8 h-8 rounded-full object-cover" alt="{{ $review->reviewer_name }}">
+                                                        @else
+                                                            <div class="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full text-white text-sm font-bold">
+                                                                {{ strtoupper(substr($review->reviewer_name, 0, 1)) }}
+                                                            </div>
+                                                        @endif
                                                         <div>
                                                             <span class="font-semibold text-gray-900">{{ $review->reviewer_name }}</span>
                                                             <div class="flex items-center space-x-2 mt-1">

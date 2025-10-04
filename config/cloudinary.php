@@ -35,6 +35,7 @@ return [
     'folders' => [
         'properties' => 'psu-dorm-finder/properties',
         'rooms' => 'psu-dorm-finder/rooms',
+        'profile_pictures' => 'psu-dorm-finder/profile-pictures',
     ],
 
 ];

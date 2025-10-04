@@ -145,9 +145,13 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
-                                        <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-medium">
-                                            {{ strtoupper(substr($user->name, 0, 1)) }}
-                                        </div>
+                                        @if($user->profile_picture_url)
+                                            <img src="{{ $user->profile_picture_url }}" class="h-10 w-10 rounded-full object-cover" alt="{{ $user->name }}">
+                                        @else
+                                            <div class="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center text-white font-medium">
+                                                {{ strtoupper(substr($user->name, 0, 1)) }}
+                                            </div>
+                                        @endif
                                     </div>
                                     <div class="ml-4">
                                         <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>

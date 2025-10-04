@@ -14,6 +14,7 @@ class RoomImage extends Model
     protected $fillable = [
         'room_id',
         'image_path',
+        'cloudinary_public_id',
         'alt_text',
         'is_cover',
         'sort_order'

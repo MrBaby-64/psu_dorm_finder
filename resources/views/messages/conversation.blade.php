@@ -12,7 +12,12 @@
             </a>
             <div>
                 <h1 class="text-2xl font-bold">{{ $otherUser->name }}</h1>
-                <p class="text-gray-600">{{ $property->title }}</p>
+                <div class="flex items-center gap-2">
+                    <span class="text-gray-600">{{ $property->title }}</span>
+                    @if($property->is_verified)
+                        <x-psu-verified-badge size="sm" />
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -81,7 +86,12 @@
         <h3 class="font-semibold mb-2">Property Information</h3>
         <div class="flex items-center gap-4">
             <div class="flex-1">
-                <p class="font-medium">{{ $property->title }}</p>
+                <div class="flex items-center gap-2">
+                    <span class="font-medium">{{ $property->title }}</span>
+                    @if($property->is_verified)
+                        <x-psu-verified-badge size="sm" />
+                    @endif
+                </div>
                 <p class="text-sm text-gray-600">{{ $property->address_line }}, {{ $property->city }}</p>
                 <p class="text-sm text-green-600 font-semibold">₱{{ number_format($property->price) }}/month</p>
             </div>

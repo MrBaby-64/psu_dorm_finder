@@ -231,8 +231,11 @@
                         <!-- Property Details -->
                         <div class="md:w-2/3 p-4">
                             <!-- Title -->
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">
-                                {{ $property->title }}
+                            <h3 class="text-xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+                                <span>{{ $property->title }}</span>
+                                @if($property->is_verified)
+                                    <x-psu-verified-badge size="sm" />
+                                @endif
                             </h3>
 
                             <!-- Location -->
