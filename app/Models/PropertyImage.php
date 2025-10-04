@@ -14,6 +14,7 @@ class PropertyImage extends Model
     protected $fillable = [
         'property_id',
         'image_path',
+        'cloudinary_public_id',
         'alt_text',
         'is_cover',
         'sort_order'
@@ -43,7 +44,12 @@ class PropertyImage extends Model
             return '';
         }
 
-        // Check if file exists before generating URL
+        // Check if it's a Cloudinary URL (starts with http:// or https://)
+        if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
+            return $this->image_path; // Return Cloudinary URL directly
+        }
+
+        // For local storage images, check if file exists before generating URL
         if (Storage::disk('public')->exists($this->image_path)) {
             return Storage::disk('public')->url($this->image_path);
         }
@@ -54,14 +60,21 @@ class PropertyImage extends Model
 
     public function getThumbnailUrlAttribute(): string
     {
-        // Generate thumbnail path (you can implement thumbnail generation)
+        // For Cloudinary URLs, use Cloudinary transformation for thumbnails
+        if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
+            // Use Cloudinary URL transformation to create thumbnail
+            // Replace /upload/ with /upload/w_300,h_200,c_fill/ for automatic thumbnail
+            return str_replace('/upload/', '/upload/w_300,h_200,c_fill/', $this->image_path);
+        }
+
+        // For local storage, generate thumbnail path
         $pathInfo = pathinfo($this->image_path);
         $thumbnailPath = $pathInfo['dirname'] . '/thumbnails/' . $pathInfo['filename'] . '_thumb.' . $pathInfo['extension'];
-        
+
         if (Storage::disk('public')->exists($thumbnailPath)) {
             return Storage::disk('public')->url($thumbnailPath);
         }
-        
+
         return $this->full_url; // Fallback to original image
     }
 
@@ -85,17 +98,21 @@ class PropertyImage extends Model
 
     public function delete(): bool
     {
-        // Delete the file from storage
-        if (Storage::disk('public')->exists($this->image_path)) {
-            Storage::disk('public')->delete($this->image_path);
-        }
+        // Only delete from local storage if it's NOT a Cloudinary URL
+        if (!str_starts_with($this->image_path, 'http://') && !str_starts_with($this->image_path, 'https://')) {
+            // Delete the file from local storage
+            if (Storage::disk('public')->exists($this->image_path)) {
+                Storage::disk('public')->delete($this->image_path);
+            }
 
-        // Delete thumbnail if it exists
-        $pathInfo = pathinfo($this->image_path);
-        $thumbnailPath = $pathInfo['dirname'] . '/thumbnails/' . $pathInfo['filename'] . '_thumb.' . $pathInfo['extension'];
-        if (Storage::disk('public')->exists($thumbnailPath)) {
-            Storage::disk('public')->delete($thumbnailPath);
+            // Delete thumbnail if it exists
+            $pathInfo = pathinfo($this->image_path);
+            $thumbnailPath = $pathInfo['dirname'] . '/thumbnails/' . $pathInfo['filename'] . '_thumb.' . $pathInfo['extension'];
+            if (Storage::disk('public')->exists($thumbnailPath)) {
+                Storage::disk('public')->delete($thumbnailPath);
+            }
         }
+        // Note: Cloudinary deletion is handled in the PropertyImageController
 
         // If this was the cover image, set another image as cover
         if ($this->is_cover) {

@@ -178,7 +178,7 @@
     @php
         // Get cover image or first image
         $coverImage = $property->images->where('is_cover', true)->first() ?? $property->images->first();
-        $imageUrl = $coverImage ? asset('storage/' . $coverImage->image_path) : null;
+        $imageUrl = $coverImage ? $coverImage->full_url : null;
     @endphp
     
     @if($imageUrl)

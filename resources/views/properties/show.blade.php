@@ -1062,7 +1062,7 @@
     const galleryImages = [
         @foreach($property->images as $image)
         {
-            'url': '{{ asset("storage/" . $image->image_path) }}',
+            'url': '{{ $image->full_url }}',
             'alt': '{{ addslashes($image->alt_text ?? "Property Image") }}',
             'is_cover': {{ $image->is_cover ? 'true' : 'false' }},
             'type': 'property'
@@ -1071,7 +1071,7 @@
         @foreach($property->rooms as $room)
             @foreach($room->images as $roomImage)
             {
-                'url': '{{ asset("storage/" . $roomImage->image_path) }}',
+                'url': '{{ $roomImage->full_url }}',
                 'alt': '{{ addslashes($room->room_number) }} - Room Image',
                 'is_cover': {{ $roomImage->is_cover ? 'true' : 'false' }},
                 'type': 'room',
@@ -1595,7 +1595,7 @@
                             <div class="lg:col-span-2">
                                 <div class="relative group" id="featuredImageContainer">
                                     <img
-                                        src="{{ asset('storage/' . $coverImage->image_path) }}"
+                                        src="{{ $coverImage->full_url }}"
                                         alt="{{ $property->title }}"
                                         class="w-full h-64 sm:h-80 lg:h-96 object-cover rounded-lg cursor-pointer hover:opacity-95 transition-all duration-500 shadow-lg"
                                         id="mainImage"
@@ -1641,7 +1641,7 @@
                                                 <!-- Regular image display -->
                                                 <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer @if($gridIndex == 5 && $allImagesForGrid->count() > 6) relative @endif" onclick="console.log('Property grid image clicked:', {{ $gridIndex }}); openLightbox({{ $gridIndex }})">
                                                     <img
-                                                        src="{{ asset('storage/' . $image->image_path) }}"
+                                                        src="{{ $image->full_url }}"
                                                         alt="Property image {{ $gridIndex + 1 }}"
                                                         class="w-full h-24 object-cover pointer-events-none"
                                                         loading="lazy"
@@ -2076,9 +2076,9 @@
 
                                                 <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                                                     @foreach($room->images->take(6) as $imageIndex => $roomImage)
-                                                        <div class="relative group cursor-pointer" onclick="openLightboxFromRoom('{{ asset('storage/' . $roomImage->image_path) }}')">
+                                                        <div class="relative group cursor-pointer" onclick="openLightboxFromRoom('{{ $roomImage->full_url }}')">
                                                             <img
-                                                                src="{{ asset('storage/' . $roomImage->image_path) }}"
+                                                                src="{{ $roomImage->full_url }}"
                                                                 alt="{{ $room->room_number }} - Image {{ $imageIndex + 1 }}"
                                                                 class="w-full object-cover rounded-lg border-2 border-gray-200 hover:border-blue-400 transition-all duration-200 hover:scale-105 cursor-pointer"
                                                                 style="width: 100%; height: 80px; object-fit: cover; display: block; background: #f9fafb;"
