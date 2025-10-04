@@ -7,6 +7,9 @@ use App\Models\Property;
 use App\Models\PropertyImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Cloudinary\Cloudinary;
+use Cloudinary\Transformation\Resize;
+use Cloudinary\Api\Upload\UploadApi;
 
 /**
  * Property Image Controller
@@ -29,27 +32,62 @@ class PropertyImageController extends Controller
 
         $uploadedImages = [];
 
+        // Initialize Cloudinary
+        $cloudinary = new Cloudinary([
+            'cloud' => [
+                'cloud_name' => config('cloudinary.cloud_name'),
+                'api_key' => config('cloudinary.api_key'),
+                'api_secret' => config('cloudinary.api_secret'),
+            ]
+        ]);
+
         foreach ($request->file('images') as $index => $image) {
-            // Store image
-            $path = $image->store('properties', 'public');
+            try {
+                // Upload to Cloudinary
+                $uploadResult = $cloudinary->uploadApi()->upload(
+                    $image->getRealPath(),
+                    [
+                        'folder' => config('cloudinary.folders.properties'),
+                        'public_id' => 'property_' . $property->id . '_' . time() . '_' . $index,
+                        'resource_type' => 'image',
+                        'transformation' => [
+                            'quality' => 'auto',
+                            'fetch_format' => 'auto'
+                        ]
+                    ]
+                );
 
-            // Get current count and max sort order (PostgreSQL compatible)
-            $currentCount = PropertyImage::where('property_id', $property->id)->count();
-            $maxSortOrder = PropertyImage::where('property_id', $property->id)->max('sort_order');
+                // Get Cloudinary URL
+                $cloudinaryUrl = $uploadResult['secure_url'];
+                $publicId = $uploadResult['public_id'];
 
-            // Handle NULL from max() in PostgreSQL when no records exist
-            $nextSortOrder = ($maxSortOrder === null) ? 0 : ($maxSortOrder + 1);
+                // Get current count and max sort order (PostgreSQL compatible)
+                $currentCount = PropertyImage::where('property_id', $property->id)->count();
+                $maxSortOrder = PropertyImage::where('property_id', $property->id)->max('sort_order');
 
-            // Create image record
-            $propertyImage = PropertyImage::create([
-                'property_id' => $property->id,
-                'image_path' => $path,
-                'alt_text' => $property->title . ' - Image ' . ($index + 1),
-                'is_cover' => $currentCount === 0, // First image is cover
-                'sort_order' => $nextSortOrder,
-            ]);
+                // Handle NULL from max() in PostgreSQL when no records exist
+                $nextSortOrder = ($maxSortOrder === null) ? 0 : ($maxSortOrder + 1);
 
-            $uploadedImages[] = $propertyImage;
+                // Create image record with Cloudinary URL
+                $propertyImage = PropertyImage::create([
+                    'property_id' => $property->id,
+                    'image_path' => $cloudinaryUrl,
+                    'cloudinary_public_id' => $publicId,
+                    'alt_text' => $property->title . ' - Image ' . ($index + 1),
+                    'is_cover' => $currentCount === 0, // First image is cover
+                    'sort_order' => $nextSortOrder,
+                ]);
+
+                $uploadedImages[] = $propertyImage;
+            } catch (\Exception $e) {
+                // Log error and continue with next image
+                \Log::error('Cloudinary upload failed: ' . $e->getMessage());
+                continue;
+            }
+        }
+
+        if (count($uploadedImages) === 0) {
+            return redirect()->back()->with('error', 'Failed to upload images. Please try again.');
         }
 
         return redirect()->back()->with('success', count($uploadedImages) . ' images uploaded successfully!');
@@ -79,9 +117,26 @@ class PropertyImageController extends Controller
             abort(403);
         }
 
-        // Delete file from storage
-        if (Storage::disk('public')->exists($image->image_path)) {
-            Storage::disk('public')->delete($image->image_path);
+        try {
+            // Delete from Cloudinary if cloudinary_public_id exists
+            if ($image->cloudinary_public_id) {
+                $cloudinary = new Cloudinary([
+                    'cloud' => [
+                        'cloud_name' => config('cloudinary.cloud_name'),
+                        'api_key' => config('cloudinary.api_key'),
+                        'api_secret' => config('cloudinary.api_secret'),
+                    ]
+                ]);
+
+                $cloudinary->uploadApi()->destroy($image->cloudinary_public_id);
+            } else {
+                // Fallback: Delete from local storage (for legacy images)
+                if (Storage::disk('public')->exists($image->image_path)) {
+                    Storage::disk('public')->delete($image->image_path);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to delete image from Cloudinary: ' . $e->getMessage());
         }
 
         // Store is_cover status before deletion

@@ -69,6 +69,14 @@ services:
         value: PSU Dorm Finder
       - key: SENDGRID_API_KEY
         sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false
 
 databases:
   - name: psu-dorm-finder-db

@@ -14,6 +14,7 @@ use App\Models\AdminMessage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Cloudinary\Cloudinary;
 
 /**
  * Landlord Property Controller
@@ -152,18 +153,57 @@ class PropertyController extends Controller
         $uploadedFiles = [];
 
         try {
-            // Handle image uploads - simplified approach
+            // Handle image uploads - upload directly to Cloudinary in production, temp storage in local
             if ($request->hasFile('images')) {
-                foreach ($request->file('images') as $index => $image) {
-                    $filename = time() . '_' . $index . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                    $tempPath = $image->store('temp/properties', 'public');
+                if (config('app.env') === 'production') {
+                    // Production: Upload directly to Cloudinary
+                    $cloudinary = new Cloudinary([
+                        'cloud' => [
+                            'cloud_name' => config('cloudinary.cloud_name'),
+                            'api_key' => config('cloudinary.api_key'),
+                            'api_secret' => config('cloudinary.api_secret'),
+                        ]
+                    ]);
 
-                    $uploadedFiles[] = [
-                        'path' => $tempPath,
-                        'filename' => $filename,
-                        'index' => $index,
-                        'original_name' => $image->getClientOriginalName()
-                    ];
+                    foreach ($request->file('images') as $index => $image) {
+                        try {
+                            $uploadResult = $cloudinary->uploadApi()->upload(
+                                $image->getRealPath(),
+                                [
+                                    'folder' => config('cloudinary.folders.properties'),
+                                    'public_id' => 'property_temp_' . time() . '_' . $index,
+                                    'resource_type' => 'image',
+                                    'transformation' => [
+                                        'quality' => 'auto',
+                                        'fetch_format' => 'auto'
+                                    ]
+                                ]
+                            );
+
+                            $uploadedFiles[] = [
+                                'cloudinary_url' => $uploadResult['secure_url'],
+                                'cloudinary_public_id' => $uploadResult['public_id'],
+                                'index' => $index,
+                                'original_name' => $image->getClientOriginalName()
+                            ];
+                        } catch (\Exception $e) {
+                            Log::error('Cloudinary upload failed during property creation: ' . $e->getMessage());
+                            throw new \Exception('Failed to upload images. Please try again.');
+                        }
+                    }
+                } else {
+                    // Local: Use temp storage
+                    foreach ($request->file('images') as $index => $image) {
+                        $filename = time() . '_' . $index . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                        $tempPath = $image->store('temp/properties', 'public');
+
+                        $uploadedFiles[] = [
+                            'path' => $tempPath,
+                            'filename' => $filename,
+                            'index' => $index,
+                            'original_name' => $image->getClientOriginalName()
+                        ];
+                    }
                 }
             }
 
@@ -351,17 +391,29 @@ class PropertyController extends Controller
 
                 // Handle property images
                 foreach ($uploadedFiles as $index => $fileData) {
-                    // Move from temp to permanent
-                    $permanentPath = str_replace('temp/properties', 'properties', $fileData['path']);
-                    \Storage::disk('public')->move($fileData['path'], $permanentPath);
+                    if (config('app.env') === 'production') {
+                        // Production: Images already in Cloudinary
+                        PropertyImage::create([
+                            'property_id' => $property->id,
+                            'image_path' => $fileData['cloudinary_url'],
+                            'cloudinary_public_id' => $fileData['cloudinary_public_id'],
+                            'alt_text' => $validated['title'] . ' - Image ' . ($index + 1),
+                            'is_cover' => $index === 0,
+                            'sort_order' => $index
+                        ]);
+                    } else {
+                        // Local: Move from temp to permanent
+                        $permanentPath = str_replace('temp/properties', 'properties', $fileData['path']);
+                        \Storage::disk('public')->move($fileData['path'], $permanentPath);
 
-                    PropertyImage::create([
-                        'property_id' => $property->id,
-                        'image_path' => $permanentPath,
-                        'alt_text' => $validated['title'] . ' - Image ' . ($index + 1),
-                        'is_cover' => $index === 0,
-                        'sort_order' => $index
-                    ]);
+                        PropertyImage::create([
+                            'property_id' => $property->id,
+                            'image_path' => $permanentPath,
+                            'alt_text' => $validated['title'] . ' - Image ' . ($index + 1),
+                            'is_cover' => $index === 0,
+                            'sort_order' => $index
+                        ]);
+                    }
                 }
 
                 // Create rooms for the property
@@ -428,18 +480,47 @@ class PropertyController extends Controller
 
                         // Handle room images if provided
                         if ($request->hasFile("room_images.{$index}")) {
+                            // Initialize Cloudinary
+                            $cloudinary = new Cloudinary([
+                                'cloud' => [
+                                    'cloud_name' => config('cloudinary.cloud_name'),
+                                    'api_key' => config('cloudinary.api_key'),
+                                    'api_secret' => config('cloudinary.api_secret'),
+                                ]
+                            ]);
+
                             $roomImages = $request->file("room_images.{$index}");
                             foreach ($roomImages as $imageIndex => $roomImage) {
-                                $filename = 'room_' . $room->id . '_' . time() . '_' . $imageIndex . '.' . $roomImage->getClientOriginalExtension();
-                                $imagePath = $roomImage->storeAs('properties/' . $property->id . '/rooms', $filename, 'public');
+                                try {
+                                    // Upload to Cloudinary
+                                    $uploadResult = $cloudinary->uploadApi()->upload(
+                                        $roomImage->getRealPath(),
+                                        [
+                                            'folder' => config('cloudinary.folders.rooms'),
+                                            'public_id' => 'room_' . $room->id . '_' . time() . '_' . $imageIndex,
+                                            'resource_type' => 'image',
+                                            'transformation' => [
+                                                'quality' => 'auto',
+                                                'fetch_format' => 'auto'
+                                            ]
+                                        ]
+                                    );
 
-                                RoomImage::create([
-                                    'room_id' => $room->id,
-                                    'image_path' => $imagePath,
-                                    'alt_text' => trim($roomData['name']) . ' - Image ' . ($imageIndex + 1),
-                                    'is_cover' => $imageIndex === 0, // First image is cover
-                                    'sort_order' => $imageIndex,
-                                ]);
+                                    $cloudinaryUrl = $uploadResult['secure_url'];
+                                    $publicId = $uploadResult['public_id'];
+
+                                    RoomImage::create([
+                                        'room_id' => $room->id,
+                                        'image_path' => $cloudinaryUrl,
+                                        'cloudinary_public_id' => $publicId,
+                                        'alt_text' => trim($roomData['name']) . ' - Image ' . ($imageIndex + 1),
+                                        'is_cover' => $imageIndex === 0, // First image is cover
+                                        'sort_order' => $imageIndex,
+                                    ]);
+                                } catch (\Exception $e) {
+                                    Log::error('Cloudinary room image upload failed: ' . $e->getMessage());
+                                    continue;
+                                }
                             }
                         }
                     }
@@ -615,16 +696,56 @@ class PropertyController extends Controller
                 if ($request->hasFile('images')) {
                     $currentImageCount = $property->images->count();
 
-                    foreach ($request->file('images') as $index => $image) {
-                        $path = $image->store('properties', 'public');
-
-                        PropertyImage::create([
-                            'property_id' => $property->id,
-                            'image_path' => $path,
-                            'alt_text' => $property->title . ' - Image ' . ($currentImageCount + $index + 1),
-                            'is_cover' => $currentImageCount === 0 && $index === 0, // First image is cover if no existing images
-                            'sort_order' => $currentImageCount + $index
+                    if (config('app.env') === 'production') {
+                        // Production: Upload to Cloudinary
+                        $cloudinary = new Cloudinary([
+                            'cloud' => [
+                                'cloud_name' => config('cloudinary.cloud_name'),
+                                'api_key' => config('cloudinary.api_key'),
+                                'api_secret' => config('cloudinary.api_secret'),
+                            ]
                         ]);
+
+                        foreach ($request->file('images') as $index => $image) {
+                            try {
+                                $uploadResult = $cloudinary->uploadApi()->upload(
+                                    $image->getRealPath(),
+                                    [
+                                        'folder' => config('cloudinary.folders.properties'),
+                                        'public_id' => 'property_' . $property->id . '_' . time() . '_' . $index,
+                                        'resource_type' => 'image',
+                                        'transformation' => [
+                                            'quality' => 'auto',
+                                            'fetch_format' => 'auto'
+                                        ]
+                                    ]
+                                );
+
+                                PropertyImage::create([
+                                    'property_id' => $property->id,
+                                    'image_path' => $uploadResult['secure_url'],
+                                    'cloudinary_public_id' => $uploadResult['public_id'],
+                                    'alt_text' => $property->title . ' - Image ' . ($currentImageCount + $index + 1),
+                                    'is_cover' => $currentImageCount === 0 && $index === 0,
+                                    'sort_order' => $currentImageCount + $index
+                                ]);
+                            } catch (\Exception $e) {
+                                Log::error('Cloudinary upload failed during property update: ' . $e->getMessage());
+                            }
+                        }
+                    } else {
+                        // Local: Upload to local storage
+                        foreach ($request->file('images') as $index => $image) {
+                            $path = $image->store('properties', 'public');
+
+                            PropertyImage::create([
+                                'property_id' => $property->id,
+                                'image_path' => $path,
+                                'alt_text' => $property->title . ' - Image ' . ($currentImageCount + $index + 1),
+                                'is_cover' => $currentImageCount === 0 && $index === 0,
+                                'sort_order' => $currentImageCount + $index
+                            ]);
+                        }
                     }
                 }
             });
