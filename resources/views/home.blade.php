@@ -50,27 +50,27 @@
                         </p>
                         <div class="flex flex-wrap gap-2 sm:gap-3 justify-center">
                             <a href="{{ route('properties.browse', ['amenity' => 'wifi']) }}"
-                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2.5 rounded-full hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-green-400 to-green-500 text-white px-4 py-2.5 rounded-full hover:from-green-500 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
                                 <span class="text-base">📶</span> WiFi
                             </a>
                             <a href="{{ route('properties.browse', ['amenity' => 'kitchen']) }}"
-                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2.5 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-green-400 to-green-500 text-white px-4 py-2.5 rounded-full hover:from-green-500 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
                                 <span class="text-base">🍳</span> Kitchen
                             </a>
                             <a href="{{ route('properties.browse', ['amenity' => 'parking']) }}"
-                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white px-4 py-2.5 rounded-full hover:from-indigo-600 hover:to-indigo-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-green-400 to-green-500 text-white px-4 py-2.5 rounded-full hover:from-green-500 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
                                 <span class="text-base">🅿️</span> Parking
                             </a>
                             <a href="{{ route('properties.browse', ['amenity' => 'laundry']) }}"
-                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white px-4 py-2.5 rounded-full hover:from-purple-600 hover:to-purple-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-green-400 to-green-500 text-white px-4 py-2.5 rounded-full hover:from-green-500 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
                                 <span class="text-base">🧺</span> Laundry
                             </a>
                             <a href="{{ route('properties.browse', ['amenity' => 'ac']) }}"
-                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white px-4 py-2.5 rounded-full hover:from-cyan-600 hover:to-cyan-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-green-400 to-green-500 text-white px-4 py-2.5 rounded-full hover:from-green-500 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
                                 <span class="text-base">❄️</span> Air Con
                             </a>
                             <a href="{{ route('properties.browse', ['amenity' => 'security']) }}"
-                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2.5 rounded-full hover:from-red-600 hover:to-red-700 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
+                               class="amenity-badge flex items-center gap-2 bg-gradient-to-r from-green-400 to-green-500 text-white px-4 py-2.5 rounded-full hover:from-green-500 hover:to-green-600 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-1 text-sm font-medium">
                                 <span class="text-base">🔒</span> Security
                             </a>
                         </div>

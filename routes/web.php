@@ -140,13 +140,18 @@ Route::middleware(['auth'])->prefix('landlord')->name('landlord.')->group(functi
     Route::post('/properties/request-deletion', [\App\Http\Controllers\Landlord\PropertyController::class, 'requestDeletion'])->name('properties.request-deletion');
     Route::post('/contact-admin', [\App\Http\Controllers\Landlord\PropertyController::class, 'contactAdmin'])->name('contact-admin');
     
-    // Image management
+    // Property Image management
     Route::get('/properties/{property}/images/upload', function($property) {
         return redirect()->route('landlord.properties.edit', $property);
     });
     Route::post('/properties/{property}/images/upload', [\App\Http\Controllers\Landlord\PropertyImageController::class, 'upload'])->name('properties.images.upload');
     Route::post('/properties/{property}/images/{image}/set-cover', [\App\Http\Controllers\Landlord\PropertyImageController::class, 'setCover'])->name('properties.images.set-cover');
     Route::delete('/properties/{property}/images/{image}', [\App\Http\Controllers\Landlord\PropertyImageController::class, 'delete'])->name('properties.images.delete');
+
+    // Room Image management
+    Route::post('/properties/{property}/rooms/{room}/images/upload', [\App\Http\Controllers\Landlord\RoomImageController::class, 'upload'])->name('rooms.images.upload');
+    Route::post('/properties/{property}/rooms/{room}/images/{image}/set-cover', [\App\Http\Controllers\Landlord\RoomImageController::class, 'setCover'])->name('rooms.images.set-cover');
+    Route::delete('/properties/{property}/rooms/{room}/images/{image}', [\App\Http\Controllers\Landlord\RoomImageController::class, 'delete'])->name('rooms.images.delete');
     
     // Inquiries/Messages
     Route::get('/inquiries', [\App\Http\Controllers\Landlord\InquiryController::class, 'index'])->name('inquiries.index');

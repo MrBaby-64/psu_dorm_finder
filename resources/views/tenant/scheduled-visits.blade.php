@@ -86,19 +86,22 @@
                                     <div class="flex items-center">
                                         @php
                                             $mainImage = $visit->property->images->where('is_cover', true)->first() ?? $visit->property->images->first();
-                                            $imageUrl = $mainImage ? asset('storage/' . $mainImage->image_path) : 'https://via.placeholder.com/60x60?text=No+Image';
+                                            $imageUrl = $mainImage ? $mainImage->full_url : 'https://via.placeholder.com/60x60?text=No+Image';
                                         @endphp
-                                        
-                                        <img src="{{ $imageUrl }}" 
-                                             alt="{{ $visit->property->title }}" 
+
+                                        <img src="{{ $imageUrl }}"
+                                             alt="{{ $visit->property->title }}"
                                              class="w-12 h-12 rounded-lg object-cover">
                                         
                                         <div class="ml-4">
-                                            <div class="text-sm font-medium text-gray-900">
-                                                <a href="{{ route('properties.show', $visit->property->slug) }}" 
+                                            <div class="text-sm font-medium text-gray-900 flex items-center gap-2">
+                                                <a href="{{ route('properties.show', $visit->property->slug) }}"
                                                    class="hover:text-green-600">
                                                     {{ $visit->property->title }}
                                                 </a>
+                                                @if($visit->property->is_verified)
+                                                    <x-psu-verified-badge size="sm" />
+                                                @endif
                                             </div>
                                             <div class="text-sm text-gray-500">{{ $visit->property->location_text }}</div>
                                         </div>

@@ -108,7 +108,12 @@
                         <!-- Property Info -->
                         <div class="p-6">
                             <div class="flex justify-between items-start mb-2">
-                                <h3 class="text-lg font-semibold text-gray-900 truncate">{{ $property->title }}</h3>
+                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                    <h3 class="text-lg font-semibold text-gray-900 truncate">{{ $property->title }}</h3>
+                                    @if($property->is_verified)
+                                        <x-psu-verified-badge size="sm" />
+                                    @endif
+                                </div>
                                 @if($property->rating_count > 0)
                                     <div class="flex items-center ml-2">
                                         <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">

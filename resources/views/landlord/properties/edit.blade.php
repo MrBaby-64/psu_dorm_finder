@@ -93,6 +93,60 @@
                 </form>
             </div>
 
+            {{-- Room Images Section --}}
+            @if($property->rooms->count() > 0)
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold mb-4">Room Images</h2>
+
+                @foreach($property->rooms as $room)
+                <div class="mb-8 pb-8 border-b last:border-b-0">
+                    <h3 class="text-lg font-semibold mb-4">{{ $room->room_number }} - Room Images</h3>
+
+                    {{-- Display existing room images --}}
+                    @if($room->images->count() > 0)
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                        @foreach($room->images as $image)
+                        <div class="relative group">
+                            <img src="{{ $image->full_url }}" alt="{{ $room->room_number }}" class="w-full h-32 object-cover rounded-lg">
+
+                            @if($image->is_cover)
+                            <span class="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">Cover</span>
+                            @else
+                            <form action="{{ route('landlord.rooms.images.set-cover', [$property, $room, $image]) }}" method="POST" class="absolute top-2 left-2">
+                                @csrf
+                                <button type="submit" class="bg-blue-500 text-white text-xs px-2 py-1 rounded hover:bg-blue-600">Set as Cover</button>
+                            </form>
+                            @endif
+
+                            <form action="{{ route('landlord.rooms.images.delete', [$property, $room, $image]) }}" method="POST" class="absolute top-2 right-2" onsubmit="return confirm('Delete this image?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-500 text-white text-xs px-2 py-1 rounded hover:bg-red-600">Delete</button>
+                            </form>
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
+                    <p class="text-gray-500 mb-4 text-sm">No images uploaded for this room yet</p>
+                    @endif
+
+                    {{-- Upload new room images --}}
+                    <form action="{{ route('landlord.rooms.images.upload', [$property, $room]) }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        <div class="flex gap-4 items-end">
+                            <div class="flex-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Upload Images for {{ $room->room_number }}</label>
+                                <input type="file" name="images[]" multiple accept="image/*" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                <p class="text-xs text-gray-500 mt-1">Max 5MB per image. Formats: JPEG, PNG, WebP</p>
+                            </div>
+                            <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">Upload</button>
+                        </div>
+                    </form>
+                </div>
+                @endforeach
+            </div>
+            @endif
+
             {{-- Property Details Form --}}
             <div class="bg-white rounded-lg shadow p-6">
                 <h2 class="text-xl font-semibold mb-4">Property Details</h2>
