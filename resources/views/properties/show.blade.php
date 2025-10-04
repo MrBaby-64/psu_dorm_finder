@@ -1734,8 +1734,8 @@
                         <!-- Description -->
                         <div class="bg-white border rounded-lg p-6 shadow-sm">
                             <h2 class="text-xl font-bold mb-4">Description</h2>
-                            <div class="border border-gray-200 rounded bg-gray-50 min-h-[80px] max-h-80 overflow-hidden">
-                                <div class="text-gray-700 whitespace-pre-line leading-relaxed break-words p-4 max-h-full overflow-y-auto">
+                            <div class="border-2 border-gray-300 rounded bg-gray-50 min-h-[80px] max-h-80 overflow-y-auto">
+                                <div class="text-gray-700 whitespace-pre-line leading-relaxed break-words p-4">
                                     {{ $property->description }}
                                 </div>
                             </div>

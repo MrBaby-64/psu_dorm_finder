@@ -53,7 +53,7 @@
             <h2 class="text-xl font-bold">Admin Menu</h2>
             <p class="text-gray-600 text-sm">Quick access to admin functions</p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-6">
             <a href="{{ route('admin.properties.pending') }}"
                class="flex items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg border border-orange-200 transition-colors group">
                 <div class="flex-shrink-0 w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center mr-3">
@@ -121,19 +121,6 @@
                 <div>
                     <h3 class="font-semibold text-gray-900 group-hover:text-blue-700">User Management</h3>
                     <p class="text-sm text-gray-600">Manage users and roles</p>
-                </div>
-            </a>
-
-            <a href="{{ route('admin.reports.index') }}"
-               class="flex items-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg border border-purple-200 transition-colors group">
-                <div class="flex-shrink-0 w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-gray-900 group-hover:text-purple-700">Reports & Analytics</h3>
-                    <p class="text-sm text-gray-600">View system reports</p>
                 </div>
             </a>
         </div>
