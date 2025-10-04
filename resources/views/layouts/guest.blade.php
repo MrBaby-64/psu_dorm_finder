@@ -6,6 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'PSU Dorm Finder') }} - @yield('title', 'Find Your Perfect Student Housing')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Global Animations & Enhancements -->
+    <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
     
     <style>
         /* Smooth scroll behavior */

@@ -1,0 +1,380 @@
+/* PSU Dorm Finder - Global Animations & Enhancements */
+/* Phase 1: Safe animations and effects - No layout changes */
+
+/* ===================================
+   FADE-IN ANIMATIONS
+   =================================== */
+
+/* Fade in from bottom */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Fade in from top */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Simple fade in */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Floating animation */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* ===================================
+   ANIMATION CLASSES
+   =================================== */
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.fade-in-down {
+    animation: fadeInDown 0.6s ease-out forwards;
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+.float-animation {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Stagger animations for lists/cards */
+.fade-in-up:nth-child(1) { animation-delay: 0.1s; }
+.fade-in-up:nth-child(2) { animation-delay: 0.2s; }
+.fade-in-up:nth-child(3) { animation-delay: 0.3s; }
+.fade-in-up:nth-child(4) { animation-delay: 0.4s; }
+.fade-in-up:nth-child(5) { animation-delay: 0.5s; }
+.fade-in-up:nth-child(6) { animation-delay: 0.6s; }
+
+/* ===================================
+   BUTTON ENHANCEMENTS
+   =================================== */
+
+/* All buttons get smooth transitions */
+button,
+.btn,
+a.btn,
+[type="submit"],
+[type="button"] {
+    transition: all 0.3s ease !important;
+}
+
+/* Primary buttons (green) - Enhanced hover */
+button.bg-green-600:hover,
+a.bg-green-600:hover,
+.bg-green-600:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 25px -5px rgba(34, 197, 94, 0.4),
+                0 8px 10px -6px rgba(34, 197, 94, 0.2) !important;
+}
+
+button.bg-green-600:active,
+a.bg-green-600:active {
+    transform: translateY(0) !important;
+}
+
+/* Secondary buttons - Enhanced hover */
+button.bg-gray-600:hover,
+button.bg-gray-700:hover,
+a.bg-gray-600:hover,
+a.bg-gray-700:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 25px -5px rgba(75, 85, 99, 0.4),
+                0 8px 10px -6px rgba(75, 85, 99, 0.2) !important;
+}
+
+/* Blue buttons - Enhanced hover */
+button.bg-blue-600:hover,
+a.bg-blue-600:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4),
+                0 8px 10px -6px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Red buttons - Enhanced hover */
+button.bg-red-600:hover,
+button.bg-red-500:hover,
+a.bg-red-600:hover,
+a.bg-red-500:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.4),
+                0 8px 10px -6px rgba(239, 68, 68, 0.2) !important;
+}
+
+/* Orange buttons - Enhanced hover */
+button.bg-orange-600:hover,
+a.bg-orange-600:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 25px -5px rgba(234, 88, 12, 0.4),
+                0 8px 10px -6px rgba(234, 88, 12, 0.2) !important;
+}
+
+/* Yellow buttons - Enhanced hover */
+button.bg-yellow-600:hover,
+a.bg-yellow-600:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 25px -5px rgba(202, 138, 4, 0.4),
+                0 8px 10px -6px rgba(202, 138, 4, 0.2) !important;
+}
+
+/* Purple buttons - Enhanced hover */
+button.bg-purple-600:hover,
+a.bg-purple-600:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.4),
+                0 8px 10px -6px rgba(147, 51, 234, 0.2) !important;
+}
+
+/* White/outlined buttons */
+button.bg-white:hover,
+a.bg-white:hover,
+button.border:hover,
+a.border:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+                0 8px 10px -6px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* ===================================
+   CARD ENHANCEMENTS
+   =================================== */
+
+/* All white cards/containers get enhanced shadows */
+.bg-white.rounded-lg,
+.bg-white.rounded,
+.bg-white.rounded-xl,
+.bg-white.rounded-2xl {
+    transition: all 0.3s ease !important;
+}
+
+/* Hover effect on clickable cards */
+.bg-white.rounded-lg:hover,
+.bg-white.rounded:hover,
+.bg-white.rounded-xl:hover,
+.bg-white.rounded-2xl:hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Cards that are links */
+a.bg-white:hover,
+a > .bg-white:hover {
+    transform: translateY(-4px) !important;
+}
+
+/* ===================================
+   LINK ENHANCEMENTS
+   =================================== */
+
+/* All links get smooth transitions */
+a {
+    transition: all 0.2s ease !important;
+}
+
+/* Text links with underline on hover */
+a.hover\:underline {
+    position: relative;
+}
+
+a.hover\:underline::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: currentColor;
+    transition: width 0.3s ease;
+}
+
+a.hover\:underline:hover::after {
+    width: 100%;
+}
+
+/* ===================================
+   INPUT ENHANCEMENTS
+   =================================== */
+
+/* All inputs get smooth focus transitions */
+input,
+textarea,
+select {
+    transition: all 0.3s ease !important;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ===================================
+   MODAL/DROPDOWN ANIMATIONS
+   =================================== */
+
+/* Modals fade in */
+.modal,
+[x-show],
+.dropdown {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* ===================================
+   BADGE/TAG ENHANCEMENTS
+   =================================== */
+
+/* Status badges with subtle pulse */
+.bg-green-100,
+.bg-yellow-100,
+.bg-red-100,
+.bg-blue-100,
+.bg-purple-100,
+.bg-orange-100 {
+    transition: all 0.2s ease !important;
+}
+
+/* ===================================
+   TABLE ROW ENHANCEMENTS
+   =================================== */
+
+/* Table rows with hover effect */
+tbody tr {
+    transition: all 0.2s ease !important;
+}
+
+tbody tr:hover {
+    background-color: rgba(34, 197, 94, 0.05) !important;
+}
+
+/* ===================================
+   ICON ENHANCEMENTS
+   =================================== */
+
+/* SVG icons with smooth transitions */
+svg {
+    transition: all 0.3s ease !important;
+}
+
+/* Icons that scale on hover */
+button:hover svg,
+a:hover svg {
+    transform: scale(1.1) !important;
+}
+
+/* ===================================
+   PROPERTY CARD SPECIFIC
+   =================================== */
+
+/* Property cards on browse page */
+.property-card {
+    transition: all 0.3s ease !important;
+}
+
+.property-card:hover {
+    transform: translateY(-6px) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ===================================
+   FEATURE CARD SPECIFIC
+   =================================== */
+
+.feature-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    box-shadow: 0 25px 50px -12px rgba(34, 197, 94, 0.25) !important;
+}
+
+/* ===================================
+   LOADING STATES
+   =================================== */
+
+/* Shimmer effect for loading */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+        to right,
+        #f6f7f8 0%,
+        #edeef1 20%,
+        #f6f7f8 40%,
+        #f6f7f8 100%
+    );
+    background-size: 1000px 100%;
+}
+
+/* ===================================
+   SMOOTH SCROLL
+   =================================== */
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* ===================================
+   RESPONSIVE ADJUSTMENTS
+   =================================== */
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Disable transform on small screens for better performance */
+@media (max-width: 640px) {
+    button:hover,
+    a:hover,
+    .bg-white:hover {
+        transform: none !important;
+    }
+}

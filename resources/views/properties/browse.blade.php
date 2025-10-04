@@ -167,7 +167,7 @@
             <!-- LEFT SIDE: Property Listings (3/5 width) -->
             <div class="lg:col-span-3 space-y-4">
                 @foreach($properties as $property)
-                <div class="property-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer" 
+                <div class="property-card bg-white rounded-lg shadow-md overflow-hidden cursor-pointer fade-in-up" 
                      onmouseover="highlightMarker({{ $property->id }})" 
                      onmouseout="unhighlightMarker({{ $property->id }})"
                      onclick="window.location.href='{{ route('properties.show', $property) }}'">

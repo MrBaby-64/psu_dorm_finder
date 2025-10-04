@@ -7,6 +7,9 @@
     <title>{{ config('app.name') }} - Account</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- Global Animations & Enhancements -->
+    <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
+
     <style>
         /* Enhanced scrollbar styling */
         body {
