@@ -20,9 +20,9 @@
 
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-            <a href="{{ route('landlord.properties.index') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-md hover:bg-gray-50 transition-all duration-200 group">
+            <a href="{{ route('landlord.properties.index') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-lg transition-all duration-200 group fade-in-up">
                 <div class="flex items-center">
-                    <div class="p-3 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors">
+                    <div class="p-3 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
                         <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                         </svg>
@@ -35,9 +35,9 @@
                 </div>
             </a>
 
-            <a href="{{ route('landlord.inquiries.index') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-md hover:bg-gray-50 transition-all duration-200 group">
+            <a href="{{ route('landlord.inquiries.index') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-lg transition-all duration-200 group fade-in-up">
                 <div class="flex items-center">
-                    <div class="p-3 bg-yellow-100 rounded-lg group-hover:bg-yellow-200 transition-colors">
+                    <div class="p-3 bg-yellow-50 rounded-lg group-hover:bg-yellow-100 transition-colors">
                         <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
@@ -57,9 +57,9 @@
                 </div>
             </a>
 
-            <a href="{{ route('landlord.scheduled-visits') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-md hover:bg-gray-50 transition-all duration-200 group">
+            <a href="{{ route('landlord.scheduled-visits') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-lg transition-all duration-200 group fade-in-up">
                 <div class="flex items-center">
-                    <div class="p-3 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
+                    <div class="p-3 bg-purple-50 rounded-lg group-hover:bg-purple-100 transition-colors">
                         <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
@@ -80,9 +80,9 @@
             </a>
 
 
-            <a href="{{ route('landlord.notifications') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-md hover:bg-gray-50 transition-all duration-200 group">
+            <a href="{{ route('landlord.notifications') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-lg transition-all duration-200 group fade-in-up">
                 <div class="flex items-center">
-                    <div class="p-3 bg-red-100 rounded-lg group-hover:bg-red-200 transition-colors">
+                    <div class="p-3 bg-red-50 rounded-lg group-hover:bg-red-100 transition-colors">
                         <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
                         </svg>
@@ -102,9 +102,9 @@
                 </div>
             </a>
 
-            <a href="{{ route('landlord.admin-messages') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-md hover:bg-gray-50 transition-all duration-200 group">
+            <a href="{{ route('landlord.admin-messages') }}" class="bg-white rounded-lg shadow-sm p-6 block hover:shadow-lg transition-all duration-200 group fade-in-up">
                 <div class="flex items-center">
-                    <div class="p-3 bg-indigo-100 rounded-lg group-hover:bg-indigo-200 transition-colors">
+                    <div class="p-3 bg-indigo-50 rounded-lg group-hover:bg-indigo-100 transition-colors">
                         <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                         </svg>
