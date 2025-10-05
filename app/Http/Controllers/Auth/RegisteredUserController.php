@@ -176,7 +176,10 @@ class RegisteredUserController extends Controller
 
                 if ($validated['role'] === 'tenant') {
                     $userData['address'] = $validated['address'];
-                    $userData['city'] = $validated['city'];
+                    // If "Other" is selected, use the custom city name
+                    $userData['city'] = $validated['city'] === 'Other' && $request->has('other_city')
+                        ? $request->input('other_city')
+                        : $validated['city'];
                     $userData['province'] = $validated['province'] ?? 'Pampanga';
                 }
 

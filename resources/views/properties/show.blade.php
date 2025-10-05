@@ -2745,7 +2745,7 @@
 </div>
 
 <!-- Schedule Visit Modal -->
-<div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 overflow-y-auto" style="padding-top: 80px;">
+<div id="scheduleModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] overflow-y-auto" style="padding-top: 80px;">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
             <!-- Header -->
@@ -2849,7 +2849,7 @@
 </div>
 
 <!-- Book Property Modal -->
-<div id="bookingModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-50 overflow-y-auto">
+<div id="bookingModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[60] overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
             <!-- Header -->
@@ -2956,7 +2956,7 @@
 </div>
 
 <!-- Directions Modal -->
-<div id="directionsModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
+<div id="directionsModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-[60]">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4 overflow-hidden">
         <div class="p-6">
             <div class="flex justify-between items-center mb-6">

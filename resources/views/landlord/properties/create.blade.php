@@ -598,7 +598,7 @@
 </div>
 
 <!-- Get Directions Modal -->
-<div id="directionsModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50">
+<div id="directionsModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-[60]">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md m-4 overflow-hidden">
         <div class="p-6">
             <div class="flex justify-between items-center mb-6">
