@@ -95,8 +95,8 @@ class ProfileController extends Controller
                                     'height' => 400,
                                     'crop' => 'fill',
                                     'gravity' => 'face',
-                                    'quality' => 'auto',
-                                    'fetch_format' => 'auto'
+                                    'quality' => 'auto:good', // Automatic quality optimization
+                                    'fetch_format' => 'auto' // Automatic format selection (WebP when supported)
                                 ]
                             ]
                         );
