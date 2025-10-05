@@ -27,10 +27,10 @@ class PropertyImageController extends Controller
 
         $request->validate([
             'images' => 'required|array|max:10',
-            'images.*' => 'required|file|mimes:jpeg,jpg,png,webp,heic,heif|max:40960', // 40MB max - supports high-quality camera photos
+            'images.*' => 'required|file|mimes:jpeg,jpg,png,webp,heic,heif|max:10240', // 10MB max - compatible with most servers
         ], [
             'images.*.mimes' => '📸 Only image files (JPEG, PNG, WebP, HEIC) are allowed. Please select valid image files.',
-            'images.*.max' => '📏 Image file too large! Each image must not exceed 40MB. Try compressing your image or use a smaller resolution.',
+            'images.*.max' => '📏 Image file too large! Each image must not exceed 10MB. Try compressing your image before uploading.',
             'images.required' => '🖼️ Please select at least one image for your property.',
             'images.max' => '📊 Too many images! You can upload maximum 10 images per property.',
         ]);

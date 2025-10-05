@@ -103,7 +103,7 @@
                            required
                            onchange="validateImages(this)"
                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
-                    <p class="text-sm text-gray-500 mt-1">Select 1-10 images (JPEG, PNG, WEBP, HEIC, max 40MB each)</p>
+                    <p class="text-sm text-gray-500 mt-1">Select 1-10 images (JPEG, PNG, WEBP, HEIC, max 10MB each)</p>
                     <div id="imageUploadError" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                         <p class="text-red-600 text-sm flex items-start">
                             <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -940,7 +940,7 @@
     function validateImages(input) {
         const errorDiv = document.getElementById('imageUploadError');
         const errorMessage = document.getElementById('imageUploadErrorMessage');
-        const maxSize = 40 * 1024 * 1024; // 40MB in bytes
+        const maxSize = 10 * 1024 * 1024; // 10MB in bytes (server limit)
         const maxFiles = 10;
         const files = Array.from(input.files);
 
@@ -965,7 +965,7 @@
         });
 
         if (oversizedFiles.length > 0) {
-            errorMessage.innerHTML = `<strong>File(s) too large!</strong><br>The following image(s) exceed the 40MB limit:${oversizedFiles.join('')}<br><br>💡 <strong>Tip:</strong> Try compressing your images before uploading, or use a smaller resolution.`;
+            errorMessage.innerHTML = `<strong>File(s) too large!</strong><br>The following image(s) exceed the 10MB limit:${oversizedFiles.join('')}<br><br>💡 <strong>Tip:</strong> Compress your images first using free tools like <a href="https://tinypng.com" target="_blank" class="text-blue-600 underline">TinyPNG</a> or reduce image resolution.`;
             errorDiv.classList.remove('hidden');
             input.value = '';
             return false;
