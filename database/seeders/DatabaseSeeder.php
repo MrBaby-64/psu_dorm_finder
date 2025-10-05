@@ -12,10 +12,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Only seed essential data for production
         $this->call([
-            AmenitySeeder::class,
-            UserSeeder::class,
-            PropertySeeder::class,
+            AmenitySeeder::class,  // Essential: Amenity list for the system
+            UserSeeder::class,     // Essential: Creates permanent admin account (psuteam001@gmail.com)
+            // PropertySeeder::class, // Disabled - properties will be created by landlords
         ]);
     }
 }

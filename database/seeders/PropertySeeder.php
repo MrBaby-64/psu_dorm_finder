@@ -18,9 +18,16 @@ class PropertySeeder extends Seeder
 {
     public function run(): void
     {
+        // This seeder is intentionally empty for production deployment
+        // All properties, rooms, reviews, bookings, and messages will be created
+        // by users through the application interface
+
+        // For demo/testing purposes, you can uncomment the code below:
+
+        /*
         $landlords = User::where('role', User::ROLE_LANDLORD)->get();
         $tenants = User::where('role', User::ROLE_TENANT)->get();
-        
+
         // Properties near PSU Bacolor Campus (14.6692, 120.6306)
         $bacolorProperties = [
             [
@@ -243,5 +250,7 @@ Booking::create([
         ];
 
         return $comments[array_rand($comments)];
+    }
+        */
     }
 }
