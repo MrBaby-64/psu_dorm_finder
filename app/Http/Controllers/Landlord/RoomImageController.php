@@ -31,10 +31,12 @@ class RoomImageController extends Controller
 
         $request->validate([
             'images' => 'required|array|max:10',
-            'images.*' => 'required|file|mimes:jpeg,jpg,png,webp,heic,heif|max:51200', // 50MB max - supports high-quality camera photos
+            'images.*' => 'required|file|mimes:jpeg,jpg,png,webp,heic,heif|max:40960', // 40MB max - supports high-quality camera photos
         ], [
-            'images.*.mimes' => 'Only image files (JPEG, PNG, WebP, HEIC) are allowed.',
-            'images.*.max' => 'Each image must not exceed 50MB.',
+            'images.*.mimes' => '📸 Only image files (JPEG, PNG, WebP, HEIC) are allowed. Please select valid image files.',
+            'images.*.max' => '📏 Image file too large! Each image must not exceed 40MB. Try compressing your image or use a smaller resolution.',
+            'images.required' => '🖼️ Please select at least one image for this room.',
+            'images.max' => '📊 Too many images! You can upload maximum 10 images per room.',
         ]);
 
         $uploadedImages = [];
