@@ -103,7 +103,7 @@
                            required
                            onchange="validateImages(this)"
                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
-                    <p class="text-sm text-gray-500 mt-1">Select 1-10 images (JPEG, PNG, WEBP, HEIC, max 10MB each)</p>
+                    <p class="text-sm text-gray-500 mt-1">Upload as many images as you want! Each image max 2MB. (Upload in batches if needed)</p>
                     <div id="imageUploadError" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                         <p class="text-red-600 text-sm flex items-start">
                             <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -940,38 +940,14 @@
     function validateImages(input) {
         const errorDiv = document.getElementById('imageUploadError');
         const errorMessage = document.getElementById('imageUploadErrorMessage');
-        const maxSize = 10 * 1024 * 1024; // 10MB in bytes (server limit)
-        const maxFiles = 10;
+        const maxSizePerFile = 2 * 1024 * 1024; // 2MB per file
+        const maxTotalSize = 7 * 1024 * 1024; // 7MB total (server has 8MB limit, leave buffer)
         const files = Array.from(input.files);
 
         // Hide previous errors
         errorDiv.classList.add('hidden');
 
-        // Check number of files
-        if (files.length > maxFiles) {
-            errorMessage.innerHTML = `<strong>Too many files!</strong><br>You selected ${files.length} images, but the maximum is ${maxFiles} images. Please remove ${files.length - maxFiles} image(s).`;
-            errorDiv.classList.remove('hidden');
-            input.value = '';
-            return false;
-        }
-
-        // Check each file size
-        let oversizedFiles = [];
-        files.forEach((file, index) => {
-            if (file.size > maxSize) {
-                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
-                oversizedFiles.push(`<br>• <strong>${file.name}</strong> (${sizeMB}MB)`);
-            }
-        });
-
-        if (oversizedFiles.length > 0) {
-            errorMessage.innerHTML = `<strong>File(s) too large!</strong><br>The following image(s) exceed the 10MB limit:${oversizedFiles.join('')}<br><br>💡 <strong>Tip:</strong> Compress your images first using free tools like <a href="https://tinypng.com" target="_blank" class="text-blue-600 underline">TinyPNG</a> or reduce image resolution.`;
-            errorDiv.classList.remove('hidden');
-            input.value = '';
-            return false;
-        }
-
-        // Check file types
+        // Check file types first
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
         let invalidFiles = [];
         files.forEach(file => {
@@ -982,6 +958,34 @@
 
         if (invalidFiles.length > 0) {
             errorMessage.innerHTML = `<strong>Invalid file type!</strong><br>The following file(s) are not images:${invalidFiles.join('')}<br><br>✅ <strong>Accepted formats:</strong> JPEG, PNG, WEBP, HEIC`;
+            errorDiv.classList.remove('hidden');
+            input.value = '';
+            return false;
+        }
+
+        // Check each file size
+        let oversizedFiles = [];
+        files.forEach((file, index) => {
+            if (file.size > maxSizePerFile) {
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                oversizedFiles.push(`<br>• <strong>${file.name}</strong> (${sizeMB}MB)`);
+            }
+        });
+
+        if (oversizedFiles.length > 0) {
+            errorMessage.innerHTML = `<strong>File(s) too large!</strong><br>The following image(s) exceed the 2MB limit:${oversizedFiles.join('')}<br><br>💡 <strong>Tip:</strong> Compress your images at <a href="https://tinypng.com" target="_blank" class="text-blue-600 underline">TinyPNG</a> to reduce file size.`;
+            errorDiv.classList.remove('hidden');
+            input.value = '';
+            return false;
+        }
+
+        // Check total upload size (IMPORTANT: Server has 8MB POST limit!)
+        const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+        const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+
+        if (totalSize > maxTotalSize) {
+            const maxBatch = Math.floor(maxTotalSize / maxSizePerFile);
+            errorMessage.innerHTML = `<strong>⚠️ Total upload size too large!</strong><br>You selected ${files.length} images totaling <strong>${totalSizeMB}MB</strong>, but the server limit is <strong>7MB per upload</strong>.<br><br>💡 <strong>Solutions:</strong><br>1. Compress images at <a href="https://tinypng.com" target="_blank" class="text-blue-600 underline">TinyPNG</a><br>2. Upload in batches (max ${maxBatch} images at a time)<br>3. You can add more images later after creating the property`;
             errorDiv.classList.remove('hidden');
             input.value = '';
             return false;
