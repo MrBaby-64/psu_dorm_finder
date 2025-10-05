@@ -31,7 +31,10 @@ class RoomImageController extends Controller
 
         $request->validate([
             'images' => 'required|array|max:10',
-            'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:5120', // 5MB max
+            'images.*' => 'required|file|mimes:jpeg,jpg,png,webp,heic,heif|max:51200', // 50MB max - supports high-quality camera photos
+        ], [
+            'images.*.mimes' => 'Only image files (JPEG, PNG, WebP, HEIC) are allowed.',
+            'images.*.max' => 'Each image must not exceed 50MB.',
         ]);
 
         $uploadedImages = [];
@@ -47,7 +50,7 @@ class RoomImageController extends Controller
 
         foreach ($request->file('images') as $index => $image) {
             try {
-                // Upload to Cloudinary
+                // Upload to Cloudinary with automatic optimization
                 $uploadResult = $cloudinary->uploadApi()->upload(
                     $image->getRealPath(),
                     [
@@ -55,9 +58,15 @@ class RoomImageController extends Controller
                         'public_id' => 'room_' . $room->id . '_' . time() . '_' . $index,
                         'resource_type' => 'image',
                         'transformation' => [
-                            'quality' => 'auto',
-                            'fetch_format' => 'auto'
-                        ]
+                            'quality' => 'auto:good', // Automatic quality optimization
+                            'fetch_format' => 'auto', // Automatic format selection (WebP when supported)
+                        ],
+                        // Server-side compression settings
+                        'eager' => [
+                            ['width' => 1920, 'height' => 1080, 'crop' => 'limit', 'quality' => 'auto:good'],
+                            ['width' => 800, 'height' => 600, 'crop' => 'limit', 'quality' => 'auto:good']
+                        ],
+                        'eager_async' => true,
                     ]
                 );
 
@@ -83,9 +92,20 @@ class RoomImageController extends Controller
                 ]);
 
                 $uploadedImages[] = $roomImage;
+            } catch (\Cloudinary\Api\Exception\ApiError $e) {
+                // Handle Cloudinary-specific errors
+                \Log::error('Cloudinary upload failed: ' . $e->getMessage(), [
+                    'room_id' => $room->id,
+                    'image_index' => $index,
+                    'error_code' => $e->getCode()
+                ]);
+                continue;
             } catch (\Exception $e) {
-                // Log error and continue with next image
-                \Log::error('Cloudinary upload failed: ' . $e->getMessage());
+                // Handle general errors (e.g., file too large, memory issues)
+                \Log::error('Image upload failed: ' . $e->getMessage(), [
+                    'room_id' => $room->id,
+                    'image_index' => $index
+                ]);
                 continue;
             }
         }
