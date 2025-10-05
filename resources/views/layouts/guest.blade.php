@@ -598,7 +598,7 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">City *</label>
-                                        <select name="city" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                        <select name="city" id="citySelect" onchange="toggleOtherCityInput()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
                                             <option value="">Select your city</option>
                                             <option value="Bacolor">Bacolor</option>
                                             <option value="San Fernando">San Fernando</option>
@@ -606,6 +606,12 @@
                                             <option value="Mabalacat">Mabalacat</option>
                                             <option value="Other">Other</option>
                                         </select>
+                                        <!-- Other City Text Input (Hidden by default) -->
+                                        <input type="text"
+                                               name="other_city"
+                                               id="otherCityInput"
+                                               class="hidden w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-2"
+                                               placeholder="Enter your city name">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">Province</label>
@@ -1184,6 +1190,23 @@
                 @endif
             });
         @endif
+
+        // Toggle "Other" city input
+        function toggleOtherCityInput() {
+            const citySelect = document.getElementById('citySelect');
+            const otherCityInput = document.getElementById('otherCityInput');
+
+            if (citySelect && otherCityInput) {
+                if (citySelect.value === 'Other') {
+                    otherCityInput.classList.remove('hidden');
+                    otherCityInput.required = true;
+                } else {
+                    otherCityInput.classList.add('hidden');
+                    otherCityInput.required = false;
+                    otherCityInput.value = '';
+                }
+            }
+        }
     </script>
 
     <!-- Simple reCAPTCHA script that auto-renders -->
