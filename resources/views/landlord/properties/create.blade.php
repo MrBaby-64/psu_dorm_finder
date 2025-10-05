@@ -99,10 +99,19 @@
                            name="images[]"
                            id="imageInput"
                            multiple
-                           accept="image/jpeg,image/jpg,image/png,image/webp"
+                           accept="image/jpeg,image/jpg,image/png,image/webp,image/heic,image/heif"
                            required
+                           onchange="validateImages(this)"
                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
-                    <p class="text-sm text-gray-500 mt-1">Select 1-10 images (JPEG, JPG, PNG, WEBP, max 5MB each)</p>
+                    <p class="text-sm text-gray-500 mt-1">Select 1-10 images (JPEG, PNG, WEBP, HEIC, max 40MB each)</p>
+                    <div id="imageUploadError" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-red-600 text-sm flex items-start">
+                            <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span id="imageUploadErrorMessage"></span>
+                        </p>
+                    </div>
                     @if($errors->has('images') || $errors->has('images.*'))
                         <div class="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                             <p class="text-red-600 text-sm flex items-center">
@@ -295,13 +304,14 @@
                     <!-- Street Address -->
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Street Address <span class="text-red-500">*</span>
+                            Street Address <span class="text-red-500">*</span> <span class="text-xs text-blue-600">(Auto-filled from map)</span>
                         </label>
                         <input type="text"
                                name="address_line"
                                value="{{ old('address_line') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('address_line') border-red-300 bg-red-50 @enderror"
-                               placeholder="e.g., 123 Main Street"
+                               readonly
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed @error('address_line') border-red-300 bg-red-50 @enderror"
+                               placeholder="Click on the map to set location"
                                required>
                         @error('address_line')
                             <p class="mt-1 text-sm text-red-600 flex items-center">
@@ -316,13 +326,14 @@
                     <!-- Barangay -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Barangay <span class="text-red-500">*</span>
+                            Barangay <span class="text-red-500">*</span> <span class="text-xs text-blue-600">(Auto-filled from map)</span>
                         </label>
-                        <input type="text" 
-                               name="barangay" 
+                        <input type="text"
+                               name="barangay"
                                value="{{ old('barangay') }}"
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('barangay') border-red-300 @enderror"
-                               placeholder="e.g., Barangay Poblacion">
+                               readonly
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed @error('barangay') border-red-300 @enderror"
+                               placeholder="Click on the map to set location">
                         @error('barangay')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -925,6 +936,60 @@
         }
     }
 
+    // Image validation function with user-friendly error messages
+    function validateImages(input) {
+        const errorDiv = document.getElementById('imageUploadError');
+        const errorMessage = document.getElementById('imageUploadErrorMessage');
+        const maxSize = 40 * 1024 * 1024; // 40MB in bytes
+        const maxFiles = 10;
+        const files = Array.from(input.files);
+
+        // Hide previous errors
+        errorDiv.classList.add('hidden');
+
+        // Check number of files
+        if (files.length > maxFiles) {
+            errorMessage.innerHTML = `<strong>Too many files!</strong><br>You selected ${files.length} images, but the maximum is ${maxFiles} images. Please remove ${files.length - maxFiles} image(s).`;
+            errorDiv.classList.remove('hidden');
+            input.value = '';
+            return false;
+        }
+
+        // Check each file size
+        let oversizedFiles = [];
+        files.forEach((file, index) => {
+            if (file.size > maxSize) {
+                const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+                oversizedFiles.push(`<br>• <strong>${file.name}</strong> (${sizeMB}MB)`);
+            }
+        });
+
+        if (oversizedFiles.length > 0) {
+            errorMessage.innerHTML = `<strong>File(s) too large!</strong><br>The following image(s) exceed the 40MB limit:${oversizedFiles.join('')}<br><br>💡 <strong>Tip:</strong> Try compressing your images before uploading, or use a smaller resolution.`;
+            errorDiv.classList.remove('hidden');
+            input.value = '';
+            return false;
+        }
+
+        // Check file types
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
+        let invalidFiles = [];
+        files.forEach(file => {
+            if (!validTypes.includes(file.type.toLowerCase())) {
+                invalidFiles.push(`<br>• <strong>${file.name}</strong> (${file.type || 'unknown type'})`);
+            }
+        });
+
+        if (invalidFiles.length > 0) {
+            errorMessage.innerHTML = `<strong>Invalid file type!</strong><br>The following file(s) are not images:${invalidFiles.join('')}<br><br>✅ <strong>Accepted formats:</strong> JPEG, PNG, WEBP, HEIC`;
+            errorDiv.classList.remove('hidden');
+            input.value = '';
+            return false;
+        }
+
+        return true;
+    }
+
     function validateForm() {
         // Check if at least one image is available (either uploaded or existing temp images)
         const imageInput = document.getElementById('imageInput');
@@ -1198,11 +1263,50 @@
             })
         }).addTo(map);
 
-        propertyMarker.bindPopup('<b>Your Property Location</b>').openPopup();
+        propertyMarker.bindPopup('<b>🏠 Your Property Location</b><br><small>Fetching address...</small>').openPopup();
 
-        // Update form inputs
+        // Update coordinates
         document.getElementById('latitudeInput').value = lat.toFixed(8);
         document.getElementById('longitudeInput').value = lng.toFixed(8);
+
+        // Reverse geocode to get address from coordinates
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.address) {
+                    const addr = data.address;
+
+                    // Auto-fill address fields
+                    const street = addr.road || addr.street || addr.hamlet || '';
+                    const barangay = addr.suburb || addr.village || addr.neighbourhood || addr.quarter || '';
+                    const city = addr.city || addr.town || addr.municipality || '';
+                    const displayName = data.display_name || '';
+
+                    // Fill form fields
+                    if (street) document.querySelector('input[name="address_line"]').value = street;
+                    if (barangay) document.querySelector('input[name="barangay"]').value = barangay;
+                    if (city) {
+                        const citySelect = document.querySelector('select[name="city"]');
+                        const cityOption = Array.from(citySelect.options).find(opt =>
+                            opt.value.toLowerCase() === city.toLowerCase()
+                        );
+                        if (cityOption) citySelect.value = cityOption.value;
+                    }
+
+                    // Update popup with address
+                    propertyMarker.bindPopup(`<b>🏠 Your Property</b><br><small>${displayName}</small>`).openPopup();
+
+                    // Show success message
+                    const locationDesc = document.querySelector('input[name="location_text"]');
+                    if (!locationDesc.value) {
+                        locationDesc.value = `Near ${barangay || city || 'PSU Campus'}`;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Reverse geocoding failed:', error);
+                propertyMarker.bindPopup('<b>🏠 Your Property Location</b><br><small>Address auto-fill unavailable</small>').openPopup();
+            });
 
         // Store in session for persistence
         fetch('/landlord/properties/store-map-position', {
@@ -1214,21 +1318,10 @@
             body: JSON.stringify({ latitude: lat, longitude: lng })
         });
 
-        // Handle marker dragging
+        // Handle marker dragging with reverse geocoding
         propertyMarker.on('dragend', function(e) {
             const newPos = e.target.getLatLng();
-            document.getElementById('latitudeInput').value = newPos.lat.toFixed(8);
-            document.getElementById('longitudeInput').value = newPos.lng.toFixed(8);
-
-            // Update session on drag
-            fetch('/landlord/properties/store-map-position', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({ latitude: newPos.lat, longitude: newPos.lng })
-            });
+            setPropertyLocation(newPos.lat, newPos.lng); // Recursively call to update address
         });
     }
     
