@@ -103,7 +103,7 @@
                            required
                            onchange="validateImages(this)"
                            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100">
-                    <p class="text-sm text-gray-500 mt-1">Upload as many images as you want! Each image max 2MB. (Upload in batches if needed)</p>
+                    <p class="text-sm text-gray-500 mt-1">📤 Upload images here. Each image max 2MB.</p>
                     <div id="imageUploadError" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                         <p class="text-red-600 text-sm flex items-start">
                             <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -304,15 +304,13 @@
                     <!-- Street Address -->
                     <div class="md:col-span-2">
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Street Address <span class="text-red-500">*</span> <span class="text-xs text-blue-600">(Auto-filled from map)</span>
+                            Street Address <span class="text-xs text-blue-600">(Enter your street address if auto-fill didn't work)</span>
                         </label>
                         <input type="text"
                                name="address_line"
                                value="{{ old('address_line') }}"
-                               readonly
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed @error('address_line') border-red-300 bg-red-50 @enderror"
-                               placeholder="Click on the map to set location"
-                               required>
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('address_line') border-red-300 bg-red-50 @enderror"
+                               placeholder="Will auto-fill from map, or enter manually">
                         @error('address_line')
                             <p class="mt-1 text-sm text-red-600 flex items-center">
                                 <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -326,14 +324,13 @@
                     <!-- Barangay -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Barangay <span class="text-red-500">*</span> <span class="text-xs text-blue-600">(Auto-filled from map)</span>
+                            Barangay <span class="text-xs text-blue-600">(Auto-filled from map)</span>
                         </label>
                         <input type="text"
                                name="barangay"
                                value="{{ old('barangay') }}"
-                               readonly
-                               class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 cursor-not-allowed @error('barangay') border-red-300 @enderror"
-                               placeholder="Click on the map to set location">
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('barangay') border-red-300 @enderror"
+                               placeholder="Will auto-fill from map, or enter manually">
                         @error('barangay')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -422,13 +419,13 @@
                         <div class="ml-3">
                             <p class="text-sm text-blue-700 font-semibold mb-2">📌 How to set your property location:</p>
                             <ol class="list-decimal list-inside text-sm text-blue-700 space-y-1">
-                                <li>Enter your property address above (Street, Barangay, City)</li>
-                                <li>Click the <strong>"Find on Map"</strong> button to search for your address</li>
                                 <li><strong>Click directly on the map</strong> where your property is located</li>
-                                <li>A blue marker will appear - drag it to adjust the exact location if needed</li>
-                                <li>The Latitude & Longitude fields will auto-fill</li>
+                                <li>Street Address & Barangay will <strong>auto-fill from map</strong></li>
+                                <li>If auto-fill doesn't work, you can type the address manually</li>
+                                <li>Drag the blue marker to adjust exact location if needed</li>
+                                <li>Latitude & Longitude will auto-fill automatically</li>
                             </ol>
-                            <p class="text-xs text-blue-600 mt-2 italic">💡 Tip: You can also use "Use My Current Location" if you're at the property right now!</p>
+                            <p class="text-xs text-blue-600 mt-2 italic">💡 Tip: Use "Use My Current Location" if you're at the property right now!</p>
                         </div>
                     </div>
                 </div>
