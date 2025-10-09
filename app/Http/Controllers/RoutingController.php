@@ -31,21 +31,25 @@ class RoutingController extends Controller
         $profile = $request->profile ?? 'car';
 
         try {
-            // Use GraphHopper public API (free tier)
-            $response = Http::timeout(15)->get('https://graphhopper.com/api/1/route', [
-                'point' => [
-                    "{$originLat},{$originLng}",
-                    "{$destLat},{$destLng}"
-                ],
+            $apiKey = config('services.graphhopper.api_key', '');
+
+            // Build URL with proper query parameters for GraphHopper API
+            $url = 'https://graphhopper.com/api/1/route?' . http_build_query([
                 'profile' => $profile,
                 'locale' => 'en',
-                'instructions' => true,
-                'calc_points' => true,
-                'points_encoded' => false,
-                'alternative_route.max_paths' => 3, // Get up to 3 alternative routes
+                'instructions' => 'true',
+                'calc_points' => 'true',
+                'points_encoded' => 'false',
+                'alternative_route.max_paths' => 3,
                 'algorithm' => 'alternative_route',
-                'key' => config('services.graphhopper.api_key', '')
+                'key' => $apiKey
             ]);
+
+            // Add multiple point parameters
+            $url .= "&point={$originLat},{$originLng}&point={$destLat},{$destLng}";
+
+            // Use GraphHopper public API (free tier)
+            $response = Http::timeout(15)->get($url);
 
             if ($response->successful()) {
                 $data = $response->json();
