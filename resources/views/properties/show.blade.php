@@ -1101,27 +1101,36 @@
             existingPanel.remove();
         }
 
-        // Create route options mini panel overlay on map (left side)
+        // Check if mobile view
+        const isMobile = window.innerWidth < 768;
+
+        // Create route options panel
         const panel = document.createElement('div');
         panel.id = 'routeOptionsPanel';
-        panel.style.cssText = `
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            z-index: 1000;
-            max-width: 280px;
-            width: calc(100vw - 40px);
-            max-height: 400px;
-            overflow-y: auto;
-        `;
+
+        if (isMobile) {
+            // Mobile: Insert after distance card
+            panel.className = 'mt-4 bg-white border border-gray-200 rounded-lg p-3 shadow-sm';
+        } else {
+            // Desktop: Overlay on map (left side)
+            panel.style.cssText = `
+                position: absolute;
+                top: 10px;
+                left: 10px;
+                background: white;
+                padding: 12px;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                z-index: 1000;
+                max-width: 280px;
+                max-height: 400px;
+                overflow-y: auto;
+            `;
+        }
 
         let html = '<div style="font-size: 14px; font-weight: bold; color: #1f2937; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">';
         html += '<span>📍 Route Options</span>';
-        html += '<button onclick="window.clearRoutesHelper()" style="background: none; border: none; color: #ef4444; font-size: 18px; cursor: pointer; padding: 0;" title="Close">×</button>';
+        html += '<button id="closeRoutesBtn" style="background: none; border: none; color: #ef4444; font-size: 18px; cursor: pointer; padding: 0; line-height: 1;" title="Close">×</button>';
         html += '</div>';
         html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
 
@@ -1138,7 +1147,7 @@
             const label = labels[index] || `Route ${index + 1}`;
 
             html += `
-                <button id="routeBtn${index}" style="
+                <button data-route-index="${index}" class="route-option-btn" style="
                     padding: 10px;
                     background: ${bgColor};
                     border: 2px solid ${borderColor};
@@ -1162,26 +1171,60 @@
         });
 
         html += '</div>';
-        html += '<button onclick="window.clearRoutesHelper()" style="margin-top: 10px; width: 100%; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: background 0.2s;" onmouseover="this.style.background=\'#dc2626\'" onmouseout="this.style.background=\'#ef4444\'">✕ Clear Routes</button>';
+        html += '<button id="clearRoutesBtn" style="margin-top: 10px; width: 100%; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: background 0.2s;" onmouseover="this.style.background=\'#dc2626\'" onmouseout="this.style.background=\'#ef4444\'">✕ Clear Routes</button>';
 
         panel.innerHTML = html;
 
-        // Add to map container
-        const mapContainer = document.getElementById('propertyMap');
-        if (mapContainer) {
-            mapContainer.style.position = 'relative';
-            mapContainer.appendChild(panel);
-
-            // Add click handlers after DOM is updated
-            routes.forEach((route, index) => {
-                const btn = document.getElementById(`routeBtn${index}`);
-                if (btn) {
-                    btn.onclick = function() {
-                        selectRoute(index);
-                    };
-                }
-            });
+        // Add to appropriate container
+        if (isMobile) {
+            // Mobile: Insert after distance card
+            const distanceCard = document.querySelector('.bg-gradient-to-r.from-yellow-50');
+            if (distanceCard) {
+                distanceCard.parentNode.insertBefore(panel, distanceCard.nextSibling);
+            }
+        } else {
+            // Desktop: Overlay on map
+            const mapContainer = document.getElementById('propertyMap');
+            if (mapContainer) {
+                mapContainer.style.position = 'relative';
+                mapContainer.appendChild(panel);
+            }
         }
+
+        // Add event listeners using proper JavaScript
+        setTimeout(() => {
+            // Route selection buttons
+            const routeBtns = document.querySelectorAll('.route-option-btn');
+            routeBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const index = parseInt(this.getAttribute('data-route-index'));
+                    console.log('Route button clicked:', index);
+                    selectRoute(index);
+                });
+            });
+
+            // Clear button
+            const clearBtn = document.getElementById('clearRoutesBtn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    clearRoutes();
+                });
+            }
+
+            // Close button
+            const closeBtn = document.getElementById('closeRoutesBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    clearRoutes();
+                });
+            }
+        }, 100);
     }
 
     function selectRoute(index) {
