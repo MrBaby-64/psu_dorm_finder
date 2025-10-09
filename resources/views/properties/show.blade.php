@@ -1228,11 +1228,17 @@
     }
 
     function selectRoute(index) {
+        console.log('selectRoute called with index:', index);
+        console.log('selectedRoutes array:', selectedRoutes);
+        console.log('selectedRoutes[' + index + ']:', selectedRoutes[index]);
+
         if (selectedRoutes[index]) {
             displaySingleRoute(selectedRoutes[index], index);
             const labels = ['fastest', 'alternative', 'scenic'];
             const label = labels[index] || 'route';
             showSimpleAlert(`Showing ${label} route: ${selectedRoutes[index].duration_text}`, 'success');
+        } else {
+            console.error('Route not found at index:', index);
         }
     }
 
