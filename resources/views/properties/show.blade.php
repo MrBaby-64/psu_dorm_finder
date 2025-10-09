@@ -1045,8 +1045,15 @@
     }
 
     function displayRoutesOnMap(originLat, originLng, routes) {
-        // Clear existing route layers
-        clearRoutes();
+        // Clear only the visual layers, NOT the selectedRoutes array
+        if (currentRouteLayer) {
+            map.removeLayer(currentRouteLayer);
+            currentRouteLayer = null;
+        }
+        if (currentRouteMarker) {
+            map.removeLayer(currentRouteMarker);
+            currentRouteMarker = null;
+        }
 
         if (!map) return;
 
@@ -1200,7 +1207,6 @@
                     e.preventDefault();
                     e.stopPropagation();
                     const index = parseInt(this.getAttribute('data-route-index'));
-                    console.log('Route button clicked:', index);
                     selectRoute(index);
                 });
             });
@@ -1228,17 +1234,11 @@
     }
 
     function selectRoute(index) {
-        console.log('selectRoute called with index:', index);
-        console.log('selectedRoutes array:', selectedRoutes);
-        console.log('selectedRoutes[' + index + ']:', selectedRoutes[index]);
-
         if (selectedRoutes[index]) {
             displaySingleRoute(selectedRoutes[index], index);
             const labels = ['fastest', 'alternative', 'scenic'];
             const label = labels[index] || 'route';
             showSimpleAlert(`Showing ${label} route: ${selectedRoutes[index].duration_text}`, 'success');
-        } else {
-            console.error('Route not found at index:', index);
         }
     }
 
