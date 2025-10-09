@@ -71,14 +71,51 @@
         </div>
     </div>
 
-    {{-- Valid ID for landlords --}}
-    @if($user->role === 'landlord' && $user->valid_id_path)
+    {{-- Tenant ID for tenants --}}
+    @if($user->role === 'tenant')
     <div class="mt-6">
-        <h3 class="text-lg font-semibold mb-3">Valid ID Document</h3>
-        <img src="{{ asset('storage/' . $user->valid_id_path) }}"
-             alt="Valid ID"
-             class="max-w-md rounded border shadow-sm cursor-pointer"
-             onclick="viewIDDocument('{{ asset('storage/' . $user->valid_id_path) }}')">
+        <h3 class="text-lg font-semibold mb-3">Valid ID / School ID</h3>
+        @if($user->tenant_id_path)
+            <div class="mb-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    @if($user->tenant_id_verification_status === 'pending') bg-yellow-100 text-yellow-800
+                    @elseif($user->tenant_id_verification_status === 'approved') bg-green-100 text-green-800
+                    @elseif($user->tenant_id_verification_status === 'rejected') bg-red-100 text-red-800
+                    @else bg-gray-100 text-gray-800 @endif">
+                    {{ ucfirst($user->tenant_id_verification_status ?? 'Pending') }}
+                </span>
+            </div>
+            <img src="{{ asset('storage/' . $user->tenant_id_path) }}"
+                 alt="Tenant ID"
+                 class="max-w-md rounded border shadow-sm cursor-pointer"
+                 onclick="window.open('{{ asset('storage/' . $user->tenant_id_path) }}', '_blank')">
+        @else
+            <p class="text-sm text-gray-500">No ID uploaded</p>
+        @endif
+    </div>
+    @endif
+
+    {{-- Property Documents for landlords --}}
+    @if($user->role === 'landlord')
+    <div class="mt-6">
+        <h3 class="text-lg font-semibold mb-3">Property Ownership Documents</h3>
+        @if($user->property_documents_path)
+            <div class="mb-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    @if($user->document_verification_status === 'pending') bg-yellow-100 text-yellow-800
+                    @elseif($user->document_verification_status === 'approved') bg-green-100 text-green-800
+                    @elseif($user->document_verification_status === 'rejected') bg-red-100 text-red-800
+                    @else bg-gray-100 text-gray-800 @endif">
+                    {{ ucfirst($user->document_verification_status ?? 'Pending') }}
+                </span>
+            </div>
+            <img src="{{ asset('storage/' . $user->property_documents_path) }}"
+                 alt="Property Documents"
+                 class="max-w-md rounded border shadow-sm cursor-pointer"
+                 onclick="window.open('{{ asset('storage/' . $user->property_documents_path) }}', '_blank')">
+        @else
+            <p class="text-sm text-gray-500">No property documents uploaded</p>
+        @endif
     </div>
     @endif
 </div>

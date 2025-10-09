@@ -26,6 +26,9 @@ Route::get('/rentals/browse', [PropertyController::class, 'browse'])->name('prop
 // Search suggestions API
 Route::get('/api/properties/search-suggestions', [PropertyController::class, 'searchSuggestions'])->name('properties.search-suggestions');
 
+// Routing API
+Route::get('/api/routing/get-routes', [\App\Http\Controllers\RoutingController::class, 'getRoutes'])->name('api.routing.get-routes');
+
 // Property details
 Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
 
@@ -224,7 +227,20 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/users/{user}', [\App\Http\Controllers\Admin\UserController::class, 'show'])->name('users.show');
     Route::post('/users/{user}/role', [\App\Http\Controllers\Admin\UserController::class, 'updateRole'])->name('users.role');
     Route::post('/users/{user}/verify', [\App\Http\Controllers\Admin\UserController::class, 'verify'])->name('users.verify');
-    
+
+    // Landlord document verification
+    Route::get('/landlords/verify', [\App\Http\Controllers\Admin\LandlordController::class, 'verify'])->name('landlords.verify');
+    Route::post('/landlords/{landlord}/approve-id', [\App\Http\Controllers\Admin\LandlordController::class, 'approveDocuments'])->name('landlords.approve-id');
+    Route::post('/landlords/{landlord}/reject-id', [\App\Http\Controllers\Admin\LandlordController::class, 'rejectDocuments'])->name('landlords.reject-id');
+
+    // Tenant ID verification
+    Route::post('/tenants/{tenant}/approve-id', [\App\Http\Controllers\Admin\TenantController::class, 'approveId'])->name('tenants.approve-id');
+    Route::post('/tenants/{tenant}/reject-id', [\App\Http\Controllers\Admin\TenantController::class, 'rejectId'])->name('tenants.reject-id');
+
+    // Tenant Suspension
+    Route::post('/users/{user}/suspend', [\App\Http\Controllers\Admin\SuspensionController::class, 'suspend'])->name('users.suspend');
+    Route::post('/users/{user}/lift-suspension', [\App\Http\Controllers\Admin\SuspensionController::class, 'lift'])->name('users.lift-suspension');
+
     // Reports
     Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('reports.export');

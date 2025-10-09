@@ -73,6 +73,29 @@
                         </div>
                     </div>
 
+                    @if($message->attachment_path)
+                    <div>
+                        <label class="text-sm font-medium text-gray-700">Attachment</label>
+                        <div class="mt-2 p-4 bg-gray-50 rounded-md border">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-600">Landlord uploaded photo:</span>
+                                <a href="{{ asset('storage/' . $message->attachment_path) }}" target="_blank"
+                                   class="text-xs text-blue-600 hover:text-blue-800 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                    Open in new tab
+                                </a>
+                            </div>
+                            <img src="{{ asset('storage/' . $message->attachment_path) }}"
+                                 alt="Message Attachment"
+                                 class="w-full max-w-md rounded-lg border border-gray-300 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                                 onclick="window.open('{{ asset('storage/' . $message->attachment_path) }}', '_blank')">
+                            <p class="text-xs text-gray-500 mt-2 italic">Click image to view full size</p>
+                        </div>
+                    </div>
+                    @endif
+
                     <div>
                         <label class="text-sm font-medium text-gray-700">Timeline</label>
                         <div class="mt-2 space-y-2">

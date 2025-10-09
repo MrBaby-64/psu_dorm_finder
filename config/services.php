@@ -45,4 +45,8 @@ return [
         'api_key' => env('SENDGRID_API_KEY'),
     ],
 
+    'graphhopper' => [
+        'api_key' => env('GRAPHHOPPER_API_KEY', ''),
+    ],
+
 ];

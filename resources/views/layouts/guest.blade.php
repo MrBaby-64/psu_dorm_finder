@@ -619,15 +619,27 @@
                                                class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600">
                                     </div>
                                 </div>
+
+                                <!-- Tenant Valid/School ID Field -->
+                                <div class="mb-4">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Valid ID / School ID <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="file" name="tenant_id" accept="image/*,.pdf" required
+                                           class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <p class="text-xs text-gray-600 mt-1">Upload your valid ID or school ID for verification. Admin will review this to verify your account.</p>
+                                </div>
                             </div>
 
-                            <!-- Landlord Valid ID Field -->
-                            <div id="landlordIdSection" class="hidden">
+                            <!-- Landlord Property Documents Field -->
+                            <div id="landlordDocumentsSection" class="hidden">
                                 <div class="mb-4">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Valid ID (Optional)</label>
-                                    <input type="file" name="valid_id" accept="image/*,.pdf"
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                        Property Permits/Documents <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="file" name="property_documents" accept="image/*,.pdf" required
                                            class="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-green-500">
-                                    <p class="text-xs text-gray-600 mt-1">You can upload your valid ID later for verification</p>
+                                    <p class="text-xs text-gray-600 mt-1">Upload property permits or ownership documents to prove you own rental properties. Admin will review this to approve your property posts.</p>
                                 </div>
                             </div>
                         </div>
@@ -828,35 +840,47 @@
 
             // Show/hide role-specific sections
             const tenantSection = document.getElementById('tenantAddressSection');
-            const landlordSection = document.getElementById('landlordIdSection');
+            const landlordSection = document.getElementById('landlordDocumentsSection');
 
             if (role === 'tenant') {
                 if (tenantSection) {
                     tenantSection.classList.remove('hidden');
                     console.log('✅ Tenant address section shown');
 
-                    // Make address and city required
+                    // Make tenant fields required
                     const addressField = tenantSection.querySelector('[name="address"]');
                     const cityField = tenantSection.querySelector('[name="city"]');
+                    const tenantIdField = tenantSection.querySelector('[name="tenant_id"]');
                     if (addressField) addressField.required = true;
                     if (cityField) cityField.required = true;
+                    if (tenantIdField) tenantIdField.required = true;
                 }
                 if (landlordSection) {
                     landlordSection.classList.add('hidden');
+
+                    // Remove required from landlord fields
+                    const propertyDocsField = landlordSection.querySelector('[name="property_documents"]');
+                    if (propertyDocsField) propertyDocsField.required = false;
                 }
             } else if (role === 'landlord') {
                 if (tenantSection) {
                     tenantSection.classList.add('hidden');
 
-                    // Remove required from address fields
+                    // Remove required from tenant fields
                     const addressField = tenantSection.querySelector('[name="address"]');
                     const cityField = tenantSection.querySelector('[name="city"]');
+                    const tenantIdField = tenantSection.querySelector('[name="tenant_id"]');
                     if (addressField) addressField.required = false;
                     if (cityField) cityField.required = false;
+                    if (tenantIdField) tenantIdField.required = false;
                 }
                 if (landlordSection) {
                     landlordSection.classList.remove('hidden');
                     console.log('✅ Landlord ID section shown');
+
+                    // Make landlord fields required
+                    const propertyDocsField = landlordSection.querySelector('[name="property_documents"]');
+                    if (propertyDocsField) propertyDocsField.required = true;
                 }
             }
         }
@@ -872,6 +896,7 @@
             if (role === 'tenant') {
                 const addressField = document.querySelector('#tenantAddressSection [name="address"]');
                 const cityField = document.querySelector('#tenantAddressSection [name="city"]');
+                const tenantIdField = document.querySelector('#tenantAddressSection [name="tenant_id"]');
 
                 if (!addressField || !addressField.value.trim()) {
                     alert('Please provide your current address.');
@@ -882,6 +907,22 @@
                 if (!cityField || !cityField.value) {
                     alert('Please select your city from the dropdown.');
                     if (cityField) cityField.focus();
+                    return false;
+                }
+
+                if (!tenantIdField || !tenantIdField.files || tenantIdField.files.length === 0) {
+                    alert('Please upload your Valid ID or School ID for verification.');
+                    if (tenantIdField) tenantIdField.focus();
+                    return false;
+                }
+            }
+
+            if (role === 'landlord') {
+                const propertyDocsField = document.querySelector('#landlordDocumentsSection [name="property_documents"]');
+
+                if (!propertyDocsField || !propertyDocsField.files || propertyDocsField.files.length === 0) {
+                    alert('Please upload your property permits/documents for verification.');
+                    if (propertyDocsField) propertyDocsField.focus();
                     return false;
                 }
             }

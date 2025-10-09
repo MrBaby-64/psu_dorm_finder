@@ -858,11 +858,12 @@ class PropertyController extends Controller
         $validated = $request->validate([
             'message' => 'required|string|max:2000',
             'subject' => 'nullable|string|max:200',
-            'regarding_property_id' => 'nullable|exists:properties,id'
+            'regarding_property_id' => 'nullable|exists:properties,id',
+            'attachment' => 'nullable|image|mimes:png,jpg,jpeg|max:5120'
         ]);
 
         // If property ID provided, verify ownership
-        if ($validated['regarding_property_id']) {
+        if ($validated['regarding_property_id'] ?? null) {
             $property = Property::findOrFail($validated['regarding_property_id']);
             if ($property->user_id !== auth()->id()) {
                 abort(403, 'You can only contact admin about your own properties');
@@ -870,12 +871,19 @@ class PropertyController extends Controller
         }
 
         try {
+            // Handle attachment upload
+            $attachmentPath = null;
+            if ($request->hasFile('attachment')) {
+                $attachmentPath = $request->file('attachment')->store('admin-messages', 'public');
+            }
+
             // Create admin message record
             $adminMessage = AdminMessage::create([
                 'sender_id' => auth()->id(),
                 'subject' => $validated['subject'] ?? 'Property Deletion Inquiry',
                 'message' => $validated['message'],
-                'property_id' => $validated['regarding_property_id'],
+                'property_id' => $validated['regarding_property_id'] ?? null,
+                'attachment_path' => $attachmentPath,
                 'status' => 'unread'
             ]);
 
@@ -890,7 +898,7 @@ class PropertyController extends Controller
                 'submitted_at' => now()
             ]);
 
-            return redirect()->route('landlord.properties.index')
+            return redirect()->back()
                 ->with('success', '📧 Message Sent Successfully! Your message has been delivered to the admin team. They typically respond within 24-48 hours during business days. You can expect to receive their reply via email or through your account notifications. Thank you for reaching out!');
 
         } catch (\Exception $e) {

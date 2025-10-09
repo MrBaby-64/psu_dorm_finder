@@ -14,6 +14,7 @@ class AdminMessage extends Model
         'sender_id',
         'subject',
         'message',
+        'attachment_path',
         'property_id',
         'status',
         'admin_response',

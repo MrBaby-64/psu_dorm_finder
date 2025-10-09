@@ -50,6 +50,21 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e)
     {
+        // Handle timeout errors (database connection issues)
+        if ($e instanceof \Symfony\Component\ErrorHandler\Error\FatalError &&
+            str_contains($e->getMessage(), 'Maximum execution time')) {
+
+            if (app()->environment('local')) {
+                return response()->view('errors.database-timeout', [
+                    'message' => 'Database connection timeout. Please make sure MySQL is running in XAMPP Control Panel.'
+                ], 500);
+            }
+
+            return response()->view('errors.503', [
+                'message' => 'Service temporarily unavailable. Please try again.'
+            ], 503);
+        }
+
         // Handle 404 not found errors
         if ($e instanceof NotFoundHttpException) {
             if ($request->expectsJson()) {

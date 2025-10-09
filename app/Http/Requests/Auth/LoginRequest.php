@@ -49,6 +49,24 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Check if user is suspended
+        $user = Auth::user();
+        if ($user->is_suspended) {
+            Auth::logout();
+
+            $message = 'Your account has been suspended. ';
+
+            if ($user->suspended_until) {
+                $message .= 'You will be able to login again after ' . $user->suspended_until->format('M d, Y h:i A') . '.';
+            } else {
+                $message .= 'This is a permanent suspension. Please contact PSU admin for more information.';
+            }
+
+            throw ValidationException::withMessages([
+                'email' => $message,
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
