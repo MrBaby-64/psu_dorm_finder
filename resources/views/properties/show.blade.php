@@ -1095,35 +1095,45 @@
     }
 
     function showRouteOptions(routes) {
-        // Create or update route options panel
-        let panel = document.getElementById('routeOptionsPanel');
+        // Find the distance card to insert routes after it
+        const distanceCard = document.querySelector('.bg-gradient-to-r.from-yellow-50');
 
-        if (!panel) {
-            panel = document.createElement('div');
-            panel.id = 'routeOptionsPanel';
-            panel.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 1000; max-width: 500px; width: 90%;';
-            document.body.appendChild(panel);
+        if (!distanceCard) return;
+
+        // Remove existing panel if it exists
+        const existingPanel = document.getElementById('routeOptionsPanel');
+        if (existingPanel) {
+            existingPanel.remove();
         }
 
-        let html = '<h3 style="margin: 0 0 15px 0; font-size: 18px; font-weight: bold; color: #1f2937;">Route Options</h3>';
-        html += '<div style="display: flex; flex-direction: column; gap: 10px;">';
+        // Create route options panel
+        const panel = document.createElement('div');
+        panel.id = 'routeOptionsPanel';
+        panel.className = 'mt-4 bg-white border border-gray-200 rounded-lg p-4 shadow-sm';
+
+        let html = '<h3 class="text-lg font-bold text-gray-800 mb-3">Available Routes</h3>';
+        html += '<div class="space-y-2">';
 
         routes.forEach((route, index) => {
             const colors = ['#2563eb', '#16a34a', '#ea580c'];
+            const colorClasses = ['bg-blue-50 border-blue-300 hover:bg-blue-100', 'bg-green-50 border-green-300 hover:bg-green-100', 'bg-orange-50 border-orange-300 hover:bg-orange-100'];
+            const textColors = ['text-blue-700', 'text-green-700', 'text-orange-700'];
             const color = colors[index % colors.length];
-            const labels = ['Fastest', 'Alternative', 'Scenic'];
+            const colorClass = colorClasses[index % colorClasses.length];
+            const textColor = textColors[index % textColors.length];
+            const labels = ['🚗 Fastest Route', '🛣️ Alternative Route', '🌄 Scenic Route'];
             const label = labels[index] || `Route ${index + 1}`;
 
             html += `
-                <button onclick="selectRoute(${index})" style="padding: 15px; background: white; border: 2px solid ${color}; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s;" onmouseover="this.style.background='${color}10'" onmouseout="this.style.background='white'">
-                    <div style="display: flex; justify-content: between; align-items: center;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: bold; color: ${color}; margin-bottom: 5px;">${label}</div>
-                            <div style="color: #6b7280; font-size: 14px;">
-                                <span style="font-weight: 600;">${route.duration_text}</span> · ${route.distance_text}
+                <button onclick="window.selectRouteHelper(${index})" class="w-full p-3 border-2 ${colorClass} rounded-lg cursor-pointer text-left transition-all">
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1">
+                            <div class="font-semibold ${textColor} mb-1">${label}</div>
+                            <div class="text-sm text-gray-600">
+                                <span class="font-semibold">${route.duration_text}</span> · ${route.distance_text}
                             </div>
                         </div>
-                        <svg style="width: 20px; height: 20px; color: ${color};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-5 h-5 ${textColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
                     </div>
@@ -1132,17 +1142,26 @@
         });
 
         html += '</div>';
-        html += '<button onclick="clearRoutes()" style="margin-top: 15px; width: 100%; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onmouseover="this.style.background=\'#dc2626\'" onmouseout="this.style.background=\'#ef4444\'">Clear Routes</button>';
+        html += '<button onclick="window.clearRoutesHelper()" class="mt-3 w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors">Clear Routes</button>';
 
         panel.innerHTML = html;
+
+        // Insert after the distance card
+        distanceCard.parentNode.insertBefore(panel, distanceCard.nextSibling);
     }
 
     function selectRoute(index) {
         if (selectedRoutes[index]) {
             displaySingleRoute(selectedRoutes[index], index);
-            showSimpleAlert(`Showing ${index === 0 ? 'fastest' : 'alternative'} route: ${selectedRoutes[index].duration_text}`, 'success');
+            const labels = ['fastest', 'alternative', 'scenic'];
+            const label = labels[index] || 'route';
+            showSimpleAlert(`Showing ${label} route: ${selectedRoutes[index].duration_text}`, 'success');
         }
     }
+
+    // Make functions available globally for onclick handlers
+    window.selectRouteHelper = selectRoute;
+    window.clearRoutesHelper = clearRoutes;
 
     function clearRoutes() {
         // Remove route line
