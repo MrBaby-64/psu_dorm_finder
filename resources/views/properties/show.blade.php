@@ -1095,59 +1095,93 @@
     }
 
     function showRouteOptions(routes) {
-        // Find the distance card to insert routes after it
-        const distanceCard = document.querySelector('.bg-gradient-to-r.from-yellow-50');
-
-        if (!distanceCard) return;
-
         // Remove existing panel if it exists
         const existingPanel = document.getElementById('routeOptionsPanel');
         if (existingPanel) {
             existingPanel.remove();
         }
 
-        // Create route options panel
+        // Create route options mini panel overlay on map (left side)
         const panel = document.createElement('div');
         panel.id = 'routeOptionsPanel';
-        panel.className = 'mt-4 bg-white border border-gray-200 rounded-lg p-4 shadow-sm';
+        panel.style.cssText = `
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 280px;
+            width: calc(100vw - 40px);
+            max-height: 400px;
+            overflow-y: auto;
+        `;
 
-        let html = '<h3 class="text-lg font-bold text-gray-800 mb-3">Available Routes</h3>';
-        html += '<div class="space-y-2">';
+        let html = '<div style="font-size: 14px; font-weight: bold; color: #1f2937; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">';
+        html += '<span>📍 Route Options</span>';
+        html += '<button onclick="window.clearRoutesHelper()" style="background: none; border: none; color: #ef4444; font-size: 18px; cursor: pointer; padding: 0;" title="Close">×</button>';
+        html += '</div>';
+        html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
 
         routes.forEach((route, index) => {
             const colors = ['#2563eb', '#16a34a', '#ea580c'];
-            const colorClasses = ['bg-blue-50 border-blue-300 hover:bg-blue-100', 'bg-green-50 border-green-300 hover:bg-green-100', 'bg-orange-50 border-orange-300 hover:bg-orange-100'];
-            const textColors = ['text-blue-700', 'text-green-700', 'text-orange-700'];
+            const bgColors = ['#eff6ff', '#f0fdf4', '#fff7ed'];
+            const borderColors = ['#3b82f6', '#22c55e', '#f97316'];
             const color = colors[index % colors.length];
-            const colorClass = colorClasses[index % colorClasses.length];
-            const textColor = textColors[index % textColors.length];
-            const labels = ['🚗 Fastest Route', '🛣️ Alternative Route', '🌄 Scenic Route'];
+            const bgColor = bgColors[index % bgColors.length];
+            const borderColor = borderColors[index % borderColors.length];
+            const icons = ['🚗', '🛣️', '🌄'];
+            const icon = icons[index] || '📍';
+            const labels = ['Fastest', 'Alternative', 'Scenic'];
             const label = labels[index] || `Route ${index + 1}`;
 
             html += `
-                <button onclick="window.selectRouteHelper(${index})" class="w-full p-3 border-2 ${colorClass} rounded-lg cursor-pointer text-left transition-all">
-                    <div class="flex justify-between items-center">
-                        <div class="flex-1">
-                            <div class="font-semibold ${textColor} mb-1">${label}</div>
-                            <div class="text-sm text-gray-600">
-                                <span class="font-semibold">${route.duration_text}</span> · ${route.distance_text}
+                <button id="routeBtn${index}" style="
+                    padding: 10px;
+                    background: ${bgColor};
+                    border: 2px solid ${borderColor};
+                    border-radius: 6px;
+                    cursor: pointer;
+                    text-align: left;
+                    transition: all 0.2s;
+                    width: 100%;
+                " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 18px;">${icon}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: ${color}; font-size: 12px; margin-bottom: 2px;">${label}</div>
+                            <div style="color: #6b7280; font-size: 11px;">
+                                <span style="font-weight: 600;">${route.duration_text}</span> · ${route.distance_text}
                             </div>
                         </div>
-                        <svg class="w-5 h-5 ${textColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
                     </div>
                 </button>
             `;
         });
 
         html += '</div>';
-        html += '<button onclick="window.clearRoutesHelper()" class="mt-3 w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-semibold transition-colors">Clear Routes</button>';
+        html += '<button onclick="window.clearRoutesHelper()" style="margin-top: 10px; width: 100%; padding: 8px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: background 0.2s;" onmouseover="this.style.background=\'#dc2626\'" onmouseout="this.style.background=\'#ef4444\'">✕ Clear Routes</button>';
 
         panel.innerHTML = html;
 
-        // Insert after the distance card
-        distanceCard.parentNode.insertBefore(panel, distanceCard.nextSibling);
+        // Add to map container
+        const mapContainer = document.getElementById('propertyMap');
+        if (mapContainer) {
+            mapContainer.style.position = 'relative';
+            mapContainer.appendChild(panel);
+
+            // Add click handlers after DOM is updated
+            routes.forEach((route, index) => {
+                const btn = document.getElementById(`routeBtn${index}`);
+                if (btn) {
+                    btn.onclick = function() {
+                        selectRoute(index);
+                    };
+                }
+            });
+        }
     }
 
     function selectRoute(index) {
