@@ -21,7 +21,13 @@ class User extends Authenticatable
         'city',
         'province',
         'is_verified',
-        'valid_id_path',
+        'is_suspended',
+        'suspended_until',
+        'suspension_count',
+        'property_documents_path',
+        'document_verification_status',
+        'tenant_id_path',
+        'tenant_id_verification_status',
         'profile_picture',
         'google_id',
     ];
@@ -34,6 +40,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_verified' => 'boolean',
+        'is_suspended' => 'boolean',
+        'suspended_until' => 'datetime',
     ];
 
     // Role constants
@@ -89,6 +97,16 @@ class User extends Authenticatable
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class);
+    }
+
+    public function suspensions(): HasMany
+    {
+        return $this->hasMany(Suspension::class);
+    }
+
+    public function activeSuspension()
+    {
+        return $this->hasOne(Suspension::class)->where('is_active', true)->latest();
     }
 
     // Role checking methods

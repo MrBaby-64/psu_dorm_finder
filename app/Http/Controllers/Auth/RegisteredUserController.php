@@ -94,6 +94,28 @@ class RegisteredUserController extends Controller
             ])->withInput();
         }
 
+        // Check if email or phone belongs to a suspended user
+        $suspendedUser = User::where(function($query) use ($request) {
+            $query->where('email', $request->email)
+                  ->orWhere('phone', $request->phone);
+        })
+        ->where('is_suspended', true)
+        ->first();
+
+        if ($suspendedUser) {
+            $message = 'This account has been suspended. ';
+
+            if ($suspendedUser->suspended_until) {
+                $message .= 'You will be able to register again after ' . $suspendedUser->suspended_until->format('M d, Y h:i A') . '.';
+            } else {
+                $message .= 'This is a permanent suspension. Please contact PSU admin for more information.';
+            }
+
+            return back()->withErrors([
+                'email' => $message
+            ])->withInput();
+        }
+
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -120,10 +142,11 @@ class RegisteredUserController extends Controller
             $rules['address'] = ['required', 'string', 'max:500'];
             $rules['city'] = ['required', 'string', 'max:100'];
             $rules['province'] = ['nullable', 'string', 'max:100'];
+            $rules['tenant_id'] = ['required', 'file', 'mimes:jpeg,jpg,png,pdf', 'max:5120'];
         }
 
         if ($request->role === 'landlord') {
-            $rules['valid_id'] = ['nullable', 'file', 'mimes:jpeg,jpg,png,pdf', 'max:5120'];
+            $rules['property_documents'] = ['required', 'file', 'mimes:jpeg,jpg,png,pdf', 'max:5120'];
         }
 
         $messages = [
@@ -131,6 +154,12 @@ class RegisteredUserController extends Controller
             'email.unique' => 'This email address is already registered. Please use a different email or login if you already have an account.',
             'address.required' => 'Please provide your current address so we can show you relevant properties nearby.',
             'city.required' => 'Please select your city from the dropdown list.',
+            'tenant_id.required' => 'Please upload your valid ID or school ID. This is required for tenant verification.',
+            'tenant_id.mimes' => 'ID document must be in JPEG, JPG, PNG, or PDF format.',
+            'tenant_id.max' => 'ID document file size must not exceed 5MB.',
+            'property_documents.required' => 'Please upload your property permits or ownership documents. This is required for landlord verification.',
+            'property_documents.mimes' => 'Property documents must be in JPEG, JPG, PNG, or PDF format.',
+            'property_documents.max' => 'Property documents file size must not exceed 5MB.',
             'g-recaptcha-response.required' => 'Please complete the reCAPTCHA verification by checking the "I\'m not a robot" box.',
         ];
 
@@ -189,9 +218,14 @@ class RegisteredUserController extends Controller
                     throw new \Exception('User creation failed');
                 }
 
-                if ($validated['role'] === 'landlord' && $request->hasFile('valid_id')) {
-                    $idPath = $request->file('valid_id')->store('landlord-ids', 'public');
-                    $user->update(['valid_id_path' => $idPath]);
+                if ($validated['role'] === 'landlord' && $request->hasFile('property_documents')) {
+                    $documentsPath = $request->file('property_documents')->store('landlord-documents', 'public');
+                    $user->update(['property_documents_path' => $documentsPath]);
+                }
+
+                if ($validated['role'] === 'tenant' && $request->hasFile('tenant_id')) {
+                    $tenantIdPath = $request->file('tenant_id')->store('tenant-ids', 'public');
+                    $user->update(['tenant_id_path' => $tenantIdPath]);
                 }
 
                 return $user;

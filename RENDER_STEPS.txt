@@ -1,0 +1,118 @@
+═══════════════════════════════════════════════════════════════
+  RENDER DEPLOYMENT - ROUTING SYSTEM (SIMPLE STEPS)
+═══════════════════════════════════════════════════════════════
+
+📝 YOUR API KEY: 43144345-c124-4f48-aa9d-50a0f8da1237
+
+═══════════════════════════════════════════════════════════════
+STEP 1: ADD ENVIRONMENT VARIABLE IN RENDER
+═══════════════════════════════════════════════════════════════
+
+1. Go to: https://dashboard.render.com/
+2. Click on your "PSU Dorm Finder" service
+3. Click "Environment" in the left sidebar
+4. Click "Add Environment Variable" button
+5. Fill in:
+
+   Key:   GRAPHHOPPER_API_KEY
+   Value: 43144345-c124-4f48-aa9d-50a0f8da1237
+
+6. Click "Save Changes"
+
+✅ Done! Render will automatically redeploy.
+
+═══════════════════════════════════════════════════════════════
+STEP 2: PUSH YOUR CODE TO GITHUB
+═══════════════════════════════════════════════════════════════
+
+Run these commands in your terminal:
+
+git add .
+git commit -m "Add GraphHopper routing system"
+git push origin master
+
+✅ Render will detect the push and auto-deploy!
+
+═══════════════════════════════════════════════════════════════
+STEP 3: WAIT FOR DEPLOYMENT (2-5 minutes)
+═══════════════════════════════════════════════════════════════
+
+1. Watch the "Logs" tab in Render dashboard
+2. Wait for "Build succeeded" message
+3. Wait for "Deploy live" message
+
+✅ Once you see "Deploy live", continue to Step 4
+
+═══════════════════════════════════════════════════════════════
+STEP 4: TEST ON YOUR PRODUCTION SITE
+═══════════════════════════════════════════════════════════════
+
+1. Open your Render URL (e.g., https://psu-dorm-finder.onrender.com)
+2. Browse to any property page
+3. Click "Get Directions" button
+4. Try any method:
+   - My Current Location
+   - My Address
+   - Search Address
+   - Click on Map
+
+EXPECTED RESULT:
+✅ Routes appear ON THE MAP (not external Google Maps)
+✅ Multiple route options at bottom (Fastest, Alternative, etc.)
+✅ Can click to switch between routes
+✅ Shows travel time (e.g., "5 min") and distance (e.g., "2.3 km")
+
+NOTE: If API limit exceeded (500/day), system automatically opens
+      Google Maps in new tab for proper directions!
+
+═══════════════════════════════════════════════════════════════
+THAT'S IT! YOU'RE DONE! 🎉
+═══════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════
+TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+Problem: Routes not showing
+Solution:
+  - Check Render logs for errors
+  - Verify API key is correct (no extra spaces)
+  - Try clearing browser cache (Ctrl+F5)
+
+Problem: Still redirects to Google Maps
+Solution:
+  - Deployment might not be complete
+  - Hard refresh browser (Ctrl+Shift+R)
+  - Check Render says "Deploy live"
+
+Problem: "Failed to calculate route" or opens Google Maps
+Solution:
+  - This means API limit exceeded (500/day)
+  - System automatically opens Google Maps for proper directions
+  - This is the intended fallback behavior
+  - Check API usage at https://www.graphhopper.com/
+  - Limit resets daily at midnight UTC
+
+═══════════════════════════════════════════════════════════════
+IMPORTANT NOTES
+═══════════════════════════════════════════════════════════════
+
+✅ API Key is SAFE to commit (it's meant to be used client-side)
+✅ Free tier: 500 requests per day
+✅ If limit exceeded, system opens Google Maps automatically
+✅ Users always get proper directions (in-map OR Google Maps)
+✅ No errors - seamless fallback experience
+✅ No code changes needed on Render side
+
+═══════════════════════════════════════════════════════════════
+CHECKING API USAGE
+═══════════════════════════════════════════════════════════════
+
+1. Go to: https://www.graphhopper.com/
+2. Login with your account
+3. Dashboard → API Keys
+4. See usage statistics
+
+Free tier resets daily at midnight UTC.
+
+═══════════════════════════════════════════════════════════════

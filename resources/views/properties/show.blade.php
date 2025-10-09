@@ -940,18 +940,19 @@
         }
     }
 
+    // Global variables for routing
+    let currentRouteLayer = null;
+    let currentRouteMarker = null;
+    let selectedRoutes = [];
+
     function getDirectionsGPS() {
         if (navigator.geolocation) {
+            showSimpleAlert('Getting your location...', 'info');
             navigator.geolocation.getCurrentPosition(
                 position => {
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
-                    const propertyLat = propertyLocation[0];
-                    const propertyLng = propertyLocation[1];
-
-                    const url = `https://www.google.com/maps/dir/${userLat},${userLng}/${propertyLat},${propertyLng}`;
-                    window.open(url, '_blank');
-                    closeDirectionsModal();
+                    fetchAndDisplayRoutes(userLat, userLng);
                 },
                 error => {
                     showSimpleAlert('Unable to get your location. Please try address option.', 'error');
@@ -975,12 +976,199 @@
         @endauth
     }
 
-    function getDirectionsFromAddress(address) {
+    async function getDirectionsFromAddress(address) {
+        showSimpleAlert('Finding location...', 'info');
+
+        // Use Nominatim API to geocode the address
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}, Philippines&limit=1`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                const userLat = parseFloat(data[0].lat);
+                const userLng = parseFloat(data[0].lon);
+                fetchAndDisplayRoutes(userLat, userLng);
+            } else {
+                showSimpleAlert('Address not found. Please try a different address.', 'error');
+            }
+        } catch (error) {
+            console.error('Geocoding error:', error);
+            showSimpleAlert('Failed to find address. Please try again.', 'error');
+        }
+    }
+
+    async function fetchAndDisplayRoutes(originLat, originLng) {
         const propertyLat = propertyLocation[0];
         const propertyLng = propertyLocation[1];
-        const url = `https://www.google.com/maps/dir/${encodeURIComponent(address)}/${propertyLat},${propertyLng}`;
-        window.open(url, '_blank');
-        closeDirectionsModal();
+
+        showSimpleAlert('Calculating routes...', 'info');
+
+        try {
+            const response = await fetch(`{{ route('api.routing.get-routes') }}?origin_lat=${originLat}&origin_lng=${originLng}&dest_lat=${propertyLat}&dest_lng=${propertyLng}&profile=car`);
+            const data = await response.json();
+
+            // Check if we should use Google Maps fallback
+            if (data.use_google_maps === true) {
+                showSimpleAlert(data.message || 'Opening Google Maps for directions...', 'info');
+                closeDirectionsModal();
+
+                // Open Google Maps in new tab
+                const url = `https://www.google.com/maps/dir/${originLat},${originLng}/${propertyLat},${propertyLng}`;
+                window.open(url, '_blank');
+                return;
+            }
+
+            // If we have routes, display them on the map
+            if (data.success && data.routes && data.routes.length > 0) {
+                selectedRoutes = data.routes;
+                displayRoutesOnMap(originLat, originLng, data.routes);
+                showRouteOptions(data.routes);
+                closeDirectionsModal();
+            } else {
+                // Fallback to Google Maps if no routes found
+                showSimpleAlert('Opening Google Maps for directions...', 'info');
+                closeDirectionsModal();
+                const url = `https://www.google.com/maps/dir/${originLat},${originLng}/${propertyLat},${propertyLng}`;
+                window.open(url, '_blank');
+            }
+        } catch (error) {
+            console.error('Routing error:', error);
+
+            // Fallback to Google Maps on error
+            showSimpleAlert('Opening Google Maps for directions...', 'info');
+            closeDirectionsModal();
+            const propertyLat = propertyLocation[0];
+            const propertyLng = propertyLocation[1];
+            const url = `https://www.google.com/maps/dir/${originLat},${originLng}/${propertyLat},${propertyLng}`;
+            window.open(url, '_blank');
+        }
+    }
+
+    function displayRoutesOnMap(originLat, originLng, routes) {
+        // Clear existing route layers
+        clearRoutes();
+
+        if (!map) return;
+
+        // Add origin marker
+        currentRouteMarker = L.marker([originLat, originLng], {
+            icon: L.icon({
+                iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41]
+            })
+        }).addTo(map).bindPopup('Your Location');
+
+        // Display the first (fastest) route by default
+        displaySingleRoute(routes[0], 0);
+
+        // Fit map to show both markers and route
+        const bounds = L.latLngBounds([
+            [originLat, originLng],
+            [propertyLocation[0], propertyLocation[1]]
+        ]);
+        map.fitBounds(bounds, { padding: [50, 50] });
+    }
+
+    function displaySingleRoute(route, routeIndex) {
+        // Clear existing route line
+        if (currentRouteLayer) {
+            map.removeLayer(currentRouteLayer);
+        }
+
+        // Convert geometry to Leaflet format [lat, lng]
+        const coordinates = route.geometry.map(coord => [coord[1], coord[0]]);
+
+        // Define colors for different routes
+        const colors = ['#2563eb', '#16a34a', '#ea580c'];
+        const color = colors[routeIndex % colors.length];
+
+        // Draw route on map
+        currentRouteLayer = L.polyline(coordinates, {
+            color: color,
+            weight: 5,
+            opacity: 0.7
+        }).addTo(map);
+    }
+
+    function showRouteOptions(routes) {
+        // Create or update route options panel
+        let panel = document.getElementById('routeOptionsPanel');
+
+        if (!panel) {
+            panel = document.createElement('div');
+            panel.id = 'routeOptionsPanel';
+            panel.style.cssText = 'position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: white; padding: 20px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 1000; max-width: 500px; width: 90%;';
+            document.body.appendChild(panel);
+        }
+
+        let html = '<h3 style="margin: 0 0 15px 0; font-size: 18px; font-weight: bold; color: #1f2937;">Route Options</h3>';
+        html += '<div style="display: flex; flex-direction: column; gap: 10px;">';
+
+        routes.forEach((route, index) => {
+            const colors = ['#2563eb', '#16a34a', '#ea580c'];
+            const color = colors[index % colors.length];
+            const labels = ['Fastest', 'Alternative', 'Scenic'];
+            const label = labels[index] || `Route ${index + 1}`;
+
+            html += `
+                <button onclick="selectRoute(${index})" style="padding: 15px; background: white; border: 2px solid ${color}; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s;" onmouseover="this.style.background='${color}10'" onmouseout="this.style.background='white'">
+                    <div style="display: flex; justify-content: between; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; color: ${color}; margin-bottom: 5px;">${label}</div>
+                            <div style="color: #6b7280; font-size: 14px;">
+                                <span style="font-weight: 600;">${route.duration_text}</span> · ${route.distance_text}
+                            </div>
+                        </div>
+                        <svg style="width: 20px; height: 20px; color: ${color};" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </div>
+                </button>
+            `;
+        });
+
+        html += '</div>';
+        html += '<button onclick="clearRoutes()" style="margin-top: 15px; width: 100%; padding: 10px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onmouseover="this.style.background=\'#dc2626\'" onmouseout="this.style.background=\'#ef4444\'">Clear Routes</button>';
+
+        panel.innerHTML = html;
+    }
+
+    function selectRoute(index) {
+        if (selectedRoutes[index]) {
+            displaySingleRoute(selectedRoutes[index], index);
+            showSimpleAlert(`Showing ${index === 0 ? 'fastest' : 'alternative'} route: ${selectedRoutes[index].duration_text}`, 'success');
+        }
+    }
+
+    function clearRoutes() {
+        // Remove route line
+        if (currentRouteLayer) {
+            map.removeLayer(currentRouteLayer);
+            currentRouteLayer = null;
+        }
+
+        // Remove origin marker
+        if (currentRouteMarker) {
+            map.removeLayer(currentRouteMarker);
+            currentRouteMarker = null;
+        }
+
+        // Remove route options panel
+        const panel = document.getElementById('routeOptionsPanel');
+        if (panel) {
+            panel.remove();
+        }
+
+        // Reset view to property
+        if (map && propertyLocation) {
+            map.setView(propertyLocation, 15);
+        }
+
+        selectedRoutes = [];
     }
 
     function searchAddress() {
@@ -1007,31 +1195,9 @@
         map.once('click', function(e) {
             const clickedLat = e.latlng.lat;
             const clickedLng = e.latlng.lng;
-            const propertyLat = propertyLocation[0];
-            const propertyLng = propertyLocation[1];
 
-            // Add temporary marker for clicked location
-            const clickMarker = L.marker([clickedLat, clickedLng], {
-                icon: L.icon({
-                    iconUrl: 'https://cdn.rawgit.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
-                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41],
-                    popupAnchor: [1, -34],
-                    shadowSize: [41, 41]
-                })
-            }).addTo(map).bindPopup('Your Location').openPopup();
-
-            // Open directions in Google Maps
-            const url = `https://www.google.com/maps/dir/${clickedLat},${clickedLng}/${propertyLat},${propertyLng}`;
-            window.open(url, '_blank');
-
-            // Remove marker after 3 seconds
-            setTimeout(() => {
-                map.removeLayer(clickMarker);
-            }, 3000);
-
-            showSimpleAlert('Opening directions in Google Maps...', 'success');
+            // Fetch and display routes from clicked location
+            fetchAndDisplayRoutes(clickedLat, clickedLng);
         });
     }
 

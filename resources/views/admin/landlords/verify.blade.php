@@ -3,11 +3,11 @@
 @section('content')
 <div class="py-8">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">Landlord ID Verification</h1>
+        <h1 class="text-3xl font-bold">Landlord Document Verification</h1>
 
         <div class="flex gap-2">
             @php
-                $pendingCount = $landlords->where('id_verification_status', 'pending')->count();
+                $pendingCount = $landlords->where('document_verification_status', 'pending')->count();
             @endphp
             <span class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
                 {{ $pendingCount }} Pending Verification
@@ -69,8 +69,8 @@
     @endif
 
     <div class="space-y-6">
-        @if($landlords->where('id_verification_status', 'pending')->count() > 0)
-            @foreach($landlords->where('id_verification_status', 'pending') as $landlord)
+        @if($landlords->where('document_verification_status', 'pending')->count() > 0)
+            @foreach($landlords->where('document_verification_status', 'pending') as $landlord)
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="px-6 py-4 border-b border-gray-200">
                     <div class="flex items-center justify-between">
@@ -120,13 +120,13 @@
                             </div>
                         </div>
 
-                        {{-- ID Verification Image --}}
+                        {{-- Property Documents --}}
                         <div>
-                            <label class="text-sm font-medium text-gray-700 mb-3 block">Valid ID Document</label>
-                            @if($landlord->valid_id_path)
+                            <label class="text-sm font-medium text-gray-700 mb-3 block">Property Ownership Documents/Permits</label>
+                            @if($landlord->property_documents_path)
                                 <div class="border-2 border-gray-200 rounded-lg p-4">
-                                    <img src="{{ asset('storage/' . $landlord->valid_id_path) }}"
-                                         alt="Valid ID for {{ $landlord->name }}"
+                                    <img src="{{ asset('storage/' . $landlord->property_documents_path) }}"
+                                         alt="Property documents for {{ $landlord->name }}"
                                          class="w-full h-auto max-h-80 object-contain rounded-lg shadow-sm cursor-pointer"
                                          onclick="window.open(this.src, '_blank')">
                                     <p class="text-xs text-gray-500 mt-2 text-center">Click image to view full size</p>
@@ -136,7 +136,7 @@
                                     <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                     </svg>
-                                    <p class="text-sm text-gray-500">No ID document uploaded</p>
+                                    <p class="text-sm text-gray-500">No property documents uploaded</p>
                                 </div>
                             @endif
                         </div>
@@ -148,24 +148,24 @@
                             <form action="{{ route('admin.landlords.reject-id', $landlord) }}" method="POST" class="inline">
                                 @csrf
                                 <button type="submit"
-                                        onclick="return confirm('Are you sure you want to reject {{ $landlord->name }}\'s ID verification? This action will notify the landlord.')"
+                                        onclick="return confirm('Are you sure you want to reject {{ $landlord->name }}\'s property documents? This action will notify the landlord.')"
                                         class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2 border border-red-300 text-sm font-medium rounded-lg text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
-                                    Reject ID Verification
+                                    Reject Documents
                                 </button>
                             </form>
 
                             <form action="{{ route('admin.landlords.approve-id', $landlord) }}" method="POST" class="inline">
                                 @csrf
                                 <button type="submit"
-                                        onclick="return confirm('Are you sure you want to approve {{ $landlord->name }}\'s ID verification? This will grant them full landlord privileges.')"
+                                        onclick="return confirm('Are you sure you want to approve {{ $landlord->name }}\'s property ownership documents? This will verify them as a legitimate property owner.')"
                                         class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
-                                    Approve ID Verification
+                                    Approve Documents
                                 </button>
                             </form>
                         </div>
@@ -182,7 +182,7 @@
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">All Caught Up!</h3>
                 <p class="text-sm text-gray-500 max-w-sm mx-auto">
-                    There are no pending landlord ID verifications at this time. New verification requests will appear here.
+                    There are no pending landlord document verifications at this time. New verification requests will appear here.
                 </p>
             </div>
         @endif

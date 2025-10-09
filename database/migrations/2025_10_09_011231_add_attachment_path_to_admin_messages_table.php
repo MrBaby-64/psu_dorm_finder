@@ -11,10 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('room_images', function (Blueprint $table) {
-            if (!Schema::hasColumn('room_images', 'cloudinary_public_id')) {
-                $table->string('cloudinary_public_id')->nullable()->after('image_path');
-            }
+        Schema::table('admin_messages', function (Blueprint $table) {
+            $table->string('attachment_path')->nullable()->after('message');
         });
     }
 
@@ -23,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('room_images', function (Blueprint $table) {
-            $table->dropColumn('cloudinary_public_id');
+        Schema::table('admin_messages', function (Blueprint $table) {
+            $table->dropColumn('attachment_path');
         });
     }
 };
