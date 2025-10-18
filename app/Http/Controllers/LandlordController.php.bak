@@ -32,10 +32,10 @@ class LandlordController extends Controller
     {
         $user = Auth::user();
         
-        // Fetch landlord properties
+        // Get landlord properties
         $properties = $user->properties()->with('images')->get();
         
-        // Fetch summary statistics
+        // Get summary statistics
         $stats = [
             'total_properties' => $properties->count(),
             'pending_inquiries' => $this->getPendingInquiriesCount(),
@@ -47,7 +47,7 @@ class LandlordController extends Controller
             'admin_responses' => $this->getAdminResponsesCount()
         ];
 
-        // Fetch recent activities
+        // Get recent activities
         $recentInquiries = Inquiry::whereHas('property', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -107,7 +107,7 @@ class LandlordController extends Controller
 
         $properties = $query->orderBy('created_at', 'desc')->paginate(12);
 
-        // Fetch status options
+        // Get status options
         $statuses = [
             'pending' => 'Pending Review',
             'approved' => 'Approved',
@@ -151,7 +151,7 @@ class LandlordController extends Controller
 
         $inquiries = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        // Fetch filter options
+        // Get filter options
         $userProperties = $user->properties()->get(['id', 'title']);
         $statuses = [
             'pending' => 'Pending',
@@ -224,7 +224,7 @@ class LandlordController extends Controller
 
         $visits = $query->orderBy('preferred_date', 'desc')->paginate(15);
 
-        // Fetch filter options
+        // Get filter options
         $userProperties = $user->properties()->get(['id', 'title']);
         $statuses = ScheduledVisit::getStatuses();
 
@@ -296,12 +296,12 @@ class LandlordController extends Controller
 
         $transactions = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        // Fetch filter options
+        // Get filter options
         $userProperties = $user->properties()->get(['id', 'title']);
         $statuses = Transaction::getStatuses();
         $types = Transaction::getTypes();
 
-        // Fetch summary data
+        // Get summary data
         $totalEarnings = Transaction::whereHas('property', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -355,7 +355,7 @@ class LandlordController extends Controller
 
         $reviews = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        // Fetch filter options
+        // Get filter options
         $userProperties = $user->properties()->get(['id', 'title']);
 
         return view('landlord.reviews', compact('reviews', 'userProperties'));
@@ -413,7 +413,7 @@ class LandlordController extends Controller
                 ->with('success', 'All notifications marked as read.');
         }
 
-        // Fetch notification types for filter
+        // Get notification types for filter
         $notificationTypes = Notification::getTypes();
 
         return view('landlord.notifications', compact('notifications', 'notificationTypes'));
@@ -554,7 +554,7 @@ class LandlordController extends Controller
                 ->with('error', 'Invalid notification or message ID.');
         }
 
-        // Fetch the notification and verify it belongs to this user
+        // Get the notification and verify it belongs to this user
         $notification = Notification::where('id', $notificationId)
             ->where('user_id', $user->id)
             ->where('type', Notification::TYPE_ADMIN_RESPONSE)
@@ -565,7 +565,7 @@ class LandlordController extends Controller
                 ->with('error', 'Notification not found or you do not have permission to view it.');
         }
 
-        // Fetch the admin message
+        // Get the admin message
         $adminMessage = \App\Models\AdminMessage::where('id', $adminMessageId)
             ->where('sender_id', $user->id)
             ->with(['property', 'responder'])

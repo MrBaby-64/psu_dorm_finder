@@ -1,5 +1,5 @@
 <?php
-// database/seeders/PropertySeeder.php
+
 
 namespace Database\Seeders;
 
@@ -114,7 +114,7 @@ class PropertySeeder extends Seeder
             ]
         ];
 
-        // Additional properties for variety
+        // Generate diverse property samples
         $additionalProperties = [
             [
                 'title' => 'Executive Studio - Bacolor Business District',
@@ -150,7 +150,7 @@ class PropertySeeder extends Seeder
         foreach ($allProperties as $index => $propertyData) {
             $landlord = $landlords->random();
             
-            // Create property
+            // Save property record
             $property = Property::create([
                 'user_id' => $landlord->id,
                 'title' => $propertyData['title'],
@@ -170,7 +170,7 @@ class PropertySeeder extends Seeder
                 'display_priority' => $index < 3 ? (10 - $index) : 0,
             ]);
 
-            // Create rooms
+            // Generate room records
             for ($i = 1; $i <= $property->room_count; $i++) {
                 Room::create([
                     'property_id' => $property->id,
@@ -192,7 +192,7 @@ class PropertySeeder extends Seeder
             $amenities = Amenity::whereIn('name', $amenityNames)->pluck('id');
             $property->amenities()->attach($amenities);
 
-            // Create some reviews (ensure unique user-property combinations)
+            // Generate review records (ensure unique user-property combinations)
             $reviewCount = rand(1, min(4, $tenants->count()));
             $reviewTenants = $tenants->random($reviewCount);
             
@@ -209,7 +209,7 @@ class PropertySeeder extends Seeder
             $property->updateRatingCache();
         }
 
-        // Create some sample bookings and messages
+        // Generate sample booking records and messages
         $properties = Property::all();
         
         foreach ($properties->take(5) as $property) {

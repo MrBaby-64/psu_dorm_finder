@@ -9,11 +9,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Admin Tenant ID Verification Controller
- * Handles tenant ID verification
+ * TenantController
+ *
+ * Manages tenant ID verification including approval and rejection
+ * of government-issued IDs submitted during registration.
  */
 class TenantController extends Controller
 {
+    /**
+     * Verify user has admin role before proceeding
+     */
     private function checkAdmin()
     {
         if (auth()->user()->role !== 'admin') {
@@ -22,7 +27,7 @@ class TenantController extends Controller
     }
 
     /**
-     * Approve tenant's ID and verify their account
+     * Approve tenant's government ID and activate their account
      */
     public function approveId(User $tenant)
     {
@@ -36,7 +41,7 @@ class TenantController extends Controller
             DB::beginTransaction();
 
             $tenant->tenant_id_verification_status = 'approved';
-            $tenant->is_verified = true; // Also verify the account
+            $tenant->is_verified = true;
             $tenant->save();
 
             DB::commit();

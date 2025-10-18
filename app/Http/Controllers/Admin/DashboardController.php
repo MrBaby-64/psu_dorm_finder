@@ -10,21 +10,25 @@ use App\Models\Booking;
 use App\Models\Message;
 
 /**
- * Admin Dashboard Controller
- * Shows statistics and overview for admin panel
+ * DashboardController
+ *
+ * Handles admin dashboard operations including statistics display,
+ * property approval metrics, user counts, and deletion request summaries.
  */
 class DashboardController extends Controller
 {
-    // Display admin dashboard with statistics
+    /**
+     * Display the admin dashboard with comprehensive platform statistics
+     */
     public function index()
     {
-        // Check if user is admin
+        // Restrict access to admin role only
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Only administrators can access this area');
         }
 
         try {
-            // PostgreSQL compatible - use Eloquent
+            // Gather platform statistics using Eloquent queries
             $stats = [
                 'pending_properties' => Property::where('approval_status', 'pending')->count(),
                 'approved_properties' => Property::where('approval_status', 'approved')->count(),
@@ -38,18 +42,18 @@ class DashboardController extends Controller
                 'pending_bookings' => Booking::where('status', 'pending')->count(),
             ];
 
-            // Get recent properties with landlord
+            // Fetch recent properties with landlord information for dashboard display
             $recentProperties = Property::with('landlord:id,name')
                 ->orderBy('created_at', 'DESC')
                 ->limit(5)
                 ->get();
 
-            // Get recent users
+            // Fetch recently registered users
             $recentUsers = User::orderBy('created_at', 'DESC')
                 ->limit(5)
                 ->get();
 
-            // Get recent deletion requests with relationships
+            // Fetch pending deletion requests with related property and landlord data
             $recentDeletionRequests = PropertyDeletionRequest::with(['property:id,title', 'landlord:id,name'])
                 ->where('status', 'pending')
                 ->orderBy('created_at', 'DESC')
@@ -59,9 +63,10 @@ class DashboardController extends Controller
             return view('admin.dashboard.index', compact('stats', 'recentProperties', 'recentUsers', 'recentDeletionRequests'));
 
         } catch (\Exception $e) {
+            // Log the error with full context for debugging
             \Log::error('Admin Dashboard Error: ' . $e->getMessage());
 
-            // Show detailed error in production to debug
+            // Return detailed error response for troubleshooting
             return response()->json([
                 'error' => 'Dashboard failed',
                 'message' => $e->getMessage(),
@@ -69,26 +74,6 @@ class DashboardController extends Controller
                 'file' => $e->getFile(),
                 'database' => config('database.default')
             ], 500);
-
-            // Fallback with empty data
-            $stats = [
-                'pending_properties' => 0,
-                'approved_properties' => 0,
-                'rejected_properties' => 0,
-                'pending_deletion_requests' => 0,
-                'total_deletion_requests' => 0,
-                'total_users' => 0,
-                'landlords' => 0,
-                'tenants' => 0,
-                'total_bookings' => 0,
-                'pending_bookings' => 0,
-            ];
-
-            $recentProperties = collect([]);
-            $recentUsers = collect([]);
-            $recentDeletionRequests = collect([]);
-
-            return view('admin.dashboard.index', compact('stats', 'recentProperties', 'recentUsers', 'recentDeletionRequests'));
         }
     }
 }

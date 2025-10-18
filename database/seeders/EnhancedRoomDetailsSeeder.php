@@ -20,14 +20,14 @@ class EnhancedRoomDetailsSeeder extends Seeder
         if ($rooms->isEmpty()) {
             $this->command->info('No existing rooms found. Creating sample data first...');
 
-            // Create a sample property if none exists
+            // Initialize sample property for testing
             $property = Property::first();
             if (!$property) {
                 $this->command->error('No properties found. Please create properties first.');
                 return;
             }
 
-            // Create sample rooms
+            // Initialize sample room data
             $this->createSampleRooms($property);
             $rooms = Room::all();
         }
@@ -137,7 +137,7 @@ class EnhancedRoomDetailsSeeder extends Seeder
                 null
             ], [30, 25, 25, 20]),
 
-            // Additional Details
+            // Extended room attributes
             'view_description' => $this->randomChoice(['city', 'garden', 'courtyard', 'street', 'parking'], [15, 25, 20, 30, 10]),
             'included_utilities' => $this->randomChoice([
                 ['electricity', 'water'],

@@ -17,7 +17,7 @@ use Cloudinary\Api\Upload\UploadApi;
  */
 class PropertyImageController extends Controller
 {
-    // Upload property images
+    // Store property images
     public function upload(Request $request, Property $property)
     {
         // Ensure landlord owns this property
@@ -47,7 +47,7 @@ class PropertyImageController extends Controller
 
         foreach ($request->file('images') as $index => $image) {
             try {
-                // Upload to Cloudinary with automatic optimization
+                // Store to Cloudinary with automatic optimization
                 $uploadResult = $cloudinary->uploadApi()->upload(
                     $image->getRealPath(),
                     [
@@ -67,11 +67,11 @@ class PropertyImageController extends Controller
                     ]
                 );
 
-                // Get Cloudinary URL
+                // Fetch Cloudinary URL
                 $cloudinaryUrl = $uploadResult['secure_url'];
                 $publicId = $uploadResult['public_id'];
 
-                // Get current count and max sort order (PostgreSQL compatible)
+                // Fetch current count and max sort order (PostgreSQL compatible)
                 $currentCount = PropertyImage::where('property_id', $property->id)->count();
                 $maxSortOrder = PropertyImage::where('property_id', $property->id)->max('sort_order');
 
@@ -139,7 +139,7 @@ class PropertyImageController extends Controller
         }
 
         try {
-            // Delete from Cloudinary if cloudinary_public_id exists
+            // Remove from Cloudinary if cloudinary_public_id exists
             if ($image->cloudinary_public_id) {
                 $cloudinary = new Cloudinary([
                     'cloud' => [
@@ -160,10 +160,10 @@ class PropertyImageController extends Controller
             \Log::error('Failed to delete image from Cloudinary: ' . $e->getMessage());
         }
 
-        // Store is_cover status before deletion
+        // Save is_cover status before deletion
         $wasCover = $image->is_cover;
 
-        // Delete record
+        // Remove record
         $image->delete();
 
         // If this was the cover, set another image as cover

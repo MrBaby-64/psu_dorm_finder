@@ -1,5 +1,5 @@
 <?php
-// database/migrations/xxxx_xx_xx_update_users_table_for_psu_dorm.php
+
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

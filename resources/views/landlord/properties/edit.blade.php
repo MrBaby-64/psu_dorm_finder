@@ -102,7 +102,7 @@
                 <div class="mb-8 pb-8 border-b last:border-b-0">
                     <h3 class="text-lg font-semibold mb-4">{{ $room->room_number }} - Room Images</h3>
 
-                    {{-- Display existing room images --}}
+                    {{-- Existing room image gallery --}}
                     @if($room->images->count() > 0)
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                         @foreach($room->images as $image)

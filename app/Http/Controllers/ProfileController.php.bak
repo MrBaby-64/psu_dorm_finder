@@ -54,7 +54,7 @@ class ProfileController extends Controller
                         ]
                     ]);
 
-                    // Remove old profile picture from Cloudinary if exists and it's a Cloudinary URL
+                    // Delete old profile picture from Cloudinary if exists and it's a Cloudinary URL
                     if ($user->profile_picture) {
                         if (str_starts_with($user->profile_picture, 'http://') || str_starts_with($user->profile_picture, 'https://')) {
                             // Extract public_id from Cloudinary URL and delete
@@ -74,14 +74,14 @@ class ProfileController extends Controller
                                 Log::warning('Failed to delete old Cloudinary image: ' . $e->getMessage());
                             }
                         } else {
-                            // Remove from local storage (legacy)
+                            // Delete from local storage (legacy)
                             if (Storage::disk('public')->exists($user->profile_picture)) {
                                 Storage::disk('public')->delete($user->profile_picture);
                             }
                         }
                     }
 
-                    // Store new profile picture to Cloudinary
+                    // Upload new profile picture to Cloudinary
                     $file = $request->file('profile_picture');
                     try {
                         $uploadResult = $cloudinary->uploadApi()->upload(
@@ -101,7 +101,7 @@ class ProfileController extends Controller
                             ]
                         );
 
-                        // Save Cloudinary URL
+                        // Store Cloudinary URL
                         $validated['profile_picture'] = $uploadResult['secure_url'];
                     } catch (\Exception $e) {
                         Log::error('Cloudinary profile picture upload failed: ' . $e->getMessage());
@@ -111,7 +111,7 @@ class ProfileController extends Controller
 
                 // Handle profile picture removal
                 if ($request->has('remove_profile_picture') && $user->profile_picture) {
-                    // Remove from Cloudinary if it's a Cloudinary URL
+                    // Delete from Cloudinary if it's a Cloudinary URL
                     if (str_starts_with($user->profile_picture, 'http://') || str_starts_with($user->profile_picture, 'https://')) {
                         try {
                             $cloudinary = new Cloudinary([
@@ -135,7 +135,7 @@ class ProfileController extends Controller
                             Log::warning('Failed to delete Cloudinary image on removal: ' . $e->getMessage());
                         }
                     } else {
-                        // Remove from local storage (legacy)
+                        // Delete from local storage (legacy)
                         if (Storage::disk('public')->exists($user->profile_picture)) {
                             Storage::disk('public')->delete($user->profile_picture);
                         }

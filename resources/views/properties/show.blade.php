@@ -1142,15 +1142,15 @@
         html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
 
         routes.forEach((route, index) => {
-            const colors = ['#2563eb', '#16a34a', '#ea580c'];
-            const bgColors = ['#eff6ff', '#f0fdf4', '#fff7ed'];
-            const borderColors = ['#3b82f6', '#22c55e', '#f97316'];
+            const colors = ['#2563eb', '#16a34a', '#ea580c', '#8b5cf6', '#f59e0b'];
+            const bgColors = ['#eff6ff', '#f0fdf4', '#fff7ed', '#f5f3ff', '#fffbeb'];
+            const borderColors = ['#3b82f6', '#22c55e', '#f97316', '#a78bfa', '#fbbf24'];
             const color = colors[index % colors.length];
             const bgColor = bgColors[index % bgColors.length];
             const borderColor = borderColors[index % borderColors.length];
-            const icons = ['🚗', '🛣️', '🌄'];
+            const icons = ['🚗', '🛣️', '🌄', '🏞️', '⚡'];
             const icon = icons[index] || '📍';
-            const labels = ['Fastest', 'Alternative', 'Scenic'];
+            const labels = ['Fastest', 'Alternative', 'Scenic', 'Balanced', 'Shortest'];
             const label = labels[index] || `Route ${index + 1}`;
 
             html += `
@@ -1929,7 +1929,7 @@
                                         </div>
                                     </div>
                                 @else
-                                    <!-- Single Image - Show message -->
+                                    <!-- Single image view - display notification -->
                                     <div class="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
                                         <div class="text-center text-gray-500">
                                             <svg class="w-12 h-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2058,7 +2058,7 @@
                                                     </span>
                                                 </div>
 
-                                                <!-- Room Capacity Display -->
+                                                <!-- Room occupancy information -->
                                                 <div class="flex items-center space-x-1 text-sm text-gray-600 mb-2">
                                                     <span>🛏️ {{ $room->capacity }} pax in a room</span>
 
@@ -2301,7 +2301,7 @@
                                                 </div>
                                             @endif
 
-                                            {{-- Show message if no additional details provided --}}
+                                            {{-- No additional details message --}}
                                             @if(
                                                 !($room->advance_payment_months && $room->advance_payment_months > 1) &&
                                                 !($room->security_deposit && $room->security_deposit > 0) &&
@@ -2372,7 +2372,7 @@
                                                                 </svg>
                                                             </div>
 
-                                                            <!-- Show count overlay for last image if more than 6 -->
+                                                            <!-- image count badge when gallery exceeds 6 items -->
                                                             @if($imageIndex === 5 && $room->images->count() > 6)
                                                                 <div class="absolute inset-0 bg-black bg-opacity-60 rounded-lg flex items-center justify-center text-white">
                                                                     <div class="text-center">
@@ -2789,7 +2789,7 @@
                                         </button>
                                     </form>
 
-                                    <!-- Inquiry Status Display -->
+                                    <!-- Inquiry state indicator -->
                                     @if($existingInquiry)
                                         <!-- User has already inquired about THIS property -->
                                         @if($existingInquiry->status === 'pending')
@@ -2832,7 +2832,7 @@
                                                     </a>
                                                 </div>
                                             </div>
-                                            <!-- Show approved status button -->
+                                            <!-- approval status badge -->
                                             <button type="button" class="w-full bg-green-100 text-green-800 py-3 px-4 rounded-lg cursor-default font-semibold mb-2 border border-green-300">
                                                 <span class="font-weight: 600;">✅ Inquiry Approved - Contact Landlord</span>
                                             </button>

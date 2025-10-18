@@ -16,7 +16,7 @@ class MessageController extends Controller
     {
         $user = auth()->user();
         
-        // Retrieve all conversations for this user
+        // Get all conversations for this user
         $messages = Message::where(function($query) use ($user) {
             $query->where('sender_id', $user->id)
                   ->orWhere('receiver_id', $user->id);
@@ -38,7 +38,7 @@ class MessageController extends Controller
         $otherUser = \App\Models\User::findOrFail($userId);
         $property = Property::findOrFail($propertyId);
 
-        // Fetch conversation messages between these users for this property
+        // Get conversation messages between these users for this property
         $messages = Message::where('property_id', $propertyId)
             ->where(function($query) use ($user, $userId) {
                 $query->where(function($q) use ($user, $userId) {

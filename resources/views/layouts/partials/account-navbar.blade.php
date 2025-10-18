@@ -3,7 +3,7 @@
         <div class="flex justify-between items-center h-16">
             {{-- LEFT SIDE: Back Button + Logo --}}
             <div class="flex items-center space-x-3">
-                {{-- Back Button - Show for non-home pages --}}
+                {{-- Back navigation (hidden on home page) --}}
                 @if(!request()->is('/') && !request()->is('dashboard'))
                 <button onclick="goBack()" class="flex items-center text-gray-600 hover:text-green-600 hover:bg-gray-100 px-3 py-2 rounded-lg transition-all duration-200 border border-gray-200" title="Go back">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -35,7 +35,7 @@
 
             {{-- DESKTOP MENU: Menu Items + User Controls - ONLY VISIBLE ON DESKTOP --}}
             <div class="hidden md:flex items-center space-x-1 lg:space-x-3" id="desktopNavigation">
-                {{-- Menu Items - Show for authenticated users --}}
+                {{-- Navigation menu (authenticated users only) --}}
                 @auth
                     @if(auth()->user()->role === 'tenant')
                         {{-- Tenant Menu --}}

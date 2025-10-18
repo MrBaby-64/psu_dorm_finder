@@ -40,9 +40,7 @@ class RoutingController extends Controller
                 'instructions' => 'true',
                 'calc_points' => 'true',
                 'points_encoded' => 'false',
-                'alternative_route.max_paths' => 5,
-                'alternative_route.max_weight_factor' => 1.8,
-                'alternative_route.max_share_factor' => 0.7,
+                'alternative_route.max_paths' => 3,
                 'algorithm' => 'alternative_route',
                 'key' => $apiKey
             ]);

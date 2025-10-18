@@ -56,7 +56,7 @@ return new class extends Migration
             $table->boolean('smoking_allowed')->default(false);
             $table->text('house_rules')->nullable();
 
-            // Additional Details
+            // Extended room attributes
             $table->string('view_description')->nullable(); // city, garden, courtyard, street
             $table->json('included_utilities')->nullable(); // electricity, water, internet, etc.
             $table->text('special_features')->nullable();
@@ -113,7 +113,7 @@ return new class extends Migration
                 'house_rules'
             ]);
 
-            // Additional Details
+            // Extended room attributes
             $table->dropColumn([
                 'view_description', 'included_utilities', 'special_features',
                 'room_orientation'

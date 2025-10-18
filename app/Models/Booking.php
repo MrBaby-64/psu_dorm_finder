@@ -321,7 +321,7 @@ class Booking extends Model
                    ->first();
     }
 
-    // Check if this booking prevents new bookings
+    // Determine if booking blocks new bookings
     public function preventsNewBookings(): bool
     {
         return in_array($this->status, [self::STATUS_PENDING, self::STATUS_APPROVED, self::STATUS_ACTIVE]);

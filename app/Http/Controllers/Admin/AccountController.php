@@ -9,18 +9,25 @@ use Illuminate\Support\Facades\Log;
 use Cloudinary\Cloudinary;
 
 /**
- * Admin Account Controller
- * Manages admin account settings and profile
+ * AccountController
+ *
+ * Handles admin account management operations including
+ * profile viewing and profile picture upload/update.
  */
 class AccountController extends Controller
 {
-    // Show admin account page
+    /**
+     * Display the admin account settings page
+     */
     public function index()
     {
         return view('admin.account.index');
     }
 
-    // Upload or update admin profile picture
+    /**
+     * Upload or update the admin's profile picture
+     * Supports both Cloudinary (production) and local storage (development)
+     */
     public function uploadProfilePicture(Request $request)
     {
         $request->validate([
@@ -32,7 +39,7 @@ class AccountController extends Controller
 
         try {
             if ($useCloudinary) {
-                // Upload to Cloudinary
+                // Initialize Cloudinary client for cloud storage
                 $cloudinary = new Cloudinary([
                     'cloud' => [
                         'cloud_name' => config('cloudinary.cloud_name'),
@@ -41,10 +48,10 @@ class AccountController extends Controller
                     ]
                 ]);
 
-                // Delete old Cloudinary image if exists
+                // Clean up previous profile picture from Cloudinary if it exists
                 if ($user->profile_picture && str_starts_with($user->profile_picture, 'http')) {
-                    // Extract public_id from URL if needed for deletion
-                    // For now, we'll just keep the old one
+                    // Note: Cloudinary public_id extraction would be needed for deletion
+                    // Currently retaining old images to prevent data loss
                 }
 
                 $uploadResult = $cloudinary->uploadApi()->upload(
@@ -65,13 +72,11 @@ class AccountController extends Controller
 
                 $user->profile_picture = $uploadResult['secure_url'];
             } else {
-                // Use local storage
-                // Delete old profile picture
+                // Fallback to local file storage for development environment
                 if ($user->profile_picture && Storage::disk('public')->exists($user->profile_picture)) {
                     Storage::disk('public')->delete($user->profile_picture);
                 }
 
-                // Save new profile picture
                 $path = $request->file('profile_picture')->store('profile-pictures', 'public');
                 $user->profile_picture = $path;
             }

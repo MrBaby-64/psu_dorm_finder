@@ -20,7 +20,7 @@ class InquiryController extends Controller
 
     public function store(Request $request)
     {
-        // Verify user role: a tenant
+        // Check if user is a tenant
         if (auth()->user()->role !== 'tenant') {
             if ($request->expectsJson()) {
                 return response()->json([
@@ -95,7 +95,7 @@ class InquiryController extends Controller
                     'status' => 'pending'
                 ]);
 
-                // Fetch property and landlord info
+                // Get property and landlord info
                 $property = Property::with('user')->find($validated['property_id']);
 
                 // Create initial message to landlord

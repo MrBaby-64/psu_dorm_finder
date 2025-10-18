@@ -272,3 +272,57 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// Prevent going back to login/register after successful login - ADMIN VERSION
+(function() {
+    'use strict';
+
+    // Check if this is a fresh login
+    const urlParams = new URLSearchParams(window.location.search);
+    const isFreshLogin = urlParams.get('fresh_login') === '1';
+
+    if (isFreshLogin) {
+        // Clean the URL by removing query parameter
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState(null, '', cleanUrl);
+    }
+
+    // AGGRESSIVE APPROACH: Always prevent back navigation on admin pages
+    // This runs immediately when the page loads
+    (function preventBack() {
+        window.history.pushState(null, null, window.location.href);
+        window.onpopstate = function() {
+            window.history.pushState(null, null, window.location.href);
+        };
+    })();
+
+    // Additional backup method using hashchange
+    if (window.location.hash === '') {
+        window.location.hash = '#admin-dashboard';
+    }
+
+    window.addEventListener('hashchange', function() {
+        if (window.location.hash === '') {
+            window.location.hash = '#admin-dashboard';
+        }
+    });
+
+    // Third backup method: disable back button via keyboard
+    document.addEventListener('keydown', function(e) {
+        // Backspace key (8) and Alt+Left Arrow
+        if (e.keyCode === 8 || (e.altKey && e.keyCode === 37)) {
+            const target = e.target || e.srcElement;
+            const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA';
+            const isContentEditable = target.contentEditable === 'true';
+
+            if (!isInput && !isContentEditable) {
+                e.preventDefault();
+                return false;
+            }
+        }
+    });
+})();
+</script>
+@endpush

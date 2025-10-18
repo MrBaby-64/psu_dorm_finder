@@ -137,7 +137,7 @@ class User extends Authenticatable
             return '';
         }
 
-        // Check if it's a Cloudinary URL (starts with http:// or https://)
+        // Detect Cloudinary URL format (starts with http:// or https://)
         if (str_starts_with($this->profile_picture, 'http://') || str_starts_with($this->profile_picture, 'https://')) {
             return $this->profile_picture; // Return Cloudinary URL directly
         }

@@ -210,7 +210,7 @@
 <script>
 // Prevent going back to login/register after successful login
 (function() {
-    const dashboardUrl = '{{ route("tenant.account") }}';
+    const dashboardUrl = window.location.origin + '/tenant/account';
 
     // Check if this is a fresh login
     const urlParams = new URLSearchParams(window.location.search);
@@ -220,22 +220,36 @@
         // Remove the query parameter and replace history
         window.history.replaceState(null, '', dashboardUrl);
 
-        // Set flag in sessionStorage
-        sessionStorage.setItem('preventBackToLogin', 'true');
+        // Set flag in sessionStorage to persist across page navigation
+        sessionStorage.setItem('preventBackToLogin_tenant', 'true');
+        sessionStorage.setItem('lastAuthenticatedPage', window.location.pathname);
     }
 
-    // Prevent back navigation completely when flag is set
-    if (sessionStorage.getItem('preventBackToLogin') === 'true') {
-        // Override browser back button
+    // Prevent back navigation when user is authenticated
+    // This works for both fresh logins and returning to the dashboard
+    const isAuthenticated = sessionStorage.getItem('preventBackToLogin_tenant') === 'true' ||
+                            window.location.pathname.includes('/tenant/account');
+
+    if (isAuthenticated) {
+        // Set the flag if not already set (for page refreshes)
+        sessionStorage.setItem('preventBackToLogin_tenant', 'true');
+
+        // Push a new state to prevent back navigation
         history.pushState(null, document.title, location.href);
 
-        window.addEventListener('popstate', function () {
+        // Listen for back button and prevent navigation to login
+        window.addEventListener('popstate', function(event) {
             history.pushState(null, document.title, location.href);
         });
 
-        // Clear flag after user navigates away from dashboard
+        // Only clear the flag when user explicitly navigates away or logs out
         window.addEventListener('beforeunload', function() {
-            sessionStorage.removeItem('preventBackToLogin');
+            // Check if user is navigating to a different domain or logging out
+            const isLoggingOut = performance.navigation.type === 1; // reload
+            if (!isLoggingOut) {
+                sessionStorage.removeItem('preventBackToLogin_tenant');
+                sessionStorage.removeItem('lastAuthenticatedPage');
+            }
         });
     }
 })();

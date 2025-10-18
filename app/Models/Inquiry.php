@@ -242,7 +242,7 @@ class Inquiry extends Model
         return self::getTenantActiveInquiry($tenantId);
     }
 
-    // Check if this inquiry prevents new inquiries
+    // Determine if inquiry blocks new inquiries
     public function preventsNewInquiries(): bool
     {
         return in_array($this->status, [self::STATUS_PENDING, self::STATUS_APPROVED]);

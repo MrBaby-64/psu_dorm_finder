@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-4xl mx-auto">
     <div class="text-center mb-8">
-        <!-- Profile Picture Display -->
+        <!-- Profile picture section -->
         <div class="relative inline-block">
             @if(auth()->user()->profile_picture)
                 <img src="{{ auth()->user()->profile_picture_url }}"

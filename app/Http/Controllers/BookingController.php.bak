@@ -38,13 +38,13 @@ class BookingController extends Controller
                 ->latest()
                 ->get();
 
-            // Fetch scheduled visits
+            // Get scheduled visits
             $scheduledVisits = \App\Models\ScheduledVisit::where('user_id', $user->id)
                 ->with(['property', 'property.user'])
                 ->latest()
                 ->get();
 
-            // Fetch statistics for dashboard
+            // Get statistics for dashboard
             $stats = [
                 'total_inquiries' => $inquiries->count(),
                 'pending_inquiries' => $inquiries->where('status', 'pending')->count(),
@@ -62,7 +62,7 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
-        // Verify user role: a tenant
+        // Check if user is a tenant
         if (auth()->user()->role !== 'tenant') {
             if ($request->expectsJson()) {
                 return response()->json([

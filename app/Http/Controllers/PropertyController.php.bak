@@ -32,7 +32,7 @@ class PropertyController extends Controller
             ->approved()
             ->whereHas('landlord'); // Only show properties with existing landlords
 
-        // Add filters
+        // Apply filters
         if ($request->filled('q')) {
             $searchTerm = $request->q;
             $query->where(function($q) use ($searchTerm) {
@@ -88,7 +88,7 @@ class PropertyController extends Controller
         // No auto-sorting needed since filters are removed
 
         if ($sort === 'nearest') {
-            // Retrieve all matching properties first
+            // Get all matching properties first
             $properties = $query->get();
             
             // Rank by distance
@@ -97,7 +97,7 @@ class PropertyController extends Controller
             // Create a map of id => distance
             $distanceMap = collect($ranked)->pluck('meters', 'id');
             
-            // Fetch property IDs in order
+            // Get property IDs in order
             $orderedIds = collect($ranked)->pluck('id')->toArray();
             
             // Re-query with proper ordering
@@ -150,7 +150,7 @@ class PropertyController extends Controller
             $paginator = $query->paginate(12)->withQueryString();
         }
 
-        // Fetch amenities for filter
+        // Get amenities for filter
         $amenities = Amenity::orderBy('name')->get();
 
         return view('properties.browse', [
@@ -170,7 +170,7 @@ class PropertyController extends Controller
      */
     public function show(Property $property)
     {
-        // Fetch relationships
+        // Load relationships
         $property->load([
             'images',
             'amenities',
@@ -179,7 +179,7 @@ class PropertyController extends Controller
             'reviews.user'
         ]);
 
-        // Fetch similar nearby properties
+        // Get similar nearby properties
         $nearbyProperties = $this->getNearbyProperties($property);
 
         // Calculate distance from default campus

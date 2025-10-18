@@ -36,10 +36,10 @@ class AccountController extends Controller
     {
         $user = Auth::user();
 
-        // Get landlord properties
+        // Fetch landlord properties
         $properties = $user->properties()->with('images')->get();
 
-        // Get summary statistics
+        // Fetch summary statistics
         $stats = [
             'total_properties' => $properties->count(),
             'pending_inquiries' => $this->getPendingInquiriesCount(),
@@ -50,7 +50,7 @@ class AccountController extends Controller
             'admin_responses' => $this->getAdminResponsesCount()
         ];
 
-        // Get recent activities
+        // Fetch recent activities
         $recentInquiries = Inquiry::whereHas('property', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -59,7 +59,7 @@ class AccountController extends Controller
             ->limit(5)
             ->get();
 
-        // Get pending visit requests (need landlord action)
+        // Fetch pending visit requests (need landlord action)
         $pendingVisitRequests = ScheduledVisit::whereHas('property', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -68,7 +68,7 @@ class AccountController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Get confirmed upcoming visits
+        // Fetch confirmed upcoming visits
         $upcomingVisits = ScheduledVisit::whereHas('property', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -79,7 +79,7 @@ class AccountController extends Controller
             ->orderBy('confirmed_time', 'asc')
             ->get();
 
-        // Get imminent visits (today and next 3 days) for urgent notifications
+        // Fetch imminent visits (today and next 3 days) for urgent notifications
         $imminentVisits = ScheduledVisit::whereHas('property', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })

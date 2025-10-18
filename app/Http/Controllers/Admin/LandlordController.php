@@ -9,11 +9,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Admin Landlord Verification Controller
- * Handles landlord property document verification
+ * LandlordController
+ *
+ * Manages landlord document verification including approval and rejection
+ * of property ownership documents submitted during registration.
  */
 class LandlordController extends Controller
 {
+    /**
+     * Verify user has admin role before proceeding
+     */
     private function checkAdmin()
     {
         if (auth()->user()->role !== 'admin') {
@@ -22,13 +27,14 @@ class LandlordController extends Controller
     }
 
     /**
-     * Show landlords pending document verification
+     * Display landlords with document verification status
+     * Sorted by pending status first, then by registration date
      */
     public function verify()
     {
         $this->checkAdmin();
 
-        // Get all landlords with their document verification status
+        // Retrieve landlords ordered by verification status (pending first)
         $landlords = User::where('role', 'landlord')
             ->orderByRaw("CASE
                 WHEN document_verification_status = 'pending' THEN 1

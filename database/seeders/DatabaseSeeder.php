@@ -1,5 +1,5 @@
 <?php
-// database/seeders/DatabaseSeeder.php
+
 
 namespace Database\Seeders;
 
@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AmenitySeeder::class,  // Essential: Amenity list for the system
             UserSeeder::class,     // Essential: Creates permanent admin account (psuteam001@gmail.com)
-            // PropertySeeder::class, // Disabled - properties will be created by landlords
+            // PropertySeeder disabled - properties created via registration
         ]);
     }
 }

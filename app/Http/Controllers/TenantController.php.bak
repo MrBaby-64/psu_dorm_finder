@@ -27,7 +27,7 @@ class TenantController extends Controller
     {
         $user = Auth::user();
         
-        // Fetch summary statistics
+        // Get summary statistics
         $stats = [
             'favorites_count' => $user->favorites()->count(),
             'scheduled_visits_count' => $user->scheduledVisits()->count(),
@@ -128,7 +128,7 @@ class TenantController extends Controller
                 ->with('success', 'All notifications marked as read.');
         }
 
-        // Fetch notification types for filter
+        // Get notification types for filter
         $notificationTypes = Notification::getTypes();
 
         return view('tenant.notifications', compact('notifications', 'notificationTypes'));
@@ -240,7 +240,7 @@ class TenantController extends Controller
 
         $visits = $query->orderBy('preferred_date', 'desc')->paginate(15);
 
-        // Fetch status options
+        // Get status options
         $statuses = ScheduledVisit::getStatuses();
 
         return view('tenant.scheduled-visits', compact('visits', 'statuses'));
@@ -293,7 +293,7 @@ class TenantController extends Controller
         return view('tenant.reviews', compact('reviews'));
     }
 
-    // Save new review
+    // Store new review
     public function storeReview(Request $request)
     {
         $request->validate([

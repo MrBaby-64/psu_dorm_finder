@@ -26,7 +26,7 @@ class InquiryController extends Controller
         ->paginate(20);
 
 
-        // Get pending visits count for the shortcut badge
+        // Fetch pending visits count for the shortcut badge
         $pendingVisitsCount = ScheduledVisit::whereHas('property', function($q) {
                 $q->where('user_id', auth()->id());
             })

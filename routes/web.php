@@ -15,21 +15,17 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Home
 Route::get('/', [PropertyController::class, 'home'])->name('home');
 
 Route::get('/about', [App\Http\Controllers\PageController::class, 'about'])->name('about');
 Route::get('/how-it-works', [App\Http\Controllers\PageController::class, 'howItWorks'])->name('how-it-works');
-// Browse properties
+
 Route::get('/rentals/browse', [PropertyController::class, 'browse'])->name('properties.browse');
 
-// Search suggestions API
+// API endpoints for property search and navigation
 Route::get('/api/properties/search-suggestions', [PropertyController::class, 'searchSuggestions'])->name('properties.search-suggestions');
-
-// Routing API
 Route::get('/api/routing/get-routes', [\App\Http\Controllers\RoutingController::class, 'getRoutes'])->name('api.routing.get-routes');
 
-// Property details
 Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
 
 /*
@@ -38,7 +34,7 @@ Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->
 |--------------------------------------------------------------------------
 */
 
-// Google OAuth Routes
+// Google OAuth authentication
 Route::get('auth/google', [App\Http\Controllers\Auth\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('auth/google/callback', [App\Http\Controllers\Auth\GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 

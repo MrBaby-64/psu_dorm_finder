@@ -168,7 +168,7 @@
         <div class="w-full px-3 sm:px-4 md:px-6 lg:px-8">
             <div class="flex justify-between h-16 max-w-7xl mx-auto">
                 <div class="flex items-center space-x-4">
-                    {{-- Back Button - Show for non-home pages --}}
+                    {{-- Back navigation (hidden on home page) --}}
                     @if(!request()->is('/') && !request()->is('dashboard'))
                     <button onclick="goBack()" class="flex items-center text-gray-600 hover:text-green-600 hover:bg-gray-100 px-3 py-2 rounded-lg transition-all duration-200 border border-gray-200" title="Go back">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -426,7 +426,7 @@
                 <div id="loginForm" class="px-8 pb-8">
                     <h2 class="text-2xl font-bold mb-6 text-center">Welcome Back</h2>
 
-                    <!-- Show login errors -->
+                    <!-- login errors -->
                     @if ($errors->any())
                         <div class="mb-4 bg-red-50 border border-red-400 text-red-800 p-4 rounded-lg text-sm">
                             <div class="flex items-center gap-2 mb-2">
@@ -522,7 +522,7 @@
                 <div id="registrationForm" class="px-8 pb-8 hidden max-h-[80vh] overflow-y-auto">
                     <h2 class="text-2xl font-bold mb-6 text-center">Create Your Account</h2>
 
-                    <!-- Show validation errors in modal -->
+                    <!-- validation errors in modal -->
                     @if ($errors->any())
                         <div class="mb-4 bg-red-50 border border-red-400 text-red-800 p-4 rounded-lg text-sm">
                             <div class="flex items-center gap-2 mb-2">

@@ -57,7 +57,7 @@ class NewPasswordController extends Controller
             // Check if token has expired (60 minutes)
             $tokenAge = now()->diffInMinutes($passwordReset->created_at);
             if ($tokenAge > 60) {
-                // Delete expired token
+                // Remove expired token
                 \DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
                 return back()->withInput($request->only('email'))
@@ -78,7 +78,7 @@ class NewPasswordController extends Controller
                 'remember_token' => Str::random(60),
             ])->save();
 
-            // Delete the used token
+            // Remove the used token
             \DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
             // Trigger password reset event

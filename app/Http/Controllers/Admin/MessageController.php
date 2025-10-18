@@ -9,12 +9,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Admin Message Controller
- * Manages landlord messages and inquiries sent to admin
+ * MessageController
+ *
+ * Handles admin message operations including viewing landlord inquiries,
+ * responding to messages, and managing message status (read/unread/resolved).
  */
 class MessageController extends Controller
 {
-    // Check if current user is admin
+    /**
+     * Verify user has admin role before proceeding
+     */
     private function checkAdmin()
     {
         if (auth()->user()->role !== 'admin') {
@@ -22,12 +26,15 @@ class MessageController extends Controller
         }
     }
 
+    /**
+     * Display paginated list of messages sent to admin from landlords
+     */
     public function index(Request $request)
     {
         $this->checkAdmin();
 
         try {
-            // Use Eloquent like localhost - load full sender relationship
+            // Load messages with sender information for display
             $query = AdminMessage::with('sender');
 
             // Apply status filter

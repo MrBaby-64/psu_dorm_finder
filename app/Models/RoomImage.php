@@ -38,7 +38,7 @@ class RoomImage extends Model
             return '';
         }
 
-        // Check if it's a Cloudinary URL (starts with http:// or https://)
+        // Detect Cloudinary URL format (starts with http:// or https://)
         if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
             return $this->image_path; // Return Cloudinary URL directly
         }

@@ -17,24 +17,27 @@ use Illuminate\Support\Facades\Schema;
 use Cloudinary\Cloudinary;
 
 /**
- * Landlord Property Controller
- * Manages property listings, creation, editing, and deletion
+ * PropertyController
+ *
+ * Handles property management for landlords including listing, creation,
+ * editing, deletion requests, image uploads, and admin approval workflow.
  */
 class PropertyController extends Controller
 {
-    // List all properties owned by landlord
+    /**
+     * Display paginated list of properties owned by authenticated landlord
+     * Supports search and status filtering
+     */
     public function index(Request $request)
     {
         if (auth()->user()->role !== 'landlord') {
             abort(403, 'Only landlords can access this area');
         }
 
-        // SIMPLEST APPROACH: Use Eloquent like localhost
         try {
             $query = Property::where('user_id', auth()->id())
                 ->orderBy('created_at', 'desc');
 
-            // Apply search
             if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
@@ -44,7 +47,6 @@ class PropertyController extends Controller
                 });
             }
 
-            // Apply status filter
             if ($request->filled('status')) {
                 $query->where('approval_status', $request->status);
             }
@@ -62,7 +64,7 @@ class PropertyController extends Controller
         } catch (\Exception $e) {
             Log::error('Properties error: ' . $e->getMessage());
 
-            // Return empty
+            // Return empty result set on error
             $properties = Property::where('id', 0)->paginate(10);
             $statuses = [
                 'approved' => 'Approved',
@@ -81,12 +83,12 @@ class PropertyController extends Controller
         }
 
         try {
-            // Use direct DB query for PostgreSQL compatibility
+            // Query database directly
             $amenities = DB::table('amenities')
                 ->orderBy('name')
                 ->get();
 
-            // Get temp images from session if any
+            // Retrieve temporary uploaded images from session storage
             $formToken = session('property_form_token');
             $tempImages = $formToken ? session("temp_images_{$formToken}", []) : [];
 
@@ -114,14 +116,14 @@ class PropertyController extends Controller
         $imagePath = $request->image_path;
         $index = $request->index;
 
-        // Remove from session
+        // Clear temporary data from session
         $tempImages = array_filter($tempImages, function($img) use ($imagePath) {
             return $img['path'] !== $imagePath;
         });
 
         session(["temp_images_{$formToken}" => array_values($tempImages)]);
 
-        // Delete file if exists
+        // Clean up existing file if present
         if (\Storage::disk('public')->exists($imagePath)) {
             \Storage::disk('public')->delete($imagePath);
         }
@@ -153,13 +155,13 @@ class PropertyController extends Controller
         $uploadedFiles = [];
 
         try {
-            // Handle image uploads - upload directly to Cloudinary if configured, otherwise use local storage
+            // Process image uploads (Cloudinary or local storage)
             if ($request->hasFile('images')) {
-                // Check if Cloudinary is configured
+                // Determine storage method based on configuration
                 $useCloudinary = !empty(config('cloudinary.cloud_name'));
 
                 if ($useCloudinary) {
-                    // Upload directly to Cloudinary
+                    // Store image to Cloudinary cloud storage
                     $cloudinary = new Cloudinary([
                         'cloud' => [
                             'cloud_name' => config('cloudinary.cloud_name'),
@@ -372,7 +374,7 @@ class PropertyController extends Controller
                     'approval_status' => 'pending',
                 ];
 
-                // Handle visit scheduling data - JSON format for PostgreSQL
+                // Process visit scheduling data in JSON format
                 if ($request->boolean('visit_schedule_enabled')) {
                     $propertyData['visit_days'] = !empty($validated['visit_days']) ?
                         json_encode(array_values($validated['visit_days'])) : null;
@@ -389,10 +391,10 @@ class PropertyController extends Controller
                     $propertyData['visit_instructions'] = null;
                 }
 
-                // Create the property
+                // Save new property to database
                 $property = Property::create($propertyData);
 
-                // Handle property images
+                // Process property image attachments
                 foreach ($uploadedFiles as $index => $fileData) {
                     if (config('app.env') === 'production') {
                         // Production: Images already in Cloudinary
@@ -419,7 +421,7 @@ class PropertyController extends Controller
                     }
                 }
 
-                // Create rooms for the property
+                // Initialize room records for this property
                 if (!empty($validated['rooms'])) {
                     // Create rooms from user input
                     foreach ($validated['rooms'] as $index => $roomData) {
@@ -460,7 +462,7 @@ class PropertyController extends Controller
                                 }
                             }
 
-                            // Handle boolean fields
+                            // Process boolean field values
                             $booleanFields = [
                                 'has_kitchenette', 'has_refrigerator', 'has_study_desk',
                                 'has_balcony', 'pets_allowed', 'smoking_allowed'
@@ -472,7 +474,7 @@ class PropertyController extends Controller
                                 }
                             }
 
-                            // Handle included utilities JSON
+                            // Format utilities data as JSON
                             if (isset($roomDetails['included_utilities']) && $roomDetails['included_utilities'] !== '') {
                                 $utilities = json_decode($roomDetails['included_utilities'], true);
                                 $roomCreateData['included_utilities'] = $utilities ?: null;
@@ -481,7 +483,7 @@ class PropertyController extends Controller
 
                         $room = Room::create($roomCreateData);
 
-                        // Handle room images if provided
+                        // Process room-specific image uploads
                         if ($request->hasFile("room_images.{$index}")) {
                             // Initialize Cloudinary
                             $cloudinary = new Cloudinary([
@@ -495,7 +497,7 @@ class PropertyController extends Controller
                             $roomImages = $request->file("room_images.{$index}");
                             foreach ($roomImages as $imageIndex => $roomImage) {
                                 try {
-                                    // Upload to Cloudinary
+                                    // Save image in Cloudinary
                                     $uploadResult = $cloudinary->uploadApi()->upload(
                                         $roomImage->getRealPath(),
                                         [
@@ -528,7 +530,7 @@ class PropertyController extends Controller
                         }
                     }
 
-                    // Create additional default rooms if user provided fewer rooms than room_count
+                    // Generate remaining rooms with default values
                     $providedRoomsCount = count($validated['rooms']);
                     if ($providedRoomsCount < $validated['room_count']) {
                         for ($i = $providedRoomsCount + 1; $i <= $validated['room_count']; $i++) {
@@ -544,7 +546,7 @@ class PropertyController extends Controller
                         }
                     }
                 } else {
-                    // Create default rooms based on room_count (simple mode)
+                    // Initialize rooms with default configuration
                     for ($i = 1; $i <= $validated['room_count']; $i++) {
                         Room::create([
                             'property_id' => $property->id,
@@ -673,7 +675,7 @@ class PropertyController extends Controller
 
         try {
             DB::transaction(function () use ($property, $validated, $request) {
-                // Update property
+                // Save property changes to database
                 $property->update([
                     'title' => $validated['title'],
                     'slug' => \Str::slug($validated['title']),
@@ -690,20 +692,20 @@ class PropertyController extends Controller
                     'visit_schedule_enabled' => $request->has('visit_schedule_enabled'),
                 ]);
 
-                // Update amenities
+                // Synchronize amenity relationships
                 if ($request->has('amenities')) {
                     $property->amenities()->sync($validated['amenities']);
                 }
 
-                // Handle new image uploads
+                // Process newly uploaded images
                 if ($request->hasFile('images')) {
                     $currentImageCount = $property->images->count();
 
-                    // Check if Cloudinary is configured (by checking if cloud_name exists)
+                    // Determine storage method based on configuration (by checking if cloud_name exists)
                     $useCloudinary = !empty(config('cloudinary.cloud_name'));
 
                     if ($useCloudinary) {
-                        // Upload to Cloudinary
+                        // Save image in Cloudinary
                         $cloudinary = new Cloudinary([
                             'cloud' => [
                                 'cloud_name' => config('cloudinary.cloud_name'),

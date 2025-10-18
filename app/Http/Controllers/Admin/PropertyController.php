@@ -12,11 +12,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Admin Property Controller
- * Handles property approvals, rejections, and deletion requests
+ * PropertyController
+ *
+ * Manages property approval workflow including reviewing, approving, rejecting,
+ * and verifying property listings. Also handles deletion request processing.
  */
 class PropertyController extends Controller
 {
+    /**
+     * Verify user has admin role before proceeding
+     */
     private function checkAdmin()
     {
         if (auth()->user()->role !== 'admin') {
@@ -24,6 +29,9 @@ class PropertyController extends Controller
         }
     }
 
+    /**
+     * Display properties pending admin approval
+     */
     public function pending()
     {
         $this->checkAdmin();

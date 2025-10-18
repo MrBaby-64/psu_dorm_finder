@@ -95,7 +95,7 @@
                 </div>
             </div>
 
-            <!-- Active Filters Display -->
+            <!-- Active filter badges -->
             @if(request()->hasAny(['q', 'sort']) && (request('q') || request('sort') != 'newest'))
             <div class="flex flex-wrap gap-2 mb-4">
                 <span class="text-sm text-gray-600 mr-2">Active filters:</span>

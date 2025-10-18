@@ -9,12 +9,16 @@ use App\Models\Inquiry;
 use Illuminate\Http\Request;
 
 /**
- * Admin User Controller
- * Manages user accounts, roles, and verification
+ * UserController
+ *
+ * Handles user management operations including listing, filtering,
+ * role updates, account verification, and detailed user profiles.
  */
 class UserController extends Controller
 {
-    // Check if current user is admin
+    /**
+     * Verify user has admin role before proceeding
+     */
     private function checkAdmin()
     {
         if (auth()->user()->role !== 'admin') {
@@ -22,11 +26,14 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Display paginated list of users with filtering options
+     */
     public function index(Request $request)
     {
         $this->checkAdmin();
 
-        // Build query with filters
+        // Apply role, verification status, and search filters
         $query = User::query();
 
         // Search filter

@@ -129,7 +129,7 @@
                 </div>
             </form>
 
-            <!-- Active Filters Display -->
+            <!-- Active filter badges -->
             @if(request()->hasAny(['search', 'status']))
             <div class="mt-4 flex flex-wrap gap-2">
                 <span class="text-sm text-gray-600 mr-2">Active filters:</span>

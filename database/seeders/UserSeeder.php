@@ -1,5 +1,5 @@
 <?php
-// database/seeders/UserSeeder.php
+
 
 namespace Database\Seeders;
 
@@ -12,7 +12,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create permanent admin account for PSU Dorm Finder system
+        // Initialize system administrator account
         User::firstOrCreate(
             ['email' => 'psuteam001@gmail.com'],
             [
@@ -26,6 +26,6 @@ class UserSeeder extends Seeder
             ]
         );
 
-        // All other users (landlords, tenants) will register through the application
+        // Users register through application interface through the application
     }
 }

@@ -258,7 +258,7 @@
                 </div>
             </div>
         @else
-            {{-- Not Suspended - Show Suspend Button --}}
+            {{-- User is not suspended - display suspend action --}}
             <div class="bg-gray-50 rounded-lg p-4 mb-4">
                 <div class="flex items-center justify-between">
                     <div>

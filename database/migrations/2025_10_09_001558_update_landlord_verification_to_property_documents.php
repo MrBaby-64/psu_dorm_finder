@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Add new columns if they don't exist
+        // Add columns if they don't exist
         if (!Schema::hasColumn('users', 'property_documents_path')) {
             Schema::table('users', function (Blueprint $table) {
                 $table->string('property_documents_path')->nullable()->after('is_verified');
@@ -27,7 +27,7 @@ return new class extends Migration
             });
         }
 
-        // Copy data from old columns to new columns if old columns exist
+        // Migrate data from old columns to new columns if old columns exist
         if (Schema::hasColumn('users', 'valid_id_path') && Schema::hasColumn('users', 'id_verification_status')) {
             DB::table('users')->whereNotNull('valid_id_path')->update([
                 'property_documents_path' => DB::raw('valid_id_path')
@@ -37,7 +37,7 @@ return new class extends Migration
                 'document_verification_status' => DB::raw('id_verification_status')
             ]);
 
-            // Drop old columns
+            // Remove deprecated columns
             Schema::table('users', function (Blueprint $table) {
                 $table->dropColumn(['valid_id_path', 'id_verification_status']);
             });
