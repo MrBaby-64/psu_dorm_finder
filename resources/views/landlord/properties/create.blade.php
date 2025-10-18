@@ -1163,20 +1163,17 @@
     // Map Functionality
     function initMap() {
         try {
-            console.log('Initializing map...');
 
             // Check if Leaflet is loaded
             if (typeof L === 'undefined') {
                 throw new Error('Leaflet library not loaded');
             }
-            console.log('Leaflet library loaded');
 
             // Check if map container exists
             const mapContainer = document.getElementById('propertyMap');
             if (!mapContainer) {
                 throw new Error('Map container not found');
             }
-            console.log('Map container found:', mapContainer);
 
             // Clear any existing map
             if (map) {
@@ -1200,14 +1197,11 @@
                 fallback.style.display = 'none';
             }
 
-            console.log('Creating map with view:', initialView);
             map = L.map('propertyMap').setView(initialView, 15);
-            console.log('Map created successfully');
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
-            console.log('Tile layer added');
 
             // PSU marker (RED)
             L.marker(psuLocation, {

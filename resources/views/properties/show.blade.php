@@ -329,7 +329,6 @@
                         text.textContent = 'Remove from Favorites';
                     }
                 })
-                .catch(error => console.log('Favorites check failed:', error));
             @endif
         @endauth
     });
@@ -1349,14 +1348,10 @@
         @endforeach
     ];
 
-    console.log('Total gallery images loaded:', galleryImages.length);
-    console.log('Gallery images:', galleryImages);
     let currentLightboxIndex = 0;
 
     // Lightbox Functions
     function openLightbox(index) {
-        console.log('Opening lightbox with index:', index);
-        console.log('Total images available:', galleryImages.length);
 
         if (index < 0 || index >= galleryImages.length) {
             console.error('Invalid index:', index);
@@ -1366,10 +1361,8 @@
         currentLightboxIndex = index;
 
         if (!document.getElementById('propertyLightbox')) {
-            console.log('Creating new lightbox');
             createLightbox();
         } else {
-            console.log('Using existing lightbox');
         }
 
         const lightbox = document.getElementById('propertyLightbox');
@@ -1382,17 +1375,13 @@
         lightbox.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
-        console.log('Lightbox opened successfully');
     }
 
     // Function to open lightbox from room images
     function openLightboxFromRoom(imageUrl) {
-        console.log('Room image clicked:', imageUrl);
-        console.log('Gallery images available:', galleryImages.length);
 
         // Find the index of this image in the galleryImages array
         let index = galleryImages.findIndex(img => img.url === imageUrl);
-        console.log('Exact match index:', index);
 
         if (index === -1) {
             // If exact URL match fails, try to find by filename match
@@ -1401,7 +1390,6 @@
                 const imgFileName = img.url.split('/').pop();
                 return imgFileName === fileName;
             });
-            console.log('Filename match index:', index);
         }
 
         if (index === -1) {
@@ -1411,7 +1399,6 @@
                 const normalizedGalleryFileName = img.url.split('/').pop().replace(/[\s_]+/g, '_');
                 return normalizedGalleryFileName === normalizedFileName;
             });
-            console.log('Normalized filename match index:', index);
         }
 
         if (index === -1) {
@@ -1422,7 +1409,6 @@
                 return galleryFileNameWithoutExt.includes(fileNameWithoutExt) ||
                        fileNameWithoutExt.includes(galleryFileNameWithoutExt);
             });
-            console.log('Partial filename match index:', index);
         }
 
         if (index === -1) {
@@ -1431,20 +1417,15 @@
                 return img.url.includes(imageUrl.substring(imageUrl.indexOf('storage'))) ||
                        imageUrl.includes(img.url.substring(img.url.indexOf('storage')));
             });
-            console.log('Partial path match index:', index);
         }
 
         if (index !== -1) {
-            console.log('Opening lightbox at index:', index);
             openLightbox(index);
         } else {
             console.error('Image not found in gallery. URL:', imageUrl);
-            console.log('Available URLs:');
-            galleryImages.forEach((img, i) => console.log(`${i}: ${img.url}`));
 
             // As fallback, still try to open lightbox with first image
             if (galleryImages.length > 0) {
-                console.log('Opening lightbox with first image as fallback');
                 openLightbox(0);
             }
         }
@@ -1545,18 +1526,15 @@
         const lightboxCounter = document.getElementById('lightboxCounter');
         const thumbnails = document.querySelectorAll('#thumbnailStrip div');
 
-        console.log('Updating lightbox image to index:', currentLightboxIndex);
 
         if (galleryImages[currentLightboxIndex]) {
             const currentImage = galleryImages[currentLightboxIndex];
-            console.log('Loading image:', currentImage.url);
 
             lightboxImage.src = currentImage.url;
             lightboxImage.alt = currentImage.alt;
 
             // Add loading indicator
             lightboxImage.onload = function() {
-                console.log('Lightbox image loaded successfully');
                 this.style.opacity = '1';
             };
 
@@ -1735,7 +1713,6 @@
 
     function showAllRoomImages(roomIndex) {
         // You can implement a full room gallery view here
-        console.log('Show all images for room', roomIndex);
     }
 
     // Auto-slideshow functionality for featured image
@@ -1907,7 +1884,6 @@
                                         <div class="grid grid-cols-2 gap-3">
                                             @foreach($allImagesForGrid->take(6) as $gridIndex => $image)
                                                 <!-- Regular image display -->
-                                                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer @if($gridIndex == 5 && $allImagesForGrid->count() > 6) relative @endif" onclick="console.log('Property grid image clicked:', {{ $gridIndex }}); openLightbox({{ $gridIndex }})">
                                                     <img
                                                         src="{{ $image->full_url }}"
                                                         alt="Property image {{ $gridIndex + 1 }}"
@@ -3526,7 +3502,6 @@
                 map.invalidateSize();
             }, 100);
 
-            console.log('Map initialized successfully');
 
         } catch (error) {
             console.error('Map initialization error:', error);
@@ -3643,7 +3618,6 @@
         })
         .then(response => {
             // Log response for debugging
-            console.log('Response status:', response.status);
             return response.json();
         })
         .then(data => {

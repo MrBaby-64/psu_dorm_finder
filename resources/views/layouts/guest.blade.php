@@ -492,7 +492,6 @@
                     <p class="text-center text-gray-600 mb-6">Select what best describes you</p>
                     
                     <div class="space-y-4 mb-6">
-                        <button type="button" onclick="console.log('Tenant button clicked in modal'); selectRole('tenant')"
                            class="w-full flex items-start gap-4 p-4 border-2 border-blue-300 bg-blue-50 rounded-lg hover:border-blue-500 hover:bg-blue-100 transition">
                             <div class="text-3xl">👤</div>
                             <div class="text-left">
@@ -501,7 +500,6 @@
                             </div>
                         </button>
 
-                        <button type="button" onclick="console.log('Landlord button clicked in modal'); selectRole('landlord')"
                            class="w-full flex items-start gap-4 p-4 border-2 border-green-300 bg-green-50 rounded-lg hover:border-green-500 hover:bg-green-100 transition">
                             <div class="text-3xl">🏢</div>
                             <div class="text-left">
@@ -829,7 +827,6 @@
         }
 
         function selectRole(role) {
-            console.log('Guest layout selectRole called with:', role);
 
             // Set the role value
             document.getElementById('roleInput').value = role;
@@ -845,7 +842,6 @@
             if (role === 'tenant') {
                 if (tenantSection) {
                     tenantSection.classList.remove('hidden');
-                    console.log('✅ Tenant address section shown');
 
                     // Make tenant fields required
                     const addressField = tenantSection.querySelector('[name="address"]');
@@ -876,7 +872,6 @@
                 }
                 if (landlordSection) {
                     landlordSection.classList.remove('hidden');
-                    console.log('✅ Landlord ID section shown');
 
                     // Make landlord fields required
                     const propertyDocsField = landlordSection.querySelector('[name="property_documents"]');
@@ -891,7 +886,6 @@
             const role = document.getElementById('roleInput').value;
             const form = event.target;
 
-            console.log('Validating guest form for role:', role);
 
             if (role === 'tenant') {
                 const addressField = document.querySelector('#tenantAddressSection [name="address"]');
@@ -927,7 +921,6 @@
                 }
             }
 
-            console.log('Form validation passed, opening reCAPTCHA modal...');
 
             // Open reCAPTCHA modal instead of direct submission
             openRecaptchaModal(form);
@@ -1192,12 +1185,10 @@
         // Auto-show modal if there are validation errors
         @if ($errors->any())
             window.addEventListener('DOMContentLoaded', function() {
-                console.log('Validation errors detected...');
 
                 // Check if it's a registration error (has role) or login error
                 @if (old('role'))
                     // Registration error - show registration form
-                    console.log('Registration error detected, opening registration modal...');
                     openAuthModal('register');
                     switchToRoleSelection();
                     setTimeout(function() {
@@ -1211,7 +1202,6 @@
                     }, 100);
                 @else
                     // Login error - show login form
-                    console.log('Login error detected, opening login modal...');
                     openAuthModal('login');
                     // Add shake effect to the login form
                     setTimeout(function() {
@@ -1259,24 +1249,20 @@
 
         // Initialize popup reCAPTCHA when Google API loads
         function initPopupRecaptcha() {
-            console.log('Initializing popup reCAPTCHA...');
             try {
                 const container = document.getElementById('popup-recaptcha');
                 if (container && window.grecaptcha) {
                     popupRecaptchaWidgetId = grecaptcha.render('popup-recaptcha', {
                         'sitekey': '{{ config('captcha.sitekey') }}',
                         'callback': function(response) {
-                            console.log('Popup reCAPTCHA completed:', response);
                             document.getElementById('recaptchaModalStatus').classList.add('hidden');
                             document.getElementById('recaptchaSubmitBtn').disabled = false;
                         },
                         'expired-callback': function() {
-                            console.log('Popup reCAPTCHA expired');
                             showRecaptchaError('reCAPTCHA expired. Please verify again.');
                             document.getElementById('recaptchaSubmitBtn').disabled = true;
                         }
                     });
-                    console.log('Popup reCAPTCHA initialized successfully');
                 } else {
                     console.error('Popup reCAPTCHA container not found or grecaptcha not loaded');
                 }
@@ -1332,7 +1318,6 @@
             resetPopupRecaptcha();
             document.getElementById('recaptchaModalStatus').classList.add('hidden');
 
-            console.log('reCAPTCHA modal opened');
         }
 
         // Function to close reCAPTCHA modal
@@ -1344,7 +1329,6 @@
             pendingFormData = null;
             pendingFormElement = null;
 
-            console.log('reCAPTCHA modal closed');
         }
 
         // Function to complete reCAPTCHA verification and submit form
@@ -1362,7 +1346,6 @@
             }
 
             try {
-                console.log('reCAPTCHA verification completed, submitting form...');
 
                 // Add reCAPTCHA response to form data
                 const hiddenRecaptchaField = pendingFormElement.querySelector('[name="g-recaptcha-response"]');

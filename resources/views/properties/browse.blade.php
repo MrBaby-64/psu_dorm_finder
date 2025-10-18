@@ -568,7 +568,6 @@
                 map.invalidateSize();
             }, 100);
 
-            console.log('Browse map initialized successfully');
 
         } catch (error) {
             console.error('Map initialization error:', error);

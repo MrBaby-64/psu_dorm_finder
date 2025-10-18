@@ -193,8 +193,6 @@
                                 <img src="{{ $imageUrl }}"
                                      alt="{{ $property->title }}"
                                      style="width: 100%; height: 192px; object-fit: cover; background-color: white; display: block; opacity: 1; visibility: visible; position: relative; z-index: 1;"
-                                     onload="console.log('✅ Cover image loaded successfully:', this.src); this.style.opacity = '1'; this.style.visibility = 'visible';"
-                                     onerror="console.error('❌ Cover image failed to load:', this.src); console.log('URL that failed:', '{{ $imageUrl }}'); this.style.display = 'none'; this.nextElementSibling.style.display = 'flex';">
                                 <!-- Error fallback -->
                                 <div style="width: 100%; height: 192px; background-color: #f3f4f6; display: none; align-items: center; justify-content: center; color: #9ca3af;">
                                     <div style="text-align: center;">
@@ -608,7 +606,6 @@ let currentPropertyImages = [];
 let currentImageIndex = 0;
 
 function openImageGallery(propertyId) {
-    console.log('Opening image gallery for property:', propertyId);
 
     const imagesScript = document.getElementById(`property-images-${propertyId}`);
     if (!imagesScript) {
@@ -618,7 +615,6 @@ function openImageGallery(propertyId) {
 
     try {
         currentPropertyImages = JSON.parse(imagesScript.textContent);
-        console.log('Loaded images:', currentPropertyImages);
 
         if (currentPropertyImages.length === 0) {
             console.error('No images found for property:', propertyId);
@@ -626,18 +622,13 @@ function openImageGallery(propertyId) {
         }
 
         // Use original URLs without cleaning - let's see what we get
-        console.log('Raw images data:', currentPropertyImages);
         currentPropertyImages.forEach((img, index) => {
-            console.log(`Image ${index}:`, img.url);
         });
 
         // Start with cover image if available
         const coverIndex = currentPropertyImages.findIndex(img => img.is_cover);
         currentImageIndex = coverIndex >= 0 ? coverIndex : 0;
 
-        console.log('Starting with image index:', currentImageIndex);
-        console.log('Cover image found at index:', coverIndex);
-        console.log('Cleaned image URL:', currentPropertyImages[currentImageIndex].url);
 
         showImageGallery();
     } catch (error) {
@@ -653,13 +644,11 @@ function showImageGallery() {
         return;
     }
 
-    console.log('Showing image gallery...');
     gallery.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 
     // Initialize the gallery with proper sequencing
     setTimeout(() => {
-        console.log('Initializing gallery...');
         updateImageTitle(); // Update title first
         updateGalleryImage(); // Then load image
     }, 100); // Increased delay to ensure DOM is ready
@@ -672,12 +661,10 @@ function closeImageGallery() {
 
 function nextImage() {
     // No navigation needed for single cover image
-    console.log('Navigation disabled - showing single cover image');
 }
 
 function previousImage() {
     // No navigation needed for single cover image
-    console.log('Navigation disabled - showing single cover image');
 }
 
 function updateGalleryImage() {
@@ -695,27 +682,17 @@ function updateGalleryImage() {
         return;
     }
 
-    console.log('Loading image:', currentImage);
-    console.log('Image URL:', currentImage.url);
 
     // Show loading indicator
     if (loadingIndicator) {
         loadingIndicator.style.display = 'flex';
     }
 
-    console.log('=== IMAGE LOADING DEBUG ===');
-    console.log('Current image object:', currentImage);
-    console.log('Image URL to load:', currentImage.url);
-    console.log('Image element:', imgElement);
 
     // Test the URL directly first
-    console.log('Testing if URL is accessible...');
     fetch(currentImage.url)
         .then(response => {
-            console.log('Fetch response status:', response.status);
-            console.log('Fetch response ok:', response.ok);
             if (response.ok) {
-                console.log('URL is accessible via fetch');
             } else {
                 console.error('URL not accessible via fetch');
             }
@@ -730,8 +707,6 @@ function updateGalleryImage() {
 
     // Add loading indicator
     imgElement.onload = function() {
-        console.log('✅ SUCCESS: Gallery image loaded successfully');
-        console.log('Image src that worked:', this.src);
         this.style.opacity = '1';
         if (loadingIndicator) {
             loadingIndicator.style.display = 'none';
@@ -760,9 +735,6 @@ function updateImageTitle() {
     const titleElement = document.getElementById('imageTitle');
     if (titleElement) {
         titleElement.textContent = 'Cover Image';
-        console.log('Title updated to:', titleElement.textContent);
-        console.log('Title element classes:', titleElement.className);
-        console.log('Title element position:', {
             left: titleElement.style.left,
             transform: titleElement.style.transform,
             position: getComputedStyle(titleElement).position
@@ -775,13 +747,11 @@ function updateImageTitle() {
         console.error('Image title element not found!');
         // Check if there are any elements that might be conflicting
         const allElements = document.querySelectorAll('[id*="image"], [id*="counter"], [id*="title"]');
-        console.log('Found elements with image/counter/title IDs:', allElements);
     }
 }
 
 function goToImage(index) {
     // No navigation needed for single cover image
-    console.log('Navigation disabled - showing single cover image');
 }
 
 // Keyboard navigation
