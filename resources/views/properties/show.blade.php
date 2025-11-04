@@ -1934,7 +1934,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
 
                     <!-- Left Column - Property Details -->
-                    <div class="lg:col-span-2 space-y-6 px-4 sm:px-0">
+                    <div class="lg:col-span-2 space-y-6">
                         <div>
                             <div class="flex items-center justify-between mb-4">
                             <h1 class="text-2xl sm:text-3xl font-bold break-words flex items-center gap-2 flex-wrap">
@@ -2025,9 +2025,11 @@
                                             <div class="flex-1">
                                                 <div class="flex items-center space-x-3 mb-2">
                                                     <h3 class="text-base sm:text-lg font-bold text-gray-900 break-words">{{ $room->room_number }}</h3>
-                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                        {{ $room->type_name }}
-                                                    </span>
+                                                    @if($room->capacity >= 2)
+                                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                            Shared Room
+                                                        </span>
+                                                    @endif
                                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
                                                         {{ $room->status === 'available' ? 'bg-green-100 text-green-800' : ($room->status === 'occupied' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
                                                         {{ ucfirst($room->status) }}
@@ -2708,7 +2710,7 @@
                     </div>
 
                     <!-- Right Column - Contact & Actions -->
-                    <div class="lg:col-span-1 px-4 sm:px-0">
+                    <div class="lg:col-span-1">
                         <div class="sticky top-24 space-y-4">
                             <!-- Contact/Inquiry Card - Role-Based -->
                             @auth
@@ -3443,7 +3445,9 @@
                                 <div class="flex justify-between items-start">
                                     <div class="flex-1">
                                         <h4 class="font-medium text-gray-900">{{ $room->room_number }}</h4>
-                                        <p class="text-sm text-blue-600 font-medium">{{ ucfirst(str_replace('_', ' ', $room->room_type)) }}</p>
+                                        @if($room->capacity >= 2)
+                                            <p class="text-sm text-blue-600 font-medium">Shared Room</p>
+                                        @endif
                                         @if($room->description)
                                             <p class="text-sm text-gray-600 mt-1">{{ $room->description }}</p>
                                         @endif
