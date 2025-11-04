@@ -150,10 +150,15 @@
                     <span class="text-xs text-gray-500">Click to view full size</span>
                 </div>
                 <div class="relative">
-                    <img src="{{ asset('storage/' . $user->tenant_id_path) }}"
+                    @php
+                        $tenantIdUrl = str_starts_with($user->tenant_id_path, 'http')
+                            ? $user->tenant_id_path
+                            : asset('storage/' . $user->tenant_id_path);
+                    @endphp
+                    <img src="{{ $tenantIdUrl }}"
                          alt="Tenant ID"
                          class="w-full max-w-md mx-auto rounded-lg border shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                         onclick="window.open('{{ asset('storage/' . $user->tenant_id_path) }}', '_blank')">
+                         onclick="window.open('{{ $tenantIdUrl }}', '_blank')">
                 </div>
 
                 @if($user->tenant_id_verification_status === 'pending')
@@ -341,10 +346,15 @@
                     <span class="text-xs text-gray-500">Click to view full size</span>
                 </div>
                 <div class="relative">
-                    <img src="{{ asset('storage/' . $user->property_documents_path) }}"
+                    @php
+                        $propertyDocsUrl = str_starts_with($user->property_documents_path, 'http')
+                            ? $user->property_documents_path
+                            : asset('storage/' . $user->property_documents_path);
+                    @endphp
+                    <img src="{{ $propertyDocsUrl }}"
                          alt="Property Documents"
                          class="w-full max-w-md mx-auto rounded-lg border shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                         onclick="window.open('{{ asset('storage/' . $user->property_documents_path) }}', '_blank')">
+                         onclick="window.open('{{ $propertyDocsUrl }}', '_blank')">
                 </div>
 
                 @if($user->document_verification_status === 'pending')

@@ -336,14 +336,14 @@
                         @enderror
                     </div>
 
-                    <!-- City -->
+                    <!-- Municipality -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            City <span class="text-red-500">*</span>
+                            Municipality <span class="text-red-500">*</span>
                         </label>
-                        <select name="city" 
+                        <select name="city"
                                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 @error('city') border-red-300 @enderror">
-                            <option value="">Select City</option>
+                            <option value="">Select Municipality</option>
                             <option value="Bacolor" {{ old('city') === 'Bacolor' ? 'selected' : '' }}>Bacolor</option>
                             <option value="San Fernando" {{ old('city') === 'San Fernando' ? 'selected' : '' }}>San Fernando</option>
                         </select>

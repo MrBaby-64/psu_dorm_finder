@@ -265,19 +265,27 @@ class PropertyController extends Controller
 public function searchSuggestions(Request $request)
 {
     $query = $request->get('q');
-    
-    if (strlen($query) < 2) {
+
+    if (strlen($query) < 1) {
         return response()->json([]);
     }
 
+    $searchTerm = strtolower($query);
+
     $suggestions = Property::approved()
         ->select('title', 'slug', 'city', 'price')
-        ->where(function($q) use ($query) {
-            $q->where('title', 'LIKE', "%{$query}%")
-              ->orWhere('location_text', 'LIKE', "%{$query}%")
-              ->orWhere('city', 'LIKE', "%{$query}%");
+        ->where(function($q) use ($searchTerm) {
+            $q->whereRaw('LOWER(title) LIKE ?', ["%{$searchTerm}%"])
+              ->orWhereRaw('LOWER(location_text) LIKE ?', ["%{$searchTerm}%"])
+              ->orWhereRaw('LOWER(city) LIKE ?', ["%{$searchTerm}%"]);
         })
-        ->limit(5)
+        // Order by: titles starting with query first, then others
+        ->orderByRaw("CASE
+            WHEN LOWER(title) LIKE ? THEN 1
+            WHEN LOWER(title) LIKE ? THEN 2
+            ELSE 3
+        END", ["{$searchTerm}%", "%{$searchTerm}%"])
+        ->limit(8)
         ->get()
         ->map(function($property) {
             return [
