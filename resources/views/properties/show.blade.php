@@ -1931,7 +1931,7 @@
                     @endif
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
                     <!-- Left Column - Property Details -->
                     <div class="lg:col-span-2 space-y-6">
