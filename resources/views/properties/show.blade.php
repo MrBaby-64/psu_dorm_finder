@@ -1931,10 +1931,10 @@
                     @endif
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
 
                     <!-- Left Column - Property Details -->
-                    <div class="lg:col-span-2 space-y-6">
+                    <div class="lg:col-span-2 space-y-6 px-4 sm:px-0">
                         <div>
                             <div class="flex items-center justify-between mb-4">
                             <h1 class="text-2xl sm:text-3xl font-bold break-words flex items-center gap-2 flex-wrap">
@@ -2708,7 +2708,7 @@
                     </div>
 
                     <!-- Right Column - Contact & Actions -->
-                    <div class="lg:col-span-1">
+                    <div class="lg:col-span-1 px-4 sm:px-0">
                         <div class="sticky top-24 space-y-4">
                             <!-- Contact/Inquiry Card - Role-Based -->
                             @auth
