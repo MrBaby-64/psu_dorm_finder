@@ -396,8 +396,9 @@ class PropertyController extends Controller
 
                 // Process property image attachments
                 foreach ($uploadedFiles as $index => $fileData) {
-                    if (config('app.env') === 'production') {
-                        // Production: Images already in Cloudinary
+                    // Check if using Cloudinary (same condition as upload)
+                    if (!empty(config('cloudinary.cloud_name'))) {
+                        // Cloudinary: Images already uploaded to cloud
                         PropertyImage::create([
                             'property_id' => $property->id,
                             'image_path' => $fileData['cloudinary_url'],
@@ -577,7 +578,8 @@ class PropertyController extends Controller
         } catch (\Exception $e) {
             // Clean up uploaded files on error
             foreach ($uploadedFiles as $fileData) {
-                if (\Storage::disk('public')->exists($fileData['path'])) {
+                // Only clean up local storage files (not Cloudinary)
+                if (isset($fileData['path']) && \Storage::disk('public')->exists($fileData['path'])) {
                     \Storage::disk('public')->delete($fileData['path']);
                 }
             }

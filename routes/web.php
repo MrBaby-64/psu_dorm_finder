@@ -20,6 +20,7 @@ Route::get('/', [PropertyController::class, 'home'])->name('home');
 Route::get('/about', [App\Http\Controllers\PageController::class, 'about'])->name('about');
 Route::get('/how-it-works', [App\Http\Controllers\PageController::class, 'howItWorks'])->name('how-it-works');
 Route::get('/safety-guidelines', [App\Http\Controllers\PageController::class, 'safetyGuidelines'])->name('safety-guidelines');
+Route::get('/host/{id}', [App\Http\Controllers\HostProfileController::class, 'show'])->name('host.profile');
 
 Route::get('/rentals/browse', [PropertyController::class, 'browse'])->name('properties.browse');
 

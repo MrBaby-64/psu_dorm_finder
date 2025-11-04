@@ -30,6 +30,7 @@ class User extends Authenticatable
         'tenant_id_verification_status',
         'profile_picture',
         'google_id',
+        'last_active_at',
     ];
 
     protected $hidden = [
@@ -42,6 +43,7 @@ class User extends Authenticatable
         'is_verified' => 'boolean',
         'is_suspended' => 'boolean',
         'suspended_until' => 'datetime',
+        'last_active_at' => 'datetime',
     ];
 
     // Role constants

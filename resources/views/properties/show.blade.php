@@ -2626,6 +2626,79 @@
                                 </div>
                             @endif
                         </div>
+
+                        <!-- Host Profile Section -->
+                        @php
+                            $host = $property->user;
+                            $isHostActive = $host->last_active_at && $host->last_active_at->gt(now()->subMinutes(5));
+                            $totalHostInquiries = \App\Models\Booking::whereIn('property_id', $host->properties->pluck('id'))->count();
+                        @endphp
+
+                        <div class="bg-white border rounded-lg p-6 shadow-sm mt-6">
+                            <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
+                                <svg class="w-6 h-6 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                </svg>
+                                Hosted by
+                            </h2>
+
+                            <div class="flex items-start gap-4">
+                                <!-- Host Profile Picture -->
+                                <div class="flex-shrink-0">
+                                    @if($host->profile_picture)
+                                        <img src="{{ asset('storage/' . $host->profile_picture) }}" alt="{{ $host->name }}" class="w-16 h-16 rounded-full object-cover border-2 border-green-500">
+                                    @else
+                                        <div class="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center text-white text-2xl font-bold border-2 border-green-500">
+                                            {{ strtoupper(substr($host->name, 0, 1)) }}
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Host Info -->
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <h3 class="font-bold text-lg text-gray-900">{{ $host->name }}</h3>
+                                        @if($isHostActive)
+                                            <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-xs font-medium px-2 py-0.5 rounded-full">
+                                                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                                Active now
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-gray-500">
+                                                Last active {{ $host->last_active_at ? $host->last_active_at->diffForHumans() : 'N/A' }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Host Stats -->
+                                    <div class="grid grid-cols-2 gap-3 mt-3 text-sm">
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path>
+                                            </svg>
+                                            <span>Joined {{ $host->created_at->format('M Y') }}</span>
+                                        </div>
+                                        <div class="flex items-center gap-2 text-gray-600">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                                                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                                            </svg>
+                                            <span>{{ $totalHostInquiries }} Inquiries</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- View Full Profile Button -->
+                                    <div class="mt-4">
+                                        <a href="{{ route('host.profile', $host->id) }}" class="inline-flex items-center gap-2 text-green-600 hover:text-green-700 font-medium text-sm transition">
+                                            View full host profile
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Right Column - Contact & Actions -->
