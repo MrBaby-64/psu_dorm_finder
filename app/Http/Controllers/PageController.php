@@ -15,4 +15,9 @@ class PageController extends Controller
     {
         return view('pages.how-it-works');
     }
+
+    public function safetyGuidelines()
+    {
+        return view('pages.safety-guidelines');
+    }
 }

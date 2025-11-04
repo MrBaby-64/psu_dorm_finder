@@ -23,7 +23,7 @@
     <div class="max-w-4xl w-full">
         <!-- Hero Section while modal loads -->
         <div class="text-center">
-            <div class="text-5xl font-bold text-green-600 mb-4">🎓 PSU Dorm Finder</div>
+            <div class="text-5xl font-bold text-green-600 mb-4">🏠 Dorm Finder</div>
             <h1 class="text-4xl font-bold text-gray-900 mb-4">Join Our Community</h1>
             <p class="text-xl text-gray-600 mb-8">Create your account and start your journey to finding the perfect accommodation</p>
 
@@ -137,7 +137,7 @@
                         </svg>
                         <span class="font-bold text-green-800 text-xl">🎉 Registration Successful!</span>
                     </div>
-                    <p class="text-green-700 mb-4">Welcome to PSU Dorm Finder, {{ session('user_name') }}!</p>
+                    <p class="text-green-700 mb-4">Welcome to Dorm Finder, {{ session('user_name') }}!</p>
 
                     @if (!session('email_failed'))
                         <div class="bg-blue-50 border border-blue-300 rounded p-3 mb-4">

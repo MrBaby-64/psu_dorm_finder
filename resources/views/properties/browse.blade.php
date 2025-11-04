@@ -216,15 +216,18 @@
     
     <!-- Status Badges -->
     @if($property->is_featured ?? false)
-        <span class="absolute top-2 left-2 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+        <span class="absolute top-2 left-2 bg-yellow-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
             ⭐ Featured
         </span>
     @endif
-    
+
     @if($property->approval_status === 'approved')
-        <span class="absolute top-2 {{ ($property->is_featured ?? false) ? 'left-20' : 'left-2' }} bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
-            ✓ Verified
-        </span>
+        <div class="absolute top-2 {{ ($property->is_featured ?? false) ? 'left-24' : 'left-2' }} bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Verified</span>
+        </div>
     @endif
 </div>
 

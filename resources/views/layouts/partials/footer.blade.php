@@ -2,8 +2,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-                <h3 class="text-xl font-bold mb-4">PSU Dorm Finder</h3>
-                <p class="text-gray-400">Helping PSU students find their perfect home away from home.</p>
+                <h3 class="text-xl font-bold mb-4">Dorm Finder</h3>
+                <p class="text-gray-400">Helping students find their perfect home away from home.</p>
             </div>
             <div>
                 <h4 class="font-semibold mb-3">Quick Links</h4>
@@ -38,7 +38,7 @@
             </div>
         </div>
         <div class="border-t border-gray-700 pt-8 text-center text-gray-400">
-            <p>&copy; {{ date('Y') }} PSU Dorm Finder. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} Dorm Finder. All rights reserved.</p>
         </div>
     </div>
 </footer>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'PSU Dorm Finder') }} - @yield('title', 'Find Your Perfect Student Housing')</title>
+    <title>{{ config('app.name', 'Dorm Finder') }} - @yield('title', 'Find Your Perfect Student Housing')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Global Animations & Enhancements -->
@@ -180,20 +180,20 @@
                     @auth
                         @if(auth()->user()->role === 'tenant')
                             <a href="{{ route('tenant.account') }}" class="text-2xl font-bold text-green-600">
-                                🎓 PSU Dorm Finder
+                                🏠 Dorm Finder
                             </a>
                         @elseif(auth()->user()->role === 'admin')
                             <a href="{{ route('admin.dashboard') }}" class="text-2xl font-bold text-green-600">
-                                🎓 PSU Dorm Finder
+                                🏠 Dorm Finder
                             </a>
                         @else
                             <a href="{{ route('landlord.account') }}" class="text-2xl font-bold text-green-600">
-                                🎓 PSU Dorm Finder
+                                🏠 Dorm Finder
                             </a>
                         @endif
                     @else
                         <a href="{{ route('home') }}" class="text-2xl font-bold text-green-600">
-                            🎓 PSU Dorm Finder
+                            🏠 Dorm Finder
                         </a>
                     @endauth
                 </div>
@@ -420,7 +420,7 @@
                 </button>
 
                 <div class="text-center pt-8 pb-6">
-                    <div class="text-3xl font-bold text-green-600">🎓 PSU Dorm Finder</div>
+                    <div class="text-3xl font-bold text-green-600">🏠 Dorm Finder</div>
                 </div>
 
                 <div id="loginForm" class="px-8 pb-8">
@@ -490,9 +490,9 @@
                 <div id="roleSelection" class="px-8 pb-8 hidden">
                     <h2 class="text-2xl font-bold mb-6 text-center">Create an Account</h2>
                     <p class="text-center text-gray-600 mb-6">Select what best describes you</p>
-                    
+
                     <div class="space-y-4 mb-6">
-                           class="w-full flex items-start gap-4 p-4 border-2 border-blue-300 bg-blue-50 rounded-lg hover:border-blue-500 hover:bg-blue-100 transition">
+                        <button onclick="selectRole('tenant')" class="w-full flex items-start gap-4 p-4 border-2 border-blue-300 bg-blue-50 rounded-lg hover:border-blue-500 hover:bg-blue-100 transition">
                             <div class="text-3xl">👤</div>
                             <div class="text-left">
                                 <div class="font-bold text-lg text-blue-700">I am looking for a place to stay</div>
@@ -500,7 +500,7 @@
                             </div>
                         </button>
 
-                           class="w-full flex items-start gap-4 p-4 border-2 border-green-300 bg-green-50 rounded-lg hover:border-green-500 hover:bg-green-100 transition">
+                        <button onclick="selectRole('landlord')" class="w-full flex items-start gap-4 p-4 border-2 border-green-300 bg-green-50 rounded-lg hover:border-green-500 hover:bg-green-100 transition">
                             <div class="text-3xl">🏢</div>
                             <div class="text-left">
                                 <div class="font-bold text-lg text-green-700">I want to post my property</div>

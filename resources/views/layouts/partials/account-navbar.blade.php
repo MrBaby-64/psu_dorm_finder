@@ -15,20 +15,20 @@
                 @auth
                     @if(auth()->user()->role === 'tenant')
                         <a href="{{ route('tenant.account') }}" class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 flex items-center">
-                            🎓 PSU Dorm Finder
+                            🏠 Dorm Finder
                         </a>
                     @elseif(auth()->user()->role === 'admin')
                         <a href="{{ route('admin.dashboard') }}" class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 flex items-center">
-                            🎓 PSU Dorm Finder
+                            🏠 Dorm Finder
                         </a>
                     @else
                         <a href="{{ route('landlord.account') }}" class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 flex items-center">
-                            🎓 PSU Dorm Finder
+                            🏠 Dorm Finder
                         </a>
                     @endif
                 @else
                     <a href="{{ route('home') }}" class="text-lg sm:text-xl lg:text-2xl font-bold text-green-600 flex items-center">
-                        🎓 PSU Dorm Finder
+                        🏠 Dorm Finder
                     </a>
                 @endauth
             </div>

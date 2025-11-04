@@ -11,15 +11,15 @@
                 <!-- Logo with floating animation -->
                 <div class="inline-block mb-6 float-animation">
                     <div class="text-6xl sm:text-7xl font-bold text-green-600 mb-2 drop-shadow-lg">
-                        🎓 PSU Dorm Finder
+                        🏠 Dorm Finder
                     </div>
                 </div>
 
                 <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-gray-900 mb-4 leading-tight px-4">
-                    Find Rooms for Rent with <span class="text-green-600">PSU Dorm Finder</span>
+                    Find Rooms for Rent with <span class="text-green-600">Dorm Finder</span>
                 </h1>
                 <p class="text-lg sm:text-xl text-gray-600 mb-10 max-w-3xl mx-auto px-4">
-                    Discover verified dormitories and apartments near PSU Bacolor & San Fernando
+                    Discover verified dormitories and apartments near Bacolor & San Fernando
                 </p>
 
                 {{-- Search Form --}}
@@ -89,7 +89,11 @@
                     </a>
                     <a href="{{ route('properties.browse', ['is_verified' => 1]) }}"
                        class="quick-link flex items-center gap-2 bg-green-600 text-white px-4 sm:px-5 py-2.5 rounded-full hover:bg-green-700 transition-all duration-300 shadow-md hover:shadow-lg font-medium transform hover:-translate-y-0.5">
-                        <span>✓</span> PSU Verified Properties
+                        <span>✓</span> Verified Properties
+                    </a>
+                    <a href="{{ route('safety-guidelines') }}"
+                       class="quick-link flex items-center gap-2 bg-green-600 text-white px-4 sm:px-5 py-2.5 rounded-full hover:bg-green-700 transition-all duration-300 shadow-md hover:shadow-lg font-medium transform hover:-translate-y-0.5">
+                        <span>🛡️</span> Safety Guidelines
                     </a>
                 </div>
 

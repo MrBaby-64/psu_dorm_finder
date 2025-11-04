@@ -113,7 +113,7 @@
             <!-- Logo with floating animation -->
             <div class="inline-block mb-6 float-animation">
                 <div class="text-6xl sm:text-7xl font-bold text-green-600 mb-2 drop-shadow-lg">
-                    🎓 PSU Dorm Finder
+                    🏠 Dorm Finder
                 </div>
             </div>
 
