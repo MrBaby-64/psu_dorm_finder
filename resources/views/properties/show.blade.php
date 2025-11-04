@@ -1079,6 +1079,21 @@
         map.fitBounds(bounds, { padding: [50, 50] });
     }
 
+    // Generate green-to-red gradient color based on route index
+    function getRouteColor(index, total) {
+        // For routes 0-2: green shades
+        // For routes 3-4: red shades
+        const ratio = index / Math.max(1, total - 1); // 0 to 1
+
+        // Green RGB: 34, 197, 94
+        // Red RGB: 239, 68, 68
+        const r = Math.round(34 + (239 - 34) * ratio);
+        const g = Math.round(197 + (68 - 197) * ratio);
+        const b = Math.round(94 + (68 - 94) * ratio);
+
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
     function displaySingleRoute(route, routeIndex) {
         // Clear existing route line
         if (currentRouteLayer) {
@@ -1088,9 +1103,8 @@
         // Convert geometry to Leaflet format [lat, lng]
         const coordinates = route.geometry.map(coord => [coord[1], coord[0]]);
 
-        // Define colors for different routes
-        const colors = ['#2563eb', '#16a34a', '#ea580c'];
-        const color = colors[routeIndex % colors.length];
+        // Get gradient color (green to red)
+        const color = getRouteColor(routeIndex, selectedRoutes.length);
 
         // Draw route on map
         currentRouteLayer = L.polyline(coordinates, {
@@ -1141,12 +1155,17 @@
         html += '<div style="display: flex; flex-direction: column; gap: 8px;">';
 
         routes.forEach((route, index) => {
-            const colors = ['#2563eb', '#16a34a', '#ea580c', '#8b5cf6', '#f59e0b'];
-            const bgColors = ['#eff6ff', '#f0fdf4', '#fff7ed', '#f5f3ff', '#fffbeb'];
-            const borderColors = ['#3b82f6', '#22c55e', '#f97316', '#a78bfa', '#fbbf24'];
-            const color = colors[index % colors.length];
-            const bgColor = bgColors[index % bgColors.length];
-            const borderColor = borderColors[index % borderColors.length];
+            // Use gradient color (green to red)
+            const color = getRouteColor(index, routes.length);
+
+            // Generate lighter background color based on the main color
+            const ratio = index / Math.max(1, routes.length - 1);
+            const bgR = Math.round(240 + (254 - 240) * ratio);
+            const bgG = Math.round(253 + (226 - 253) * ratio);
+            const bgB = Math.round(244 + (230 - 244) * ratio);
+            const bgColor = `rgb(${bgR}, ${bgG}, ${bgB})`;
+
+            const borderColor = color;
             const icons = ['🚗', '🛣️', '🌄', '🏞️', '⚡'];
             const icon = icons[index] || '📍';
             const labels = ['Fastest', 'Alternative', 'Scenic', 'Balanced', 'Shortest'];
@@ -1931,7 +1950,7 @@
                     @endif
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-6 px-6">
 
                     <!-- Left Column - Property Details -->
                     <div class="lg:col-span-2 space-y-6">
