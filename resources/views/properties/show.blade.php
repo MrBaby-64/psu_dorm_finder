@@ -1019,8 +1019,8 @@
 
             // If we have routes, display them on the map
             if (data.success && data.routes && data.routes.length > 0) {
-                // Sort routes by duration (fastest first)
-                const sortedRoutes = data.routes.sort((a, b) => a.duration_value - b.duration_value);
+                // Sort routes by duration (fastest first) - duration is in milliseconds
+                const sortedRoutes = data.routes.sort((a, b) => a.duration - b.duration);
                 selectedRoutes = sortedRoutes;
                 displayRoutesOnMap(originLat, originLng, sortedRoutes);
                 showRouteOptions(sortedRoutes);
@@ -1072,6 +1072,11 @@
 
         // Display the first (fastest) route by default
         displaySingleRoute(routes[0], 0);
+
+        // Highlight the first route button after a short delay
+        setTimeout(() => {
+            selectRoute(0);
+        }, 200);
 
         // Fit map to show both markers and route
         const bounds = L.latLngBounds([
@@ -1256,8 +1261,25 @@
     function selectRoute(index) {
         if (selectedRoutes[index]) {
             displaySingleRoute(selectedRoutes[index], index);
-            const labels = ['fastest', 'alternative', 'scenic'];
-            const label = labels[index] || 'route';
+
+            // Highlight selected route button
+            const routeBtns = document.querySelectorAll('.route-option-btn');
+            routeBtns.forEach((btn, i) => {
+                if (i === index) {
+                    // Selected route - add thick border and shadow
+                    btn.style.borderWidth = '3px';
+                    btn.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                    btn.style.transform = 'scale(1.02)';
+                } else {
+                    // Unselected routes - reset to normal
+                    btn.style.borderWidth = '2px';
+                    btn.style.boxShadow = 'none';
+                    btn.style.transform = 'scale(1)';
+                }
+            });
+
+            const labels = ['Fastest', 'Alternative', 'Scenic', 'Balanced', 'Shortest'];
+            const label = labels[index] || `Route ${index + 1}`;
             showSimpleAlert(`Showing ${label} route: ${selectedRoutes[index].duration_text}`, 'success');
         }
     }
