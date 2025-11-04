@@ -17,6 +17,7 @@ use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Http;
+use Cloudinary\Cloudinary;
 
 /**
  * User Registration Controller
@@ -218,14 +219,75 @@ class RegisteredUserController extends Controller
                     throw new \Exception('User creation failed');
                 }
 
+                // Handle document uploads (Cloudinary or local storage)
+                $useCloudinary = !empty(config('cloudinary.cloud_name'));
+
                 if ($validated['role'] === 'landlord' && $request->hasFile('property_documents')) {
-                    $documentsPath = $request->file('property_documents')->store('landlord-documents', 'public');
-                    $user->update(['property_documents_path' => $documentsPath]);
+                    if ($useCloudinary) {
+                        try {
+                            $cloudinary = new Cloudinary([
+                                'cloud' => [
+                                    'cloud_name' => config('cloudinary.cloud_name'),
+                                    'api_key' => config('cloudinary.api_key'),
+                                    'api_secret' => config('cloudinary.api_secret'),
+                                ]
+                            ]);
+
+                            $uploadResult = $cloudinary->uploadApi()->upload(
+                                $request->file('property_documents')->getRealPath(),
+                                [
+                                    'folder' => 'landlord-documents',
+                                    'public_id' => 'landlord_' . $user->id . '_' . time(),
+                                    'resource_type' => 'auto'
+                                ]
+                            );
+
+                            $user->update(['property_documents_path' => $uploadResult['secure_url']]);
+                        } catch (\Exception $e) {
+                            Log::error('Landlord document upload to Cloudinary failed', [
+                                'error' => $e->getMessage(),
+                                'user_id' => $user->id
+                            ]);
+                            throw new \Exception('Failed to upload property documents. Please try again.');
+                        }
+                    } else {
+                        $documentsPath = $request->file('property_documents')->store('landlord-documents', 'public');
+                        $user->update(['property_documents_path' => $documentsPath]);
+                    }
                 }
 
                 if ($validated['role'] === 'tenant' && $request->hasFile('tenant_id')) {
-                    $tenantIdPath = $request->file('tenant_id')->store('tenant-ids', 'public');
-                    $user->update(['tenant_id_path' => $tenantIdPath]);
+                    if ($useCloudinary) {
+                        try {
+                            $cloudinary = new Cloudinary([
+                                'cloud' => [
+                                    'cloud_name' => config('cloudinary.cloud_name'),
+                                    'api_key' => config('cloudinary.api_key'),
+                                    'api_secret' => config('cloudinary.api_secret'),
+                                ]
+                            ]);
+
+                            $uploadResult = $cloudinary->uploadApi()->upload(
+                                $request->file('tenant_id')->getRealPath(),
+                                [
+                                    'folder' => 'tenant-ids',
+                                    'public_id' => 'tenant_' . $user->id . '_' . time(),
+                                    'resource_type' => 'auto'
+                                ]
+                            );
+
+                            $user->update(['tenant_id_path' => $uploadResult['secure_url']]);
+                        } catch (\Exception $e) {
+                            Log::error('Tenant ID upload to Cloudinary failed', [
+                                'error' => $e->getMessage(),
+                                'user_id' => $user->id
+                            ]);
+                            throw new \Exception('Failed to upload tenant ID. Please try again.');
+                        }
+                    } else {
+                        $tenantIdPath = $request->file('tenant_id')->store('tenant-ids', 'public');
+                        $user->update(['tenant_id_path' => $tenantIdPath]);
+                    }
                 }
 
                 return $user;

@@ -10,7 +10,13 @@
                 <!-- Profile Picture -->
                 <div class="flex-shrink-0">
                     @if($host->profile_picture)
-                        <img src="{{ asset('storage/' . $host->profile_picture) }}" alt="{{ $host->name }}" class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-green-500">
+                        @php
+                            // Check if it's a Cloudinary URL or local path
+                            $profileImageUrl = str_starts_with($host->profile_picture, 'http')
+                                ? $host->profile_picture
+                                : asset('storage/' . $host->profile_picture);
+                        @endphp
+                        <img src="{{ $profileImageUrl }}" alt="{{ $host->name }}" class="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-green-500">
                     @else
                         <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-green-600 flex items-center justify-center text-white text-4xl md:text-5xl font-bold border-4 border-green-500">
                             {{ strtoupper(substr($host->name, 0, 1)) }}

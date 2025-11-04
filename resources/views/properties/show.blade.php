@@ -2634,7 +2634,7 @@
                             $totalHostInquiries = \App\Models\Booking::whereIn('property_id', $host->properties->pluck('id'))->count();
                         @endphp
 
-                        <div class="bg-white border rounded-lg p-6 shadow-sm mt-6">
+                        <div class="bg-white border rounded-lg p-6 shadow-sm">
                             <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center">
                                 <svg class="w-6 h-6 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
@@ -2646,7 +2646,13 @@
                                 <!-- Host Profile Picture -->
                                 <div class="flex-shrink-0">
                                     @if($host->profile_picture)
-                                        <img src="{{ asset('storage/' . $host->profile_picture) }}" alt="{{ $host->name }}" class="w-16 h-16 rounded-full object-cover border-2 border-green-500">
+                                        @php
+                                            // Check if it's a Cloudinary URL or local path
+                                            $profileImageUrl = str_starts_with($host->profile_picture, 'http')
+                                                ? $host->profile_picture
+                                                : asset('storage/' . $host->profile_picture);
+                                        @endphp
+                                        <img src="{{ $profileImageUrl }}" alt="{{ $host->name }}" class="w-16 h-16 rounded-full object-cover border-2 border-green-500">
                                     @else
                                         <div class="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center text-white text-2xl font-bold border-2 border-green-500">
                                             {{ strtoupper(substr($host->name, 0, 1)) }}
