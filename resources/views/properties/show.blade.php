@@ -1019,9 +1019,11 @@
 
             // If we have routes, display them on the map
             if (data.success && data.routes && data.routes.length > 0) {
-                selectedRoutes = data.routes;
-                displayRoutesOnMap(originLat, originLng, data.routes);
-                showRouteOptions(data.routes);
+                // Sort routes by duration (fastest first)
+                const sortedRoutes = data.routes.sort((a, b) => a.duration_value - b.duration_value);
+                selectedRoutes = sortedRoutes;
+                displayRoutesOnMap(originLat, originLng, sortedRoutes);
+                showRouteOptions(sortedRoutes);
                 closeDirectionsModal();
             } else {
                 // Fallback to Google Maps if no routes found
