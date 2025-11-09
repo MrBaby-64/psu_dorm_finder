@@ -559,18 +559,29 @@
 </div>
 
 <script>
+// VERSION 2.0 - FIXED DELETE BUTTON
+console.log('DELETE SCRIPT LOADED VERSION 2.0');
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Ready - Attaching delete button listeners');
+
     // Attach event listeners to all delete buttons
-    document.querySelectorAll('.delete-btn').forEach(function(btn) {
+    var deleteButtons = document.querySelectorAll('.delete-btn');
+    console.log('Found ' + deleteButtons.length + ' delete buttons');
+
+    deleteButtons.forEach(function(btn) {
         btn.addEventListener('click', function() {
+            console.log('Delete button clicked!');
             var id = this.getAttribute('data-id');
             var name = this.getAttribute('data-name');
+            console.log('Property ID:', id, 'Name:', name);
             showDeleteModal(id, name);
         });
     });
 });
 
 function showDeleteModal(propertyId, propertyTitle) {
+    console.log('showDeleteModal called with:', propertyId, propertyTitle);
     document.getElementById('propertyId').value = propertyId;
     document.getElementById('propertyTitle').textContent = propertyTitle;
     document.getElementById('deleteModal').classList.remove('hidden');
