@@ -413,8 +413,8 @@
 </div>
 
 <!-- Professional Delete Confirmation Modal -->
-<div id="deleteModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all">
+<div id="deleteModal" class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center" style="z-index: 9999;" onclick="closeDeleteModal()">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all" onclick="event.stopPropagation()">
         <div class="p-6 border-b border-gray-200">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
@@ -566,16 +566,24 @@
 </div>
 
 <script>
-// NEW VERSION - v3.0
+// NEW VERSION - v3.1
 function openDeleteModal(propertyId, propertyTitle) {
+    var modal = document.getElementById('deleteModal');
     document.getElementById('propertyId').value = propertyId;
     document.getElementById('propertyTitle').textContent = propertyTitle;
-    document.getElementById('deleteModal').classList.remove('hidden');
+
+    // Remove hidden class and force display
+    modal.classList.remove('hidden');
+    modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+
+    console.log('Modal opened for property:', propertyId, propertyTitle);
 }
 
 function closeDeleteModal() {
-    document.getElementById('deleteModal').classList.add('hidden');
+    var modal = document.getElementById('deleteModal');
+    modal.classList.add('hidden');
+    modal.style.display = 'none';
     document.getElementById('deleteReason').value = '';
     document.body.style.overflow = '';
 }
