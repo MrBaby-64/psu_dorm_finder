@@ -352,9 +352,8 @@
                                     </button>
                                 @else
                                     <button type="button"
-                                            class="delete-property-btn bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium"
-                                            data-property-id="{{ $property->id }}"
-                                            data-property-title="{{ $property->title }}">
+                                            onclick="openDeleteModal({{ $property->id }}, '{{ addslashes($property->title) }}')"
+                                            class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
@@ -567,58 +566,12 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded - Initializing delete buttons');
-
-    // Attach event listeners to all delete buttons
-    var deleteButtons = document.querySelectorAll('.delete-property-btn');
-    console.log('Found delete buttons:', deleteButtons.length);
-
-    deleteButtons.forEach(function(btn, index) {
-        console.log('Attaching listener to button', index);
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            console.log('Delete button clicked!');
-            var propertyId = this.getAttribute('data-property-id');
-            var propertyTitle = this.getAttribute('data-property-title');
-            console.log('Property ID:', propertyId, 'Title:', propertyTitle);
-
-            showDeleteModal(propertyId, propertyTitle);
-        });
-    });
-});
-
-function showDeleteModal(propertyId, propertyTitle) {
-    console.log('showDeleteModal called with ID:', propertyId, 'Title:', propertyTitle);
-
-    var modal = document.getElementById('deleteModal');
-    console.log('Modal element:', modal);
-
-    if (!modal) {
-        console.error('Modal not found!');
-        alert('Error: Delete modal not found on page');
-        return;
-    }
-
-    var propertyIdInput = document.getElementById('propertyId');
-    var propertyTitleSpan = document.getElementById('propertyTitle');
-
-    console.log('Property ID input:', propertyIdInput);
-    console.log('Property Title span:', propertyTitleSpan);
-
-    if (propertyIdInput) {
-        propertyIdInput.value = propertyId;
-    }
-
-    if (propertyTitleSpan) {
-        propertyTitleSpan.textContent = propertyTitle;
-    }
-
-    modal.classList.remove('hidden');
+// NEW VERSION - v3.0
+function openDeleteModal(propertyId, propertyTitle) {
+    document.getElementById('propertyId').value = propertyId;
+    document.getElementById('propertyTitle').textContent = propertyTitle;
+    document.getElementById('deleteModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    console.log('Modal should now be visible');
 }
 
 function closeDeleteModal() {
