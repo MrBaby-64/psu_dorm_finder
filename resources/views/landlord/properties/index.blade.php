@@ -344,9 +344,8 @@
                                     </button>
                                 @else
                                     <button type="button"
-                                            class="delete-property-btn bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium"
-                                            data-property-id="{{ $property->id }}"
-                                            data-property-title="{{ e($property->title) }}">
+                                            onclick="showDeleteModal({{ $property->id }}, {{ json_encode($property->title) }})"
+                                            class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"></path>
                                         </svg>
@@ -559,24 +558,6 @@
 </div>
 
 <script>
-// Delete button functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Attach click event to all delete buttons
-    const deleteButtons = document.querySelectorAll('.delete-property-btn');
-
-    deleteButtons.forEach(function(button) {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const propertyId = this.getAttribute('data-property-id');
-            const propertyTitle = this.getAttribute('data-property-title');
-
-            showDeleteModal(propertyId, propertyTitle);
-        });
-    });
-});
-
 function showDeleteModal(propertyId, propertyTitle) {
     document.getElementById('propertyId').value = propertyId;
     document.getElementById('propertyTitle').textContent = propertyTitle;
