@@ -343,17 +343,13 @@
                                         </svg>
                                     </button>
                                 @else
-                                    <form id="delete-form-{{ $property->id }}" action="{{ route('landlord.properties.request-deletion') }}" method="POST" style="display: inline;">
-                                        @csrf
-                                        <input type="hidden" name="property_id" value="{{ $property->id }}">
-                                        <input type="hidden" name="reason" id="reason-{{ $property->id }}" value="">
-                                        <button type="button" onclick="var form = document.getElementById('delete-form-{{ $property->id }}'); if(confirm('Are you sure you want to request deletion of {{ $property->title }}?')) { var reason = prompt('Please provide a reason for deletion:'); if(reason && reason.trim() !== '') { document.getElementById('reason-{{ $property->id }}').value = reason; form.submit(); } else { alert('Deletion reason is required!'); } }"
-                                                class="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="delete-property-btn bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition text-sm font-medium"
+                                            data-property-id="{{ $property->id }}"
+                                            data-property-title="{{ $property->title }}">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
                                 @endif
                             </div>
                         </div>
@@ -562,29 +558,20 @@
 </div>
 
 <script>
-// VERSION 2.0 - FIXED DELETE BUTTON
-console.log('DELETE SCRIPT LOADED VERSION 2.0');
-
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Ready - Attaching delete button listeners');
-
     // Attach event listeners to all delete buttons
-    var deleteButtons = document.querySelectorAll('.delete-btn');
-    console.log('Found ' + deleteButtons.length + ' delete buttons');
+    var deleteButtons = document.querySelectorAll('.delete-property-btn');
 
     deleteButtons.forEach(function(btn) {
         btn.addEventListener('click', function() {
-            console.log('Delete button clicked!');
-            var id = this.getAttribute('data-id');
-            var name = this.getAttribute('data-name');
-            console.log('Property ID:', id, 'Name:', name);
-            showDeleteModal(id, name);
+            var propertyId = this.getAttribute('data-property-id');
+            var propertyTitle = this.getAttribute('data-property-title');
+            showDeleteModal(propertyId, propertyTitle);
         });
     });
 });
 
 function showDeleteModal(propertyId, propertyTitle) {
-    console.log('showDeleteModal called with:', propertyId, propertyTitle);
     document.getElementById('propertyId').value = propertyId;
     document.getElementById('propertyTitle').textContent = propertyTitle;
     document.getElementById('deleteModal').classList.remove('hidden');
