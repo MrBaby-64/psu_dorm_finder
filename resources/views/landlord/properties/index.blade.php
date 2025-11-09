@@ -568,23 +568,57 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded - Initializing delete buttons');
+
     // Attach event listeners to all delete buttons
     var deleteButtons = document.querySelectorAll('.delete-property-btn');
+    console.log('Found delete buttons:', deleteButtons.length);
 
-    deleteButtons.forEach(function(btn) {
-        btn.addEventListener('click', function() {
+    deleteButtons.forEach(function(btn, index) {
+        console.log('Attaching listener to button', index);
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            console.log('Delete button clicked!');
             var propertyId = this.getAttribute('data-property-id');
             var propertyTitle = this.getAttribute('data-property-title');
+            console.log('Property ID:', propertyId, 'Title:', propertyTitle);
+
             showDeleteModal(propertyId, propertyTitle);
         });
     });
 });
 
 function showDeleteModal(propertyId, propertyTitle) {
-    document.getElementById('propertyId').value = propertyId;
-    document.getElementById('propertyTitle').textContent = propertyTitle;
-    document.getElementById('deleteModal').classList.remove('hidden');
+    console.log('showDeleteModal called with ID:', propertyId, 'Title:', propertyTitle);
+
+    var modal = document.getElementById('deleteModal');
+    console.log('Modal element:', modal);
+
+    if (!modal) {
+        console.error('Modal not found!');
+        alert('Error: Delete modal not found on page');
+        return;
+    }
+
+    var propertyIdInput = document.getElementById('propertyId');
+    var propertyTitleSpan = document.getElementById('propertyTitle');
+
+    console.log('Property ID input:', propertyIdInput);
+    console.log('Property Title span:', propertyTitleSpan);
+
+    if (propertyIdInput) {
+        propertyIdInput.value = propertyId;
+    }
+
+    if (propertyTitleSpan) {
+        propertyTitleSpan.textContent = propertyTitle;
+    }
+
+    modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    console.log('Modal should now be visible');
 }
 
 function closeDeleteModal() {
