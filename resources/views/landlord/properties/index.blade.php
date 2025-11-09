@@ -192,7 +192,7 @@
                             @if($imageUrl)
                                 <img src="{{ $imageUrl }}"
                                      alt="{{ $property->title }}"
-                                     style="width: 100%; height: 192px; object-fit: cover; background-color: white; display: block; opacity: 1; visibility: visible; position: relative; z-index: 1;"
+                                     style="width: 100%; height: 192px; object-fit: cover; background-color: white; display: block; opacity: 1; visibility: visible; position: relative; z-index: 1;">
                                 <!-- Error fallback -->
                                 <div style="width: 100%; height: 192px; background-color: #f3f4f6; display: none; align-items: center; justify-content: center; color: #9ca3af;">
                                     <div style="text-align: center;">
@@ -559,24 +559,18 @@
 </div>
 
 <script>
-// Event delegation for delete buttons
+// Delete button functionality
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded - initializing delete buttons');
-
     // Attach click event to all delete buttons
     const deleteButtons = document.querySelectorAll('.delete-property-btn');
-    console.log('Found delete buttons:', deleteButtons.length);
 
-    deleteButtons.forEach(function(button, index) {
-        console.log('Attaching listener to button', index);
+    deleteButtons.forEach(function(button) {
         button.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            console.log('Delete button clicked!');
 
             const propertyId = this.getAttribute('data-property-id');
             const propertyTitle = this.getAttribute('data-property-title');
-            console.log('Property ID:', propertyId, 'Title:', propertyTitle);
 
             showDeleteModal(propertyId, propertyTitle);
         });
@@ -584,7 +578,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function showDeleteModal(propertyId, propertyTitle) {
-    console.log('showDeleteModal called with:', propertyId, propertyTitle);
     document.getElementById('propertyId').value = propertyId;
     document.getElementById('propertyTitle').textContent = propertyTitle;
     document.getElementById('deleteModal').classList.remove('hidden');
