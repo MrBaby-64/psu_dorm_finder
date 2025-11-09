@@ -561,14 +561,14 @@
 <script>
 // Event delegation for delete buttons
 document.addEventListener('DOMContentLoaded', function() {
-    // Attach click event to all delete buttons using event delegation
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.delete-property-btn')) {
-            const button = e.target.closest('.delete-property-btn');
-            const propertyId = button.getAttribute('data-property-id');
-            const propertyTitle = button.getAttribute('data-property-title');
+    // Attach click event to all delete buttons
+    const deleteButtons = document.querySelectorAll('.delete-property-btn');
+    deleteButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            const propertyId = this.getAttribute('data-property-id');
+            const propertyTitle = this.getAttribute('data-property-title');
             showDeleteModal(propertyId, propertyTitle);
-        }
+        });
     });
 });
 
