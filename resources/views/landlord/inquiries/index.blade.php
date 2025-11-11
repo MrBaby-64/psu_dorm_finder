@@ -20,6 +20,30 @@
             </div>
         @endif
 
+        <!-- Workflow Guide -->
+        <div class="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-blue-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-sm font-medium text-blue-800 mb-1">
+                        How to Handle Inquiries
+                    </h3>
+                    <div class="text-sm text-blue-700">
+                        <p class="mb-2"><strong>Step 1:</strong> Review the inquiry details and tenant information</p>
+                        <p class="mb-2"><strong>Step 2:</strong> Click <span class="font-semibold text-green-700">"Approve"</span> to accept the tenant (this confirms their booking)</p>
+                        <p class="mb-2"><strong>Step 3:</strong> Use <span class="font-semibold text-blue-700">"Reply"</span> to send additional messages or instructions</p>
+                        <p class="text-xs text-blue-600 mt-2">
+                            💡 <strong>Important:</strong> Clicking "Approve" confirms the tenant's booking. If you only reply without approving, you can still approve later.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Inquiries List -->
         @if($inquiries->count() > 0)
             <div class="space-y-6">

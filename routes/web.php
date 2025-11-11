@@ -30,6 +30,9 @@ Route::get('/api/routing/get-routes', [\App\Http\Controllers\RoutingController::
 
 Route::get('/properties/{property:slug}', [PropertyController::class, 'show'])->name('properties.show');
 
+// Report landlord (tenant only)
+Route::post('/landlord/{landlord}/report', [\App\Http\Controllers\ReportController::class, 'reportLandlord'])->name('landlord.report')->middleware('auth');
+
 /*
 |--------------------------------------------------------------------------
 | Authentication Routes (Breeze provides these)
@@ -212,6 +215,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/properties/deletion-requests/{deletionRequest}', [\App\Http\Controllers\Admin\PropertyController::class, 'viewDeletionRequest'])->name('properties.deletion-requests.view');
     Route::post('/properties/deletion-requests/{deletionRequest}/approve', [\App\Http\Controllers\Admin\PropertyController::class, 'approveDeletion'])->name('properties.deletion-requests.approve');
     Route::post('/properties/deletion-requests/{deletionRequest}/reject', [\App\Http\Controllers\Admin\PropertyController::class, 'rejectDeletion'])->name('properties.deletion-requests.reject');
+
+    // Landlord reports management
+    Route::post('/reports/{report}/resolve', [\App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
+    Route::post('/reports/{report}/dismiss', [\App\Http\Controllers\Admin\ReportController::class, 'dismiss'])->name('reports.dismiss');
 
     // Admin messages management
     Route::get('/messages', [\App\Http\Controllers\Admin\MessageController::class, 'index'])->name('messages.index');

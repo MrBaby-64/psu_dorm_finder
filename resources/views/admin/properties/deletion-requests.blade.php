@@ -3,16 +3,36 @@
 @section('content')
 <div class="py-8">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold">Property Deletion Requests</h1>
+        <h1 class="text-3xl font-bold">Deletion & Reported Requests</h1>
 
         <div class="flex gap-2">
             <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
-                {{ $deletionRequests->where('status', 'pending')->count() }} Pending
+                {{ $deletionRequests->where('status', 'pending')->count() }} Deletion Pending
             </span>
-            <span class="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
-                {{ $deletionRequests->total() }} Total
+            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">
+                {{ $landlordReports->where('status', 'pending')->count() }} Reports Pending
             </span>
         </div>
+    </div>
+
+    {{-- Tabs --}}
+    <div class="mb-6 border-b border-gray-200">
+        <nav class="-mb-px flex space-x-8">
+            <button onclick="switchTab('deletions')" id="tab-deletions"
+                    class="tab-button border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
+                Property Deletion Requests
+                <span class="ml-2 py-0.5 px-2 rounded-full text-xs bg-blue-100 text-blue-800">
+                    {{ $deletionRequests->total() }}
+                </span>
+            </button>
+            <button onclick="switchTab('reports')" id="tab-reports"
+                    class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                Reported Hosts
+                <span class="ml-2 py-0.5 px-2 rounded-full text-xs bg-gray-100 text-gray-800">
+                    {{ $landlordReports->total() }}
+                </span>
+            </button>
+        </nav>
     </div>
 
     @if(session('success'))
@@ -34,6 +54,8 @@
     </div>
     @endif
 
+    {{-- Deletion Requests Tab Content --}}
+    <div id="content-deletions" class="tab-content">
     {{-- Search and Filter Bar --}}
     <div class="bg-white rounded-lg shadow p-4 mb-6">
         <form method="GET" action="{{ route('admin.properties.deletion-requests') }}" class="flex flex-wrap gap-4">
@@ -284,5 +306,165 @@
         </p>
     </div>
     @endif
+    </div>
+    {{-- End Deletion Requests Tab Content --}}
+
+    {{-- Reported Hosts Tab Content --}}
+    <div id="content-reports" class="tab-content hidden">
+        @if($landlordReports->count() > 0)
+        <div class="space-y-6">
+            @foreach($landlordReports as $report)
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                Reported: {{ $report->landlord->name }}
+                            </h3>
+                            <span class="px-3 py-1 text-xs font-medium rounded-full {{ $report->status_color }}">
+                                {{ $report->status_name }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-600">
+                            Reported by: <span class="font-medium">{{ $report->reporter->name }}</span>
+                            ({{ $report->reporter->email }})
+                        </p>
+                        @if($report->property)
+                        <p class="text-sm text-gray-600">
+                            Property: <span class="font-medium">{{ $report->property->title }}</span>
+                        </p>
+                        @endif
+                        <p class="text-xs text-gray-500 mt-1">
+                            Submitted: {{ $report->created_at->format('M j, Y \a\t g:i A') }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="mb-3">
+                        <span class="text-sm font-medium text-gray-700">Reason:</span>
+                        <span class="ml-2 px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded">
+                            {{ $report->reason_name }}
+                        </span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-700 mb-1">Description:</p>
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <p class="text-sm text-gray-700 whitespace-pre-line">{{ $report->description }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if($report->admin_notes)
+                <div class="mb-4">
+                    <p class="text-sm font-medium text-gray-700 mb-1">Admin Notes:</p>
+                    <div class="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-400">
+                        <p class="text-sm text-blue-800 whitespace-pre-line">{{ $report->admin_notes }}</p>
+                        <p class="text-xs text-blue-600 mt-1">
+                            Reviewed by {{ $report->reviewer->name }} on {{ $report->reviewed_at->format('M j, Y') }}
+                        </p>
+                    </div>
+                </div>
+                @endif
+
+                @if($report->status === 'pending')
+                <div class="flex gap-3 pt-4 border-t">
+                    <button onclick="resolveReport({{ $report->id }})"
+                            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition font-medium text-sm">
+                        Mark as Resolved
+                    </button>
+                    <button onclick="dismissReport({{ $report->id }})"
+                            class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition font-medium text-sm">
+                        Dismiss Report
+                    </button>
+                </div>
+                @endif
+            </div>
+            @endforeach
+        </div>
+
+        <div class="mt-6">
+            {{ $landlordReports->links() }}
+        </div>
+
+        @else
+        <div class="bg-white rounded-lg shadow p-12 text-center">
+            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No reports found</h3>
+            <p class="text-sm text-gray-500">There are no reported hosts at this time.</p>
+        </div>
+        @endif
+    </div>
+    {{-- End Reported Hosts Tab Content --}}
 </div>
+
+<script>
+function switchTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+    });
+
+    // Remove active styles from all tabs
+    document.querySelectorAll('.tab-button').forEach(button => {
+        button.classList.remove('border-blue-500', 'text-blue-600');
+        button.classList.add('border-transparent', 'text-gray-500');
+    });
+
+    // Show selected tab content
+    document.getElementById('content-' + tabName).classList.remove('hidden');
+
+    // Add active styles to selected tab
+    const activeTab = document.getElementById('tab-' + tabName);
+    activeTab.classList.add('border-blue-500', 'text-blue-600');
+    activeTab.classList.remove('border-transparent', 'text-gray-500');
+}
+
+function resolveReport(reportId) {
+    if (!confirm('Mark this report as resolved?')) return;
+
+    // Implement AJAX call to resolve report
+    fetch(`/admin/reports/${reportId}/resolve`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+}
+
+function dismissReport(reportId) {
+    if (!confirm('Dismiss this report? This cannot be undone.')) return;
+
+    // Implement AJAX call to dismiss report
+    fetch(`/admin/reports/${reportId}/dismiss`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    });
+}
+</script>
+
 @endsection

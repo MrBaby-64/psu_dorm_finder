@@ -20,7 +20,7 @@
             <a href="{{ route('admin.properties.pending') }}" class="text-orange-600 hover:text-orange-700 text-sm mt-2 inline-block font-medium">Review now →</a>
         </div>
 
-        <!-- Deletion Requests -->
+        <!-- Deletion & Reported Requests -->
         <div class="bg-white rounded-lg shadow-sm p-6 fade-in-up hover:shadow-lg transition-all duration-200 group">
             <div class="flex items-center justify-between mb-3">
                 <div class="p-3 bg-red-50 rounded-lg group-hover:bg-red-100 transition-colors">
@@ -29,7 +29,7 @@
                     </svg>
                 </div>
             </div>
-            <h3 class="text-sm font-medium text-gray-600 group-hover:text-gray-700 mb-2">Deletion Requests</h3>
+            <h3 class="text-sm font-medium text-gray-600 group-hover:text-gray-700 mb-2">Deletion & Reported Requests</h3>
             <p class="text-3xl font-bold text-red-600">{{ $stats['pending_deletion_requests'] }}</p>
             <a href="{{ route('admin.properties.deletion-requests') }}" class="text-red-600 hover:text-red-700 text-sm mt-2 inline-block font-medium">
                 @if($stats['pending_deletion_requests'] > 0)
@@ -115,8 +115,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="font-semibold text-gray-900 group-hover:text-red-700">Deletion Requests</h3>
-                    <p class="text-sm text-gray-600">Manage property deletions</p>
+                    <h3 class="font-semibold text-gray-900 group-hover:text-red-700">Deletion & Reported Requests</h3>
+                    <p class="text-sm text-gray-600">Manage property deletions and reported hosts</p>
                 </div>
                 @if($stats['pending_deletion_requests'] > 0)
                     <div class="ml-auto">
@@ -191,10 +191,10 @@
             </div>
         </div>
 
-        <!-- Recent Deletion Requests -->
+        <!-- Recent Deletion & Reported Requests -->
         <div class="bg-white rounded-lg shadow">
             <div class="p-6 border-b flex justify-between items-center">
-                <h2 class="text-xl font-bold">Deletion Requests</h2>
+                <h2 class="text-xl font-bold">Deletion & Reported Requests</h2>
                 @if($stats['pending_deletion_requests'] > 0)
                     <span class="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full font-medium">
                         {{ $stats['pending_deletion_requests'] }} pending
@@ -228,7 +228,7 @@
                     <div class="p-4 bg-gray-50">
                         <a href="{{ route('admin.properties.deletion-requests') }}"
                            class="text-sm text-blue-600 hover:text-blue-800 font-medium block text-center">
-                            View All Deletion Requests →
+                            View All Deletion & Reported Requests →
                         </a>
                     </div>
                 @else

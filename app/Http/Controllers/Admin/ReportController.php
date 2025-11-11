@@ -3,64 +3,143 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Property;
-use App\Models\Booking;
-use App\Models\Message;
+use App\Models\LandlordReport;
+use App\Models\Notification;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-/**
- * Admin Report Controller
- * Generates system reports and analytics
- */
 class ReportController extends Controller
 {
-    // Display reports page
-    public function index()
+    private function checkAdmin()
     {
         if (auth()->user()->role !== 'admin') {
-            abort(403);
+            abort(403, 'Only administrators can access this area');
         }
-
-        $stats = [
-            'total_properties' => Property::count(),
-            'total_bookings' => Booking::count(),
-            'total_messages' => Message::count(),
-        ];
-
-        return view('admin.reports.index', compact('stats'));
     }
 
-    public function export()
+    public function index()
     {
-        if (auth()->user()->role !== 'admin') {
-            abort(403);
+        $this->checkAdmin();
+
+        $reports = LandlordReport::with(['landlord', 'reporter', 'property', 'reviewer'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
+
+        return view('admin.reports.index', compact('reports'));
+    }
+
+    public function resolve(Request $request, $id)
+    {
+        $this->checkAdmin();
+
+        try {
+            $report = LandlordReport::findOrFail($id);
+
+            DB::beginTransaction();
+
+            $report->update([
+                'status' => LandlordReport::STATUS_RESOLVED,
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+                'admin_notes' => $request->admin_notes ?? 'Report resolved by admin.'
+            ]);
+
+            // Notify the reporter
+            Notification::create([
+                'user_id' => $report->reporter_id,
+                'type' => 'report_resolved',
+                'title' => 'Report Resolved',
+                'message' => 'Your report against ' . $report->landlord->name . ' has been resolved by our team.',
+                'data' => [
+                    'report_id' => $report->id,
+                    'landlord_name' => $report->landlord->name
+                ],
+                'action_url' => null
+            ]);
+
+            Log::info('Landlord report resolved', [
+                'report_id' => $report->id,
+                'admin_id' => auth()->id(),
+                'landlord_id' => $report->landlord_id
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Report marked as resolved.'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Failed to resolve report', [
+                'error' => $e->getMessage(),
+                'report_id' => $id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resolve report.'
+            ], 500);
         }
+    }
 
-        // Simple CSV export
-        $filename = 'psu-dorm-report-' . date('Y-m-d') . '.csv';
-        
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
+    public function dismiss(Request $request, $id)
+    {
+        $this->checkAdmin();
 
-        $callback = function() {
-            $file = fopen('php://output', 'w');
-            fputcsv($file, ['Property', 'Landlord', 'City', 'Price', 'Status', 'Bookings']);
+        try {
+            $report = LandlordReport::findOrFail($id);
 
-            Property::with(['landlord', 'bookings'])->get()->each(function($property) use ($file) {
-                fputcsv($file, [
-                    $property->title,
-                    $property->landlord->name,
-                    $property->city,
-                    $property->price,
-                    $property->approval_status,
-                    $property->bookings->count()
-                ]);
-            });
+            DB::beginTransaction();
 
-            fclose($file);
-        };
+            $report->update([
+                'status' => LandlordReport::STATUS_DISMISSED,
+                'reviewed_by' => auth()->id(),
+                'reviewed_at' => now(),
+                'admin_notes' => $request->admin_notes ?? 'Report dismissed after review.'
+            ]);
 
-        return response()->stream($callback, 200, $headers);
+            // Notify the reporter
+            Notification::create([
+                'user_id' => $report->reporter_id,
+                'type' => 'report_dismissed',
+                'title' => 'Report Dismissed',
+                'message' => 'Your report against ' . $report->landlord->name . ' has been reviewed and dismissed.',
+                'data' => [
+                    'report_id' => $report->id,
+                    'landlord_name' => $report->landlord->name
+                ],
+                'action_url' => null
+            ]);
+
+            Log::info('Landlord report dismissed', [
+                'report_id' => $report->id,
+                'admin_id' => auth()->id(),
+                'landlord_id' => $report->landlord_id
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Report dismissed.'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Failed to dismiss report', [
+                'error' => $e->getMessage(),
+                'report_id' => $id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to dismiss report.'
+            ], 500);
+        }
     }
 }

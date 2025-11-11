@@ -154,7 +154,9 @@ class LandlordController extends Controller
         // Fetch filter options
         $userProperties = $user->properties()->get(['id', 'title']);
         $statuses = [
-            'pending' => 'Pending',
+            'pending' => 'Pending Approval',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
             'replied' => 'Replied',
             'closed' => 'Closed'
         ];

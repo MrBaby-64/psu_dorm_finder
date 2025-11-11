@@ -40,6 +40,7 @@ class Notification extends Model
     const TYPE_REVIEW_RECEIVED = 'review_received';
     const TYPE_PROPERTY_APPROVED = 'property_approved';
     const TYPE_PROPERTY_REJECTED = 'property_rejected';
+    const TYPE_DELETION_REJECTED = 'deletion_rejected';
     const TYPE_MESSAGE_RECEIVED = 'message_received';
     const TYPE_ADMIN_RESPONSE = 'admin_response';
     const TYPE_FAVORITE_ADDED = 'favorite_added';
@@ -59,6 +60,7 @@ class Notification extends Model
             self::TYPE_REVIEW_RECEIVED => 'New Review Received',
             self::TYPE_PROPERTY_APPROVED => 'Property Approved',
             self::TYPE_PROPERTY_REJECTED => 'Property Rejected',
+            self::TYPE_DELETION_REJECTED => 'Deletion Request Rejected',
             self::TYPE_MESSAGE_RECEIVED => 'New Message',
             self::TYPE_ADMIN_RESPONSE => 'Admin Response',
             self::TYPE_FAVORITE_ADDED => 'Property Favorited'

@@ -36,6 +36,11 @@ class PropertyController extends Controller
 
         try {
             $query = Property::where('user_id', auth()->id())
+                ->with(['deletionRequest', 'deletionRequests' => function($q) {
+                    $q->where('status', 'rejected')
+                      ->where('reviewed_at', '>=', now()->subHour())
+                      ->latest('reviewed_at');
+                }])
                 ->orderBy('created_at', 'desc');
 
             if ($request->filled('search')) {
@@ -902,8 +907,8 @@ class PropertyController extends Controller
                 'submitted_at' => now()
             ]);
 
-            return redirect()->back()
-                ->with('success', '📧 Message Sent Successfully! Your message has been delivered to the admin team. They typically respond within 24-48 hours during business days. You can expect to receive their reply via email or through your account notifications. Thank you for reaching out!');
+            return redirect()->route('landlord.admin-messages')
+                ->with('success', '📧 Message Sent Successfully! Your message has been delivered to the admin team. They typically respond within 24-48 hours during business days. You can check your message status and view replies on this page.');
 
         } catch (\Exception $e) {
             Log::error('Admin contact request failed', [

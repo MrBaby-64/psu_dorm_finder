@@ -27,8 +27,23 @@
                 <!-- Host Info -->
                 <div class="flex-1">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div>
-                            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{{ $host->name }}</h1>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between gap-4">
+                                <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{{ $host->name }}</h1>
+
+                                {{-- Report Host Button - Only for Tenants --}}
+                                @auth
+                                    @if(auth()->user()->role === 'tenant' && auth()->id() !== $host->id)
+                                        <button onclick="openReportHostModal()"
+                                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                            </svg>
+                                            Report Host
+                                        </button>
+                                    @endif
+                                @endauth
+                            </div>
                             <div class="flex items-center gap-2 mb-3">
                                 @if($isActive)
                                     <span class="inline-flex items-center gap-1 bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
@@ -189,4 +204,149 @@
         </div>
     </div>
 </div>
+
+{{-- Report Host Modal --}}
+@auth
+@if(auth()->user()->role === 'tenant')
+<div id="reportHostModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">Report Host</h3>
+                <button onclick="closeReportHostModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Warning Message -->
+            <div class="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-yellow-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <div class="ml-3">
+                        <h4 class="text-sm font-medium text-yellow-800">Important</h4>
+                        <p class="text-sm text-yellow-700 mt-1">Please only report hosts for legitimate concerns. False reports may result in account restrictions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Form -->
+            <form id="reportHostForm" action="{{ route('landlord.report', $host->id) }}" method="POST">
+                @csrf
+
+                <!-- Property Selection -->
+                @if($properties->count() > 0)
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Related Property <span class="text-red-500">*</span>
+                    </label>
+                    <select name="property_id" id="report_property" required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        <option value="">Select a property...</option>
+                        @foreach($properties as $property)
+                            <option value="{{ $property->id }}">{{ $property->title }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Select which property this report is related to</p>
+                </div>
+                @endif
+
+                <!-- Reason Selection -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Reason for Reporting <span class="text-red-500">*</span>
+                    </label>
+                    <select name="reason" id="report_reason" required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                        <option value="">Select a reason...</option>
+                        <option value="fraud">Fraud or Scam</option>
+                        <option value="harassment">Harassment</option>
+                        <option value="misleading_info">Misleading Information</option>
+                        <option value="unprofessional">Unprofessional Conduct</option>
+                        <option value="safety_concern">Safety Concern</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Details <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="description" id="report_description" rows="4" required
+                              class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                              placeholder="Please provide specific details about your concern. Include dates, times, and any relevant information that would help us investigate."></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Minimum 10 characters required</p>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3">
+                    <button type="submit"
+                            class="flex-1 bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition font-medium">
+                        Submit Report
+                    </button>
+                    <button type="button" onclick="closeReportHostModal()"
+                            class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition font-medium">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+@endauth
+
+<script>
+    function openReportHostModal() {
+        document.getElementById('reportHostModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeReportHostModal() {
+        document.getElementById('reportHostModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        document.getElementById('reportHostForm').reset();
+    }
+
+    // Handle report form submission
+    document.getElementById('reportHostForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const description = document.getElementById('report_description').value;
+        if (description.length < 10) {
+            alert('Please provide more details (minimum 10 characters)');
+            return;
+        }
+
+        const formData = new FormData(this);
+
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                closeReportHostModal();
+                alert('✅ Report submitted successfully! Our team will review it and take appropriate action. Thank you for helping keep our community safe.');
+                location.reload();
+            } else {
+                alert('❌ ' + (data.message || 'Failed to submit report. Please try again.'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('❌ An error occurred. Please try again later.');
+        });
+    });
+</script>
+
 @endsection

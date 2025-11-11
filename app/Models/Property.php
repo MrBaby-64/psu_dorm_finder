@@ -187,7 +187,7 @@ public function getPendingVisitsCountAttribute(): int
 
     public function deletionRequest(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasOne(PropertyDeletionRequest::class);
+        return $this->hasOne(PropertyDeletionRequest::class)->where('status', 'pending');
     }
 
     public function deletionRequests(): HasMany

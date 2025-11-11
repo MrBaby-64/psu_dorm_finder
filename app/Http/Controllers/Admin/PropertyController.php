@@ -201,7 +201,7 @@ class PropertyController extends Controller
     }
 
     /**
-     * Display property deletion requests for admin review
+     * Display property deletion requests and landlord reports for admin review
      */
     public function deletionRequests(Request $request)
     {
@@ -212,13 +212,20 @@ class PropertyController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
+        // Load landlord reports
+        $landlordReports = \App\Models\LandlordReport::with(['landlord:id,name,email', 'reporter:id,name,email', 'property:id,title,location_text', 'reviewer:id,name'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15, ['*'], 'reports_page');
+
         $statuses = [
             'pending' => 'Pending Review',
             'approved' => 'Approved',
             'rejected' => 'Rejected',
         ];
 
-        return view('admin.properties.deletion-requests', compact('deletionRequests', 'statuses'));
+        $reportStatuses = \App\Models\LandlordReport::getStatuses();
+
+        return view('admin.properties.deletion-requests', compact('deletionRequests', 'landlordReports', 'statuses', 'reportStatuses'));
     }
 
     /**
@@ -363,6 +370,21 @@ class PropertyController extends Controller
             $deletionRequest->reviewed_by = auth()->id();
             $deletionRequest->reviewed_at = now();
             $deletionRequest->save();
+
+            // Create notification for landlord
+            \App\Models\Notification::create([
+                'user_id' => $deletionRequest->landlord_id,
+                'type' => \App\Models\Notification::TYPE_DELETION_REJECTED,
+                'title' => 'Property Deletion Request Rejected',
+                'message' => 'Your deletion request for "' . $propertyTitle . '" has been rejected. Admin feedback: ' . $request->admin_notes,
+                'data' => [
+                    'property_id' => $deletionRequest->property_id,
+                    'property_title' => $propertyTitle,
+                    'deletion_request_id' => $deletionRequest->id,
+                    'admin_notes' => $request->admin_notes
+                ],
+                'action_url' => route('landlord.properties.index')
+            ]);
 
             // Log the rejection
             try {

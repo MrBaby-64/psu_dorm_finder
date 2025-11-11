@@ -104,7 +104,7 @@ class Inquiry extends Model
 
     public function canBeApproved(): bool
     {
-        return $this->status === self::STATUS_PENDING;
+        return in_array($this->status, [self::STATUS_PENDING, self::STATUS_REPLIED]);
     }
 
     public function isApproved(): bool

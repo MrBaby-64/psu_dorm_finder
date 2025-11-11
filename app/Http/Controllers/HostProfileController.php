@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Booking;
+use App\Models\Inquiry;
 use App\Models\Favorite;
 use App\Models\ScheduledVisit;
 use Illuminate\Http\Request;
@@ -26,10 +26,20 @@ class HostProfileController extends Controller
             ->get();
 
         // Get statistics
+        $propertyIds = $properties->pluck('id');
+
         $verifiedListings = $properties->where('approval_status', 'approved')->count();
-        $totalInquiries = Booking::whereIn('property_id', $properties->pluck('id'))->count();
-        $totalFavorites = Favorite::whereIn('property_id', $properties->pluck('id'))->count();
-        $approvedVisits = ScheduledVisit::whereIn('property_id', $properties->pluck('id'))
+
+        // Total Inquiries (not Bookings!)
+        $totalInquiries = Inquiry::whereIn('property_id', $propertyIds)->count();
+
+        // Total Unique Users who favorited any property
+        $totalFavorites = Favorite::whereIn('property_id', $propertyIds)
+            ->distinct('user_id')
+            ->count('user_id');
+
+        // Total Approved Visits
+        $approvedVisits = ScheduledVisit::whereIn('property_id', $propertyIds)
             ->where('status', 'approved')
             ->count();
 

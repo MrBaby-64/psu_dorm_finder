@@ -5,7 +5,7 @@
 @section('content')
 <div class="py-8">
     <div class="flex items-center gap-4 mb-6">
-        <a href="{{ route('landlord.notifications.index') }}"
+        <a href="{{ route('landlord.notifications') }}"
            class="text-blue-600 hover:text-blue-800 flex items-center gap-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -181,7 +181,7 @@
                         Go to My Properties
                     </a>
 
-                    <a href="{{ route('landlord.notifications.index') }}"
+                    <a href="{{ route('landlord.notifications') }}"
                        class="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition font-medium text-center block">
                         Back to All Notifications
                     </a>

@@ -87,6 +87,57 @@
         </div>
         @endif
 
+        @php
+            // Check for recently rejected deletion requests
+            $recentRejections = [];
+            foreach($properties as $property) {
+                $recentRejection = $property->deletionRequests->where('status', 'rejected')
+                    ->where('reviewed_at', '>=', now()->subHour())
+                    ->first();
+                if ($recentRejection) {
+                    $recentRejections[$property->id] = $recentRejection;
+                }
+            }
+        @endphp
+
+        @if(count($recentRejections) > 0)
+        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                    </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                    <div class="text-sm font-medium text-orange-800 mb-2">
+                        Deletion Request Rejected
+                    </div>
+                    @foreach($recentRejections as $propertyId => $rejection)
+                        @php
+                            $rejectedProperty = $properties->firstWhere('id', $propertyId);
+                        @endphp
+                        <div class="bg-white rounded p-3 mb-2 last:mb-0">
+                            <div class="font-medium text-gray-900">{{ $rejectedProperty->title }}</div>
+                            <div class="text-sm text-orange-700 mt-1">
+                                <strong>Admin's feedback:</strong> {{ $rejection->admin_notes }}
+                            </div>
+                            <div class="text-xs text-gray-500 mt-1">
+                                Rejected {{ $rejection->reviewed_at->diffForHumans() }}. You can submit a new deletion request after {{ $rejection->reviewed_at->addHour()->diffForHumans() }}.
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                <div class="ml-auto pl-3">
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-orange-400 hover:text-orange-600">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- Filters -->
         <div class="bg-white rounded-lg shadow-sm p-6 mb-6">
             <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -334,12 +385,26 @@
                                     Edit
                                 </a>
 
+                                @php
+                                    $recentlyRejected = $property->deletionRequests->where('status', 'rejected')
+                                        ->where('reviewed_at', '>=', now()->subHour())
+                                        ->first();
+                                @endphp
+
                                 @if($property->deletionRequest)
                                     <button disabled
                                             class="bg-gray-400 text-white px-3 py-2 rounded-lg cursor-not-allowed text-sm font-medium opacity-60"
                                             title="Deletion request pending admin review">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 15.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                        </svg>
+                                    </button>
+                                @elseif($recentlyRejected)
+                                    <button disabled
+                                            class="bg-orange-400 text-white px-3 py-2 rounded-lg cursor-not-allowed text-sm font-medium opacity-60"
+                                            title="Deletion request was rejected. Please wait 1 hour before submitting again ({{ $recentlyRejected->reviewed_at->addHour()->diffForHumans() }})">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                     </button>
                                 @elseif($property->approval_status !== 'approved')
@@ -484,7 +549,7 @@
                                 </ol>
                             </div>
                             <div class="mt-2">
-                                <button type="button" onclick="showContactAdmin()" class="text-blue-600 hover:text-blue-800 text-sm font-medium underline">
+                                <button type="button" onclick="(function(){var propId=document.getElementById('propertyId').value;document.getElementById('contactPropertyId').value=propId;var dm=document.getElementById('deleteModal');dm.classList.add('hidden');dm.style.display='none';var cm=document.getElementById('contactAdminModal');cm.classList.remove('hidden');cm.style.display='flex';})();" class="text-blue-600 hover:text-blue-800 text-sm font-medium underline">
                                     📩 Need to contact admin directly?
                                 </button>
                             </div>
@@ -508,8 +573,8 @@
 </div>
 
 <!-- Contact Admin Modal -->
-<div id="contactAdminModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+<div id="contactAdminModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center" style="z-index: 9999;" onclick="(function(){var m=document.getElementById('contactAdminModal');m.classList.add('hidden');m.style.display='none';document.getElementById('adminMessage').value='';document.body.style.overflow='';})();">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4" onclick="event.stopPropagation()">
         <div class="p-6 border-b border-gray-200">
             <div class="flex items-center">
                 <div class="flex-shrink-0">
