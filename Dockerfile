@@ -127,9 +127,18 @@ for i in {1..30}; do\n\
     sleep 2\n\
 done\n\
 \n\
-# Run migrations\n\
+# Run migrations with proper error handling\n\
 echo "Running migrations..."\n\
-php artisan migrate --force 2>&1 || { echo "Migration failed but continuing..."; }\n\
+php artisan migrate --force 2>&1\n\
+MIGRATION_EXIT_CODE=$?\n\
+if [ $MIGRATION_EXIT_CODE -ne 0 ]; then\n\
+    echo "===== MIGRATION FAILED =====" >&2\n\
+    echo "Exit code: $MIGRATION_EXIT_CODE" >&2\n\
+    php artisan migrate:status 2>&1 || true\n\
+    echo "Attempting migration again with verbose output..." >&2\n\
+    php artisan migrate --force -vvv 2>&1 || true\n\
+fi\n\
+echo "Migration complete (exit code: $MIGRATION_EXIT_CODE)"\n\
 \n\
 # Create storage link\n\
 php artisan storage:link 2>/dev/null || true\n\
