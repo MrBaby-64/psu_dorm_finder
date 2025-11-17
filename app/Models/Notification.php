@@ -35,6 +35,7 @@ class Notification extends Model
     const TYPE_BOOKING_APPROVED = 'booking_approved';
     const TYPE_BOOKING_REJECTED = 'booking_rejected';
     const TYPE_BOOKING_CANCELLED = 'booking_cancelled';
+    const TYPE_BOOKING_COMPLETED = 'booking_completed';
     const TYPE_VISIT_SCHEDULED = 'visit_scheduled';
     const TYPE_VISIT_CONFIRMED = 'visit_confirmed';
     const TYPE_REVIEW_RECEIVED = 'review_received';
@@ -55,6 +56,7 @@ class Notification extends Model
             self::TYPE_BOOKING_APPROVED => 'Booking Approved',
             self::TYPE_BOOKING_REJECTED => 'Booking Rejected',
             self::TYPE_BOOKING_CANCELLED => 'Booking Cancelled',
+            self::TYPE_BOOKING_COMPLETED => 'Booking Completed',
             self::TYPE_VISIT_SCHEDULED => 'Visit Scheduled',
             self::TYPE_VISIT_CONFIRMED => 'Visit Confirmed',
             self::TYPE_REVIEW_RECEIVED => 'New Review Received',
@@ -89,6 +91,7 @@ class Notification extends Model
             self::TYPE_BOOKING_APPROVED => '✅',
             self::TYPE_BOOKING_REJECTED => '❌',
             self::TYPE_BOOKING_CANCELLED => '⏹️',
+            self::TYPE_BOOKING_COMPLETED => '🏁',
             self::TYPE_VISIT_SCHEDULED => '📅',
             self::TYPE_VISIT_CONFIRMED => '✅',
             self::TYPE_REVIEW_RECEIVED => '⭐',
@@ -112,6 +115,7 @@ class Notification extends Model
             self::TYPE_BOOKING_APPROVED => 'text-green-600',
             self::TYPE_BOOKING_REJECTED => 'text-red-600',
             self::TYPE_BOOKING_CANCELLED => 'text-gray-600',
+            self::TYPE_BOOKING_COMPLETED => 'text-purple-600',
             self::TYPE_VISIT_SCHEDULED => 'text-purple-600',
             self::TYPE_VISIT_CONFIRMED => 'text-green-600',
             self::TYPE_REVIEW_RECEIVED => 'text-orange-600',

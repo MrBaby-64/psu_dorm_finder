@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Landlord;
 
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
+use App\Models\Booking;
 use App\Models\Message;
 use App\Models\Notification;
 use App\Models\ScheduledVisit;
@@ -41,6 +42,31 @@ class InquiryController extends Controller
         // Check if landlord owns the property
         if ($inquiry->property->user_id !== auth()->id()) {
             abort(403);
+        }
+
+        // Check if tenant already has another active inquiry
+        $existingInquiry = Inquiry::where('user_id', $inquiry->user_id)
+            ->where('id', '!=', $inquiry->id) // Exclude current inquiry
+            ->whereIn('status', [Inquiry::STATUS_PENDING, Inquiry::STATUS_APPROVED])
+            ->with('property')
+            ->first();
+
+        if ($existingInquiry) {
+            return back()->withErrors([
+                'approval_error' => "This tenant already has an active inquiry for \"{$existingInquiry->property->title}\". They can only have one active inquiry at a time."
+            ]);
+        }
+
+        // Check if tenant already has an active booking
+        $existingBooking = Booking::where('user_id', $inquiry->user_id)
+            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED, Booking::STATUS_ACTIVE])
+            ->with('property')
+            ->first();
+
+        if ($existingBooking) {
+            return back()->withErrors([
+                'approval_error' => "This tenant already has an active booking for \"{$existingBooking->property->title}\". They cannot have multiple active inquiries or bookings."
+            ]);
         }
 
         $inquiry->approve();

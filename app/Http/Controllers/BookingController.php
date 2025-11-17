@@ -4,6 +4,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\Inquiry;
 use App\Models\Property;
 use App\Models\Notification;
 use Illuminate\Http\Request;
@@ -193,7 +194,32 @@ class BookingController extends Controller
         // Only property owner can approve
         $this->authorize('update', $booking);
 
-        $booking->update(['status' => 'approved']);
+        // Check if tenant already has another active booking
+        $existingBooking = Booking::where('user_id', $booking->user_id)
+            ->where('id', '!=', $booking->id) // Exclude current booking
+            ->whereIn('status', [Booking::STATUS_PENDING, Booking::STATUS_APPROVED, Booking::STATUS_ACTIVE])
+            ->with('property')
+            ->first();
+
+        if ($existingBooking) {
+            return back()->withErrors([
+                'approval_error' => "This tenant already has an active booking for \"{$existingBooking->property->title}\". They can only have one active booking at a time."
+            ]);
+        }
+
+        // Check if tenant already has an active inquiry
+        $existingInquiry = Inquiry::where('user_id', $booking->user_id)
+            ->whereIn('status', [Inquiry::STATUS_PENDING, Inquiry::STATUS_APPROVED])
+            ->with('property')
+            ->first();
+
+        if ($existingInquiry) {
+            return back()->withErrors([
+                'approval_error' => "This tenant already has an active inquiry for \"{$existingInquiry->property->title}\". They cannot have multiple active inquiries or bookings."
+            ]);
+        }
+
+        $booking->approve(auth()->id());
 
         // Create notification for tenant about approval
         Notification::create([
@@ -235,7 +261,7 @@ class BookingController extends Controller
         // Only property owner can reject
         $this->authorize('update', $booking);
 
-        $booking->update(['status' => 'rejected']);
+        $booking->reject();
 
         // Create notification for tenant about rejection
         Notification::create([
@@ -279,7 +305,7 @@ class BookingController extends Controller
             abort(403);
         }
 
-        $booking->update(['status' => 'cancelled']);
+        $booking->cancel(auth()->id(), 'Cancelled by tenant');
 
         // Create notification for landlord about cancellation
         Notification::create([

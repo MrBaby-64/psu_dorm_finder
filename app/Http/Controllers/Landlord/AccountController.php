@@ -43,11 +43,18 @@ class AccountController extends Controller
         $stats = [
             'total_properties' => $properties->count(),
             'pending_inquiries' => $this->getPendingInquiriesCount(),
+            'approved_inquiries' => $this->getApprovedInquiriesCount(),
             'scheduled_visits' => $this->getPendingVisitsCount(),
             'unread_notifications' => $user->unreadNotifications()->count(),
             'new_reviews' => $this->getNewReviewsCount(),
             'admin_messages' => $this->getAdminMessagesCount(),
-            'admin_responses' => $this->getAdminResponsesCount()
+            'admin_responses' => $this->getAdminResponsesCount(),
+            // Add booking statistics
+            'pending_bookings' => $this->getPendingBookingsCount(),
+            'approved_bookings' => $this->getApprovedBookingsCount(),
+            'active_bookings' => $this->getActiveBookingsCount(),
+            'completed_bookings' => $this->getCompletedBookingsCount(),
+            'total_bookings' => $this->getTotalBookingsCount(),
         ];
 
         // Fetch recent activities
@@ -155,6 +162,65 @@ class AccountController extends Controller
         return Notification::where('user_id', Auth::id())
             ->where('type', Notification::TYPE_ADMIN_RESPONSE)
             ->where('is_read', false)
+            ->count();
+    }
+
+    private function getApprovedInquiriesCount(): int
+    {
+        return Inquiry::whereHas('property', function($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->where('status', 'approved')
+            ->count();
+    }
+
+    private function getPendingBookingsCount(): int
+    {
+        return Booking::whereHas('property', function($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->where('status', Booking::STATUS_PENDING)
+            ->count();
+    }
+
+    private function getApprovedBookingsCount(): int
+    {
+        return Booking::whereHas('property', function($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->where('status', Booking::STATUS_APPROVED)
+            ->count();
+    }
+
+    private function getActiveBookingsCount(): int
+    {
+        return Booking::whereHas('property', function($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->where('status', Booking::STATUS_ACTIVE)
+            ->count();
+    }
+
+    private function getCompletedBookingsCount(): int
+    {
+        return Booking::whereHas('property', function($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->where('status', Booking::STATUS_COMPLETED)
+            ->count();
+    }
+
+    private function getTotalBookingsCount(): int
+    {
+        // Count all bookings that have been approved (includes approved, active, and completed)
+        return Booking::whereHas('property', function($q) {
+                $q->where('user_id', Auth::id());
+            })
+            ->whereIn('status', [
+                Booking::STATUS_APPROVED,
+                Booking::STATUS_ACTIVE,
+                Booking::STATUS_COMPLETED
+            ])
             ->count();
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Property;
 use App\Models\PropertyDeletionRequest;
 use App\Models\User;
 use App\Models\Booking;
+use App\Models\Inquiry;
 use App\Models\Message;
 
 /**
@@ -38,8 +39,19 @@ class DashboardController extends Controller
                 'total_users' => User::count(),
                 'landlords' => User::where('role', 'landlord')->count(),
                 'tenants' => User::where('role', 'tenant')->count(),
-                'total_bookings' => Booking::where('status', 'approved')->count(),
+                // Count all bookings that have been approved (includes approved, active, and completed)
+                'total_bookings' => Booking::whereIn('status', [
+                    Booking::STATUS_APPROVED,
+                    Booking::STATUS_ACTIVE,
+                    Booking::STATUS_COMPLETED
+                ])->count(),
                 'pending_bookings' => Booking::where('status', 'pending')->count(),
+                'active_bookings' => Booking::where('status', Booking::STATUS_ACTIVE)->count(),
+                'completed_bookings' => Booking::where('status', Booking::STATUS_COMPLETED)->count(),
+                // Add inquiries statistics
+                'total_inquiries' => Inquiry::count(),
+                'pending_inquiries' => Inquiry::where('status', 'pending')->count(),
+                'approved_inquiries' => Inquiry::where('status', 'approved')->count(),
             ];
 
             // Fetch recent properties with landlord information for dashboard display

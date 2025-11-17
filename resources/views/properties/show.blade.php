@@ -3394,6 +3394,8 @@
                 </button>
 
                 <!-- My Address -->
+                {{-- Temporarily hidden due to incomplete address issues --}}
+                {{--
                 @auth
                     @if(auth()->user()->role === 'tenant' && auth()->user()->address)
                         <button onclick="getDirectionsAddress()" class="w-full p-4 border-2 border-green-300 bg-green-50 rounded-xl hover:bg-green-100 hover:shadow-lg transition-all text-left">
@@ -3409,6 +3411,7 @@
                         </button>
                     @endif
                 @endauth
+                --}}
 
                 <!-- Search Address -->
                 <div class="border-2 border-orange-300 bg-orange-50 rounded-xl p-4">

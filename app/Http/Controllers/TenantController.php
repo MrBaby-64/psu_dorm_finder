@@ -202,7 +202,7 @@ class TenantController extends Controller
     }
 
     // Mark single notification as read
-    public function markNotificationRead(Notification $notification)
+    public function markNotificationRead(Notification $notification, Request $request)
     {
         if ($notification->user_id !== Auth::id()) {
             abort(403);
@@ -210,7 +210,10 @@ class TenantController extends Controller
 
         $notification->markAsRead();
 
-        if ($notification->action_url) {
+        // Check if we should redirect to action_url or just mark as read
+        // If 'view_details' parameter is present, redirect to action_url
+        // Otherwise, just go back (for "Mark as Read" button)
+        if ($request->input('view_details') === '1' && $notification->action_url) {
             return redirect($notification->action_url);
         }
 

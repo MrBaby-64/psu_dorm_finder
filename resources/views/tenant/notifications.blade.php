@@ -96,6 +96,7 @@
                                     @if($notification->action_url && !$propertyDeleted)
                                         <form method="POST" action="{{ route('tenant.notifications.read', $notification) }}" class="inline">
                                             @csrf
+                                            <input type="hidden" name="view_details" value="1">
                                             <button type="submit" class="text-xs text-blue-600 hover:text-blue-800 underline">
                                                 View Details
                                             </button>
