@@ -58,6 +58,25 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
 
+    // Session Keep-Alive Routes
+    Route::post('/keep-alive', function () {
+        // Touch session to keep it alive
+        session()->put('last_activity', now());
+
+        return response()->json([
+            'success' => true,
+            'csrf_token' => csrf_token(),
+            'timestamp' => now()->toIso8601String()
+        ]);
+    })->name('keep-alive');
+
+    Route::get('/refresh-csrf', function () {
+        return response()->json([
+            'success' => true,
+            'csrf_token' => csrf_token()
+        ]);
+    })->name('refresh-csrf');
+
     // Dashboard
     Route::get('/dashboard', function () {
         return view('dashboard');

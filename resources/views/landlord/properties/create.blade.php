@@ -1351,6 +1351,11 @@
                         break;
                 }
                 alert(message);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
             }
         );
     }
@@ -1378,7 +1383,7 @@
             alert('Geolocation is not supported by this browser.');
             return;
         }
-        
+
         navigator.geolocation.getCurrentPosition(
             function(position) {
                 const lat = position.coords.latitude;
@@ -1389,6 +1394,11 @@
             },
             function(error) {
                 alert('Unable to get your location. Please try another method.');
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
             }
         );
     }

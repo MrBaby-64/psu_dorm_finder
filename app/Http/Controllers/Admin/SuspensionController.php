@@ -19,14 +19,14 @@ class SuspensionController extends Controller
     }
 
     /**
-     * Suspend a tenant
+     * Suspend a user (tenant or landlord)
      */
     public function suspend(Request $request, User $user)
     {
         $this->checkAdmin();
 
-        if ($user->role !== 'tenant') {
-            return redirect()->back()->with('error', 'Only tenant accounts can be suspended');
+        if (!in_array($user->role, ['tenant', 'landlord'])) {
+            return redirect()->back()->with('error', 'Only tenant and landlord accounts can be suspended');
         }
 
         $validated = $request->validate([
@@ -71,9 +71,10 @@ class SuspensionController extends Controller
 
             DB::commit();
 
-            Log::info('Tenant suspended', [
-                'tenant_id' => $user->id,
-                'tenant_name' => $user->name,
+            Log::info('User suspended', [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'user_role' => $user->role,
                 'suspended_by' => auth()->user()->name,
                 'duration' => $validated['duration_type'],
                 'warning_number' => $warningNumber,
@@ -87,15 +88,16 @@ class SuspensionController extends Controller
                 default => $warningNumber . 'th Warning'
             };
 
-            return redirect()->back()->with('success', "Tenant {$user->name} has been suspended ({$warningText} - {$suspension->duration_text}). They will not be able to login until the suspension is lifted.");
+            return redirect()->back()->with('success', ucfirst($user->role) . " {$user->name} has been suspended ({$warningText} - {$suspension->duration_text}). They will not be able to login until the suspension is lifted.");
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Tenant suspension failed', [
+            Log::error('User suspension failed', [
                 'error' => $e->getMessage(),
-                'tenant_id' => $user->id ?? 'unknown'
+                'user_id' => $user->id ?? 'unknown',
+                'user_role' => $user->role ?? 'unknown'
             ]);
-            return redirect()->back()->with('error', 'Failed to suspend tenant: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to suspend user: ' . $e->getMessage());
         }
     }
 
@@ -132,8 +134,9 @@ class SuspensionController extends Controller
             DB::commit();
 
             Log::info('Suspension lifted', [
-                'tenant_id' => $user->id,
-                'tenant_name' => $user->name,
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'user_role' => $user->role,
                 'lifted_by' => auth()->user()->name
             ]);
 
@@ -143,7 +146,8 @@ class SuspensionController extends Controller
             DB::rollBack();
             Log::error('Lift suspension failed', [
                 'error' => $e->getMessage(),
-                'tenant_id' => $user->id ?? 'unknown'
+                'user_id' => $user->id ?? 'unknown',
+                'user_role' => $user->role ?? 'unknown'
             ]);
             return redirect()->back()->with('error', 'Failed to lift suspension: ' . $e->getMessage());
         }

@@ -166,5 +166,283 @@
     </div>
 
     @stack('scripts')
+
+    <!-- Session Keep-Alive & Auto-Refresh System -->
+    <script>
+        (function() {
+            // Configuration
+            const CONFIG = {
+                pingInterval: 5 * 60 * 1000,        // Ping every 5 minutes
+                csrfRefreshInterval: 10 * 60 * 1000, // Refresh CSRF token every 10 minutes
+                inactivityTimeout: 30 * 60 * 1000,   // Show warning after 30 minutes of inactivity
+                autoRefreshOnReturn: true,           // Auto-refresh when user returns after long absence
+                absenceThreshold: 15 * 60 * 1000     // Consider user absent after 15 minutes
+            };
+
+            let lastActivity = Date.now();
+            let lastPing = Date.now();
+            let pingInterval = null;
+            let csrfInterval = null;
+            let isPageVisible = true;
+            let wasAbsent = false;
+            let isLoggingOut = false;
+
+            // Update CSRF token in all forms and meta tag
+            function updateCSRFToken(newToken) {
+                // Update meta tag
+                const metaTag = document.querySelector('meta[name="csrf-token"]');
+                if (metaTag) {
+                    metaTag.setAttribute('content', newToken);
+                }
+
+                // Update all forms
+                document.querySelectorAll('input[name="_token"]').forEach(input => {
+                    input.value = newToken;
+                });
+
+                // Update axios/fetch default headers if they exist
+                if (window.axios && window.axios.defaults && window.axios.defaults.headers) {
+                    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = newToken;
+                }
+
+                console.log('✓ CSRF token refreshed');
+            }
+
+            // Ping server to keep session alive
+            async function pingServer() {
+                // Don't ping if logging out
+                if (isLoggingOut) {
+                    console.log('Skipping ping - logout in progress');
+                    return true;
+                }
+
+                try {
+                    const response = await fetch('/keep-alive', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+
+                        // Update CSRF token if provided
+                        if (data.csrf_token) {
+                            updateCSRFToken(data.csrf_token);
+                        }
+
+                        lastPing = Date.now();
+                        console.log('✓ Session keep-alive ping successful');
+                        return true;
+                    } else if (response.status === 419) {
+                        // CSRF token mismatch - page needs refresh
+                        if (!isLoggingOut) {
+                            console.warn('⚠ Session expired (419). Refreshing page...');
+                            showRefreshNotification();
+                            setTimeout(() => window.location.reload(), 2000);
+                        }
+                        return false;
+                    } else if (response.status === 401) {
+                        // Unauthorized - redirect to login
+                        if (!isLoggingOut) {
+                            console.warn('⚠ Unauthorized (401). Redirecting to login...');
+                            window.location.href = '/login';
+                        }
+                        return false;
+                    }
+                } catch (error) {
+                    if (!isLoggingOut) {
+                        console.error('✗ Keep-alive ping failed:', error);
+                    }
+                    return false;
+                }
+            }
+
+            // Refresh CSRF token
+            async function refreshCSRFToken() {
+                // Don't refresh if logging out
+                if (isLoggingOut) {
+                    return true;
+                }
+
+                try {
+                    const response = await fetch('/refresh-csrf', {
+                        method: 'GET',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.csrf_token) {
+                            updateCSRFToken(data.csrf_token);
+                            return true;
+                        }
+                    }
+                } catch (error) {
+                    if (!isLoggingOut) {
+                        console.error('✗ CSRF refresh failed:', error);
+                    }
+                }
+                return false;
+            }
+
+            // Show notification to user
+            function showRefreshNotification() {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #3b82f6;
+                    color: white;
+                    padding: 16px 24px;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    z-index: 10000;
+                    font-family: system-ui, -apple-system, sans-serif;
+                    font-size: 14px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                `;
+                notification.innerHTML = `
+                    <svg class="animate-spin" style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Refreshing page to restore session...</span>
+                `;
+                document.body.appendChild(notification);
+            }
+
+            // Track user activity
+            function updateActivity() {
+                lastActivity = Date.now();
+            }
+
+            // Handle page visibility changes
+            function handleVisibilityChange() {
+                const nowVisible = !document.hidden;
+
+                if (!isPageVisible && nowVisible) {
+                    // Page became visible again
+                    const timeAway = Date.now() - lastActivity;
+
+                    console.log(`Page visible again. Time away: ${Math.round(timeAway / 1000)}s`);
+
+                    // If user was away for more than threshold
+                    if (timeAway > CONFIG.absenceThreshold) {
+                        wasAbsent = true;
+                        console.log('User was absent for a while. Pinging server...');
+
+                        // Immediately ping server to check session
+                        pingServer().then(success => {
+                            if (!success && CONFIG.autoRefreshOnReturn) {
+                                // Session expired, will auto-refresh
+                                showRefreshNotification();
+                                setTimeout(() => window.location.reload(), 2000);
+                            }
+                        });
+
+                        // Also refresh CSRF token
+                        refreshCSRFToken();
+                    }
+                }
+
+                isPageVisible = nowVisible;
+                updateActivity();
+            }
+
+            // Start keep-alive intervals
+            function startKeepAlive() {
+                // Clear any existing intervals
+                if (pingInterval) clearInterval(pingInterval);
+                if (csrfInterval) clearInterval(csrfInterval);
+
+                // Ping server periodically
+                pingInterval = setInterval(() => {
+                    if (isPageVisible) {
+                        pingServer();
+                    }
+                }, CONFIG.pingInterval);
+
+                // Refresh CSRF token periodically
+                csrfInterval = setInterval(() => {
+                    if (isPageVisible) {
+                        refreshCSRFToken();
+                    }
+                }, CONFIG.csrfRefreshInterval);
+
+                console.log('✓ Session keep-alive system started');
+                console.log(`  - Ping interval: ${CONFIG.pingInterval / 1000}s`);
+                console.log(`  - CSRF refresh: ${CONFIG.csrfRefreshInterval / 1000}s`);
+            }
+
+            // Detect logout forms
+            document.addEventListener('DOMContentLoaded', function() {
+                const logoutForms = document.querySelectorAll('form[action*="logout"]');
+                logoutForms.forEach(form => {
+                    form.addEventListener('submit', function() {
+                        isLoggingOut = true;
+                        console.log('Logout initiated - disabling auto-refresh');
+                    });
+                });
+            });
+
+            // Global error handler for 419 errors
+            window.addEventListener('error', function(event) {
+                if (event.message && event.message.includes('419') && !isLoggingOut) {
+                    event.preventDefault();
+                    showRefreshNotification();
+                    setTimeout(() => window.location.reload(), 2000);
+                }
+            }, true);
+
+            // Handle fetch/axios 419 errors
+            const originalFetch = window.fetch;
+            window.fetch = function(...args) {
+                return originalFetch.apply(this, args).then(response => {
+                    if (response.status === 419 && !isLoggingOut) {
+                        console.warn('⚠ 419 error detected. Refreshing page...');
+                        showRefreshNotification();
+                        setTimeout(() => window.location.reload(), 2000);
+                    }
+                    return response;
+                });
+            };
+
+            // Initialize on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                // Track user activity
+                ['mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(event => {
+                    document.addEventListener(event, updateActivity, { passive: true });
+                });
+
+                // Monitor page visibility
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+
+                // Start keep-alive system
+                startKeepAlive();
+
+                // Initial ping
+                setTimeout(() => pingServer(), 1000);
+
+                console.log('✓ Auto-refresh system initialized');
+            });
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', function() {
+                if (pingInterval) clearInterval(pingInterval);
+                if (csrfInterval) clearInterval(csrfInterval);
+            });
+        })();
+    </script>
 </body>
 </html>

@@ -955,6 +955,11 @@
                 },
                 error => {
                     showSimpleAlert('Unable to get your location. Please try address option.', 'error');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
                 }
             );
         } else {

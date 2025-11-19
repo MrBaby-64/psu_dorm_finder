@@ -569,56 +569,36 @@
 
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Password *</label>
-                                <input type="password" name="password" required
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <div class="relative">
+                                    <input type="password" id="regPassword" name="password" required
+                                           class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <button type="button" onclick="togglePasswordVisibility('regPassword', 'regPasswordIcon')"
+                                            class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <svg id="regPasswordIcon" class="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Confirm Password *</label>
-                                <input type="password" name="password_confirmation" required
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                <div class="relative">
+                                    <input type="password" id="regPasswordConfirm" name="password_confirmation" required
+                                           class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
+                                    <button type="button" onclick="togglePasswordVisibility('regPasswordConfirm', 'regPasswordConfirmIcon')"
+                                            class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                        <svg id="regPasswordConfirmIcon" class="w-5 h-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
 
-                            <!-- Tenant Address Fields -->
+                            <!-- Tenant Valid/School ID Field -->
                             <div id="tenantAddressSection" class="hidden">
-                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
-                                    📍 <strong>Help us show you nearby properties!</strong><br>
-                                    Please provide your address so we can show relevant dormitories.
-                                </div>
-
-                                <div class="mb-4">
-                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Current Address *</label>
-                                    <textarea name="address" rows="2"
-                                              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                                              placeholder="Enter your complete address"></textarea>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">City *</label>
-                                        <select name="city" id="citySelect" onchange="toggleOtherCityInput()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">
-                                            <option value="">Select your city</option>
-                                            <option value="Bacolor">Bacolor</option>
-                                            <option value="San Fernando">San Fernando</option>
-                                            <option value="Angeles City">Angeles City</option>
-                                            <option value="Mabalacat">Mabalacat</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                        <!-- Other City Text Input (Hidden by default) -->
-                                        <input type="text"
-                                               name="other_city"
-                                               id="otherCityInput"
-                                               class="hidden w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 mt-2"
-                                               placeholder="Enter your city name">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Province</label>
-                                        <input type="text" name="province" value="Pampanga" readonly
-                                               class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600">
-                                    </div>
-                                </div>
-
-                                <!-- Tenant Valid/School ID Field -->
                                 <div class="mb-4">
                                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                                         Valid ID / School ID <span class="text-red-500">*</span>
@@ -844,11 +824,7 @@
                     tenantSection.classList.remove('hidden');
 
                     // Make tenant fields required
-                    const addressField = tenantSection.querySelector('[name="address"]');
-                    const cityField = tenantSection.querySelector('[name="city"]');
                     const tenantIdField = tenantSection.querySelector('[name="tenant_id"]');
-                    if (addressField) addressField.required = true;
-                    if (cityField) cityField.required = true;
                     if (tenantIdField) tenantIdField.required = true;
                 }
                 if (landlordSection) {
@@ -863,11 +839,7 @@
                     tenantSection.classList.add('hidden');
 
                     // Remove required from tenant fields
-                    const addressField = tenantSection.querySelector('[name="address"]');
-                    const cityField = tenantSection.querySelector('[name="city"]');
                     const tenantIdField = tenantSection.querySelector('[name="tenant_id"]');
-                    if (addressField) addressField.required = false;
-                    if (cityField) cityField.required = false;
                     if (tenantIdField) tenantIdField.required = false;
                 }
                 if (landlordSection) {
@@ -888,21 +860,7 @@
 
 
             if (role === 'tenant') {
-                const addressField = document.querySelector('#tenantAddressSection [name="address"]');
-                const cityField = document.querySelector('#tenantAddressSection [name="city"]');
                 const tenantIdField = document.querySelector('#tenantAddressSection [name="tenant_id"]');
-
-                if (!addressField || !addressField.value.trim()) {
-                    alert('Please provide your current address.');
-                    if (addressField) addressField.focus();
-                    return false;
-                }
-
-                if (!cityField || !cityField.value) {
-                    alert('Please select your city from the dropdown.');
-                    if (cityField) cityField.focus();
-                    return false;
-                }
 
                 if (!tenantIdField || !tenantIdField.files || tenantIdField.files.length === 0) {
                     alert('Please upload your Valid ID or School ID for verification.');
@@ -1222,20 +1180,24 @@
             });
         @endif
 
-        // Toggle "Other" city input
-        function toggleOtherCityInput() {
-            const citySelect = document.getElementById('citySelect');
-            const otherCityInput = document.getElementById('otherCityInput');
+        // Password visibility toggle
+        function togglePasswordVisibility(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
 
-            if (citySelect && otherCityInput) {
-                if (citySelect.value === 'Other') {
-                    otherCityInput.classList.remove('hidden');
-                    otherCityInput.required = true;
-                } else {
-                    otherCityInput.classList.add('hidden');
-                    otherCityInput.required = false;
-                    otherCityInput.value = '';
-                }
+            if (input.type === 'password') {
+                input.type = 'text';
+                // Change to "eye-off" icon
+                icon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                `;
+            } else {
+                input.type = 'password';
+                // Change back to "eye" icon
+                icon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                `;
             }
         }
     </script>

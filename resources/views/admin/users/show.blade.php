@@ -98,18 +98,6 @@
             </div>
             <div class="space-y-3">
                 <div>
-                    <label class="text-sm font-medium text-gray-500">Address</label>
-                    <div class="text-gray-900">{{ $user->address ?: 'Not provided' }}</div>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">City</label>
-                    <div class="text-gray-900">{{ $user->city ?: 'Not provided' }}</div>
-                </div>
-                <div>
-                    <label class="text-sm font-medium text-gray-500">Province</label>
-                    <div class="text-gray-900">{{ $user->province ?: 'Not provided' }}</div>
-                </div>
-                <div>
                     <label class="text-sm font-medium text-gray-500">Account Status</label>
                     <div class="flex items-center space-x-2">
                         @if($user->is_verified)
@@ -209,8 +197,8 @@
     </div>
     @endif
 
-    {{-- Suspension Section (for tenants) --}}
-    @if($user->role === 'tenant')
+    {{-- Suspension Section (for tenants and landlords) --}}
+    @if(in_array($user->role, ['tenant', 'landlord']))
     <div class="px-6 py-4 border-t">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">⚠️ Account Suspension Management</h3>
 
@@ -674,7 +662,7 @@
     </div>
 </div>
 
-@if($user->role === 'tenant')
+@if(in_array($user->role, ['tenant', 'landlord']))
 <script>
 function switchTab(tabName) {
     // Hide all tab contents
@@ -752,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="relative top-20 mx-auto p-8 border w-full max-w-2xl shadow-lg rounded-lg bg-white">
         <!-- Modal Header -->
         <div class="flex justify-between items-center pb-4 mb-4 border-b">
-            <h3 class="text-2xl font-bold text-gray-900">Suspend Tenant Account</h3>
+            <h3 class="text-2xl font-bold text-gray-900">Suspend {{ ucfirst($user->role) }} Account</h3>
             <button onclick="closeSuspendModal()" class="text-gray-400 hover:text-gray-600 text-3xl font-bold">&times;</button>
         </div>
 
@@ -780,7 +768,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
 
         <!-- Suspension Form -->
-        <form action="{{ route('admin.users.suspend', $user) }}" method="POST" onsubmit="return confirm('Are you sure you want to suspend this tenant? They will not be able to login until the suspension is lifted.');">
+        <form action="{{ route('admin.users.suspend', $user) }}" method="POST" onsubmit="return confirm('Are you sure you want to suspend this {{ $user->role }}? They will not be able to login until the suspension is lifted.');">
             @csrf
 
             <!-- Duration Selection -->
@@ -838,9 +826,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     required
                     maxlength="1000"
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Enter the reason for this suspension (will be visible to the tenant)..."
+                    placeholder="Enter the reason for this suspension (will be visible to the user)..."
                 ></textarea>
-                <p class="text-xs text-gray-500 mt-1">This reason will be shown to the tenant. Be clear and professional.</p>
+                <p class="text-xs text-gray-500 mt-1">This reason will be shown to the user. Be clear and professional.</p>
             </div>
 
             <!-- Admin Notes (Optional) -->
@@ -856,7 +844,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Internal notes for admin records only (optional)..."
                 ></textarea>
-                <p class="text-xs text-gray-500 mt-1">These notes are for admin use only and will not be shown to the tenant.</p>
+                <p class="text-xs text-gray-500 mt-1">These notes are for admin use only and will not be shown to the user.</p>
             </div>
 
             <!-- Action Buttons -->
